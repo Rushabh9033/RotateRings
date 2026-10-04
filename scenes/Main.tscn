@@ -1,0 +1,59 @@
+[gd_scene load_steps=10 format=3 uid="uid://loopshift_main_scene"]
+
+[ext_resource type="Script" path="res://app/app.gd" id="1_app_script"]
+[ext_resource type="Script" path="res://app/save_service.gd" id="2_save_script"]
+[ext_resource type="Script" path="res://app/audio_service.gd" id="3_audio_script"]
+[ext_resource type="Script" path="res://app/haptic_service.gd" id="4_haptic_script"]
+[ext_resource type="Script" path="res://app/scene_router.gd" id="5_router_script"]
+[ext_resource type="PackedScene" uid="uid://home_screen_scene" path="res://scenes/home/HomeScreen.tscn" id="6_home_scene"]
+[ext_resource type="PackedScene" uid="uid://level_select_screen_scene" path="res://scenes/level_select/LevelSelectScreen.tscn" id="7_ls_scene"]
+[ext_resource type="PackedScene" uid="uid://gameplay_screen_scene" path="res://scenes/gameplay/GameplayScreen.tscn" id="8_gp_scene"]
+[ext_resource type="PackedScene" uid="uid://settings_modal_scene" path="res://scenes/components/SettingsModal.tscn" id="9_settings_scene"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_app_script")
+
+[node name="Services" type="Node" parent="."]
+
+[node name="SaveService" type="Node" parent="Services"]
+script = ExtResource("2_save_script")
+
+[node name="AudioService" type="Node" parent="Services"]
+script = ExtResource("3_audio_script")
+
+[node name="HapticService" type="Node" parent="Services"]
+script = ExtResource("4_haptic_script")
+
+[node name="SceneRouter" type="Node" parent="."]
+script = ExtResource("5_router_script")
+
+[node name="Screens" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="HomeScreen" parent="Screens" instance=ExtResource("6_home_scene")]
+layout_mode = 1
+
+[node name="LevelSelectScreen" parent="Screens" instance=ExtResource("7_ls_scene")]
+visible = false
+layout_mode = 1
+
+[node name="GameplayScreen" parent="Screens" instance=ExtResource("8_gp_scene")]
+visible = false
+layout_mode = 1
+
+[node name="SettingsModal" parent="Screens" instance=ExtResource("9_settings_scene")]
+visible = false
+layout_mode = 1

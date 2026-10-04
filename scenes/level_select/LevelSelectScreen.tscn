@@ -1,0 +1,74 @@
+[gd_scene load_steps=2 format=3 uid="uid://level_select_screen_scene"]
+
+[ext_resource type="Script" path="res://scenes/level_select/LevelSelectScreen.gd" id="1_ls_script"]
+
+[node name="LevelSelectScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ls_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.980392, 0.960784, 0.92549, 1)
+
+[node name="SafeArea" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 48
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 48
+
+[node name="Header" type="VBoxContainer" parent="SafeArea"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 12
+
+[node name="TopRow" type="HBoxContainer" parent="SafeArea/Header"]
+layout_mode = 2
+
+[node name="BackBtn" type="Button" parent="SafeArea/Header/TopRow"]
+custom_minimum_size = Vector2(80, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "← BACK"
+
+[node name="ChapterTitle" type="Label" parent="SafeArea/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.247059, 0.2, 0.160784, 1)
+theme_override_font_sizes/font_size = 28
+text = "CHAPTER 1: LEARN THE LOOP"
+horizontal_alignment = 1
+
+[node name="ProgressLbl" type="Label" parent="SafeArea/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.537255, 0.435294, 0.329412, 1)
+theme_override_font_sizes/font_size = 16
+text = "0 / 12 Cleared"
+horizontal_alignment = 1
+
+[node name="Scroll" type="ScrollContainer" parent="SafeArea"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Grid" type="GridContainer" parent="SafeArea/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 6
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 24
+columns = 3
