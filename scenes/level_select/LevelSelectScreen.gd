@@ -6,10 +6,10 @@ const LevelDatabaseScript = preload("res://data/level_database.gd")
 signal level_selected(level_id: int)
 signal back_pressed
 
-@onready var back_btn: Button = $SafeArea/Header/TopRow/BackBtn
-@onready var chapter_title: Label = $SafeArea/Header/ChapterTitle
-@onready var progress_lbl: Label = $SafeArea/Header/ProgressLbl
-@onready var grid_container: GridContainer = $SafeArea/Scroll/Grid
+@onready var back_btn: Button = $SafeArea/VBox/Header/TopRow/BackBtn
+@onready var chapter_title: Label = $SafeArea/VBox/Header/ChapterTitle
+@onready var progress_lbl: Label = $SafeArea/VBox/Header/ProgressLbl
+@onready var grid_container: GridContainer = $SafeArea/VBox/Scroll/Grid
 
 var save_service: Node = null
 var audio_service: Node = null
@@ -30,7 +30,7 @@ func build_grid() -> void:
 	if not is_instance_valid(grid_container): return
 	
 	# Replace GridContainer with a generic Control for custom mapping
-	var scroll = $SafeArea/Scroll
+	var scroll = $SafeArea/VBox/Scroll
 	var journey_map = Control.new()
 	scroll.add_child(journey_map)
 	grid_container.queue_free()

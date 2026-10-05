@@ -32,7 +32,10 @@ theme_override_constants/margin_top = 48
 theme_override_constants/margin_right = 32
 theme_override_constants/margin_bottom = 48
 
-[node name="Header" type="VBoxContainer" parent="SafeArea"]
+[node name="VBox" type="VBoxContainer" parent="SafeArea"]
+layout_mode = 2
+
+[node name="Header" type="VBoxContainer" parent="SafeArea/VBox"]
 layout_mode = 2
 size_flags_vertical = 0
 theme_override_constants/separation = 12
@@ -60,7 +63,7 @@ theme_override_font_sizes/font_size = 16
 text = "0 / 12 Cleared"
 horizontal_alignment = 1
 
-[node name="Scroll" type="ScrollContainer" parent="SafeArea"]
+[node name="Scroll" type="ScrollContainer" parent="SafeArea/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
