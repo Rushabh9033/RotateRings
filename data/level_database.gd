@@ -345,33 +345,27 @@ static func get_level(level_id: int):
 			]
 
 		13:
-			def.title = "Level 13"
-			def.instruction = "Clear the rings!"
-			def.par_moves = 7
-			var r0 = PieceDefinitionScript.new(&"ring_0", Vector2(387.0, 629.0), 115.0, 24.0, Color("#7D2AD4"), 84.3, [])
-			var r1 = PieceDefinitionScript.new(&"ring_1", Vector2(267.0, 351.0), 115.0, 24.0, Color("#C8202F"), 67.2, [GapDefinitionScript.new(34.9, 56.0, 16.0)])
-			var r2 = PieceDefinitionScript.new(&"ring_2", Vector2(267.0, 351.0), 150.0, 24.0, Color("#F38224"), 231.3, [GapDefinitionScript.new(17.0, 56.0, 16.0), GapDefinitionScript.new(176.2, 56.0, 16.0)])
-			var r3 = PieceDefinitionScript.new(&"ring_3", Vector2(267.0, 351.0), 76.0, 24.0, Color("#29B6F6"), 335.8, [GapDefinitionScript.new(273.8, 56.0, 16.0)])
-			var r4 = PieceDefinitionScript.new(&"ring_4", Vector2(257.0, 898.0), 76.0, 24.0, Color("#32ADDA"), 126.9, [GapDefinitionScript.new(292.8, 56.0, 16.0)])
-			var r5 = PieceDefinitionScript.new(&"ring_5", Vector2(267.0, 351.0), 40.0, 24.0, Color("#EA7829"), 293.4, [GapDefinitionScript.new(185.0, 56.0, 16.0)])
-			def.pieces = [r0, r1, r2, r3, r4, r5]
+			def.title = "Shape Sandbox"
+			def.instruction = "Test the new geometry system!"
+			def.par_moves = 4
+			# Circle
+			var r0 = PieceDefinitionScript.new(&"ring_0", Vector2(200.0, 300.0), 76.0, 24.0, Color("#32ADDA"), 0.0, [GapDefinitionScript.new(180.0, 56.0, 16.0)], 0.0, 0)
+			# Square
+			var r1 = PieceDefinitionScript.new(&"ring_1", Vector2(500.0, 300.0), 76.0, 24.0, Color("#EA7829"), 0.0, [GapDefinitionScript.new(180.0, 56.0, 16.0)], 0.0, 1)
+			# Triangle
+			var r2 = PieceDefinitionScript.new(&"ring_2", Vector2(200.0, 600.0), 76.0, 24.0, Color("#8228D9"), 0.0, [GapDefinitionScript.new(0.0, 56.0, 16.0)], 0.0, 2)
+			# Oval
+			var r3 = PieceDefinitionScript.new(&"ring_3", Vector2(500.0, 600.0), 76.0, 24.0, Color("#C8202F"), 0.0, [GapDefinitionScript.new(0.0, 56.0, 16.0)], 0.0, 3)
+			
+			def.pieces = [r0, r1, r2, r3]
 			def.links = [
-				LinkDefinitionScript.new(&"link_0", &"ring_0", &"ring_4", Color("#7D2AD4")),
-				LinkDefinitionScript.new(&"link_1", &"ring_0", &"ring_5", Color("#7D2AD4")),
-				LinkDefinitionScript.new(&"link_2", &"ring_4", &"ring_3", Color("#32ADDA")),
-				LinkDefinitionScript.new(&"link_3", &"ring_0", &"ring_1", Color("#7D2AD4")),
-				LinkDefinitionScript.new(&"link_4", &"ring_4", &"ring_2", Color("#32ADDA")),
-				LinkDefinitionScript.new(&"link_5", &"ring_0", &"ring_2", Color("#7D2AD4"))
+				LinkDefinitionScript.new(&"link_0", &"ring_1", &"ring_0", Color("#EA7829")),
+				LinkDefinitionScript.new(&"link_1", &"ring_2", &"ring_3", Color("#8228D9"))
 			]
 			def.canonical_steps = [
-				SolutionStepScript.new(&"ring_2", 250.4, true),
-				SolutionStepScript.new(&"ring_2", 74.1, true),
-				SolutionStepScript.new(&"ring_1", 31.8, true),
-				SolutionStepScript.new(&"ring_3", 177.3, true),
-				SolutionStepScript.new(&"ring_5", 241.6, true),
-				SolutionStepScript.new(&"ring_4", 3.0, true)
+				SolutionStepScript.new(&"ring_0", 180.0, true),
+				SolutionStepScript.new(&"ring_3", 180.0, true)
 			]
-
 		14:
 			def.title = "Level 14"
 			def.instruction = "Clear the rings!"
