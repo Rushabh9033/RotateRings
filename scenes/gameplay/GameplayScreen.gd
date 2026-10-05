@@ -95,11 +95,8 @@ func _frame_puzzle() -> void:
 	
 	# Calculate safe area dynamically based on UI nodes
 	var viewport_size = get_viewport_rect().size
-	var top_hud = $SafeArea/TopHUD
-	var bottom_hud = $SafeArea/BottomHUD
-	
-	var safe_margin_top = top_hud.size.y + top_hud.position.y + 40.0 if is_instance_valid(top_hud) else 180.0
-	var safe_margin_bottom = bottom_hud.size.y + (viewport_size.y - bottom_hud.global_position.y) + 40.0 if is_instance_valid(bottom_hud) else 220.0
+	var safe_margin_top = 200.0
+	var safe_margin_bottom = 260.0
 	var safe_margin_x = 40.0
 	
 	var safe_width = viewport_size.x - (safe_margin_x * 2.0)
