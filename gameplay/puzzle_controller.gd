@@ -214,18 +214,31 @@ func _on_collision_occurred(pos: Vector2, color: Color) -> void:
 	add_child(sparks)
 	sparks.setup(pos, color)
 
+func _update_link_dist(val: float, link) -> void:
+	link.current_stem_dist = val
+	_redraw_connectors()
+
 func check_unlock_on_drag_ended(piece: Node2D) -> void:
 	if not is_instance_valid(piece): return
 	if piece.state == RingPiece2DScript.State.RELEASED or piece.state == RingPiece2DScript.State.RELEASING:
 		return
 
-	if PuzzleRulesScript.is_piece_releasable(piece, active_pieces, active_links):
+	# 1. Clear any newly aligned connectors
+	var newly_detached = PuzzleRulesScript.evaluate_clearance(piece, active_pieces, active_links)
+	if newly_detached.size() > 0:
+		for link in newly_detached:
+			# Physically retract the stem
+			var t = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+			t.tween_method(_update_link_dist.bind(link), link.current_stem_dist, link.def.stem_dist - 30.0, 0.2)
+		
 		if audio_service and audio_service.has_method("play_rotation_tick"):
 			audio_service.play_rotation_tick(1.6)
+
+	# 2. Check if the entire piece can now be released
+	if PuzzleRulesScript.is_piece_releasable(piece, active_pieces, active_links):
 		if haptic_service and haptic_service.has_method("trigger_selection"):
 			haptic_service.trigger_selection()
 		
-		# Fallback/immediate check for cascade
 		_redraw_connectors()
 		unlock_and_release_piece(piece)
 

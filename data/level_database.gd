@@ -97,15 +97,10 @@ static func get_level(level_id: int):
 				SolutionStepScript.new(&"ring_1", 59.0, true)
 			]
 
-		4: # Level 4 (Video 00:47 - 01:12): Central Purple O-Ring + 6 Outer Rings Web
-			# Central Purple (#8228D9) closed O-ring at (360, 600) with 4 stems holding Cyan, Orange, Red, Green
-			# Top DarkGreen (#1F7D3A) at (360, 320) with 2 stems holding Cyan and Orange (opening facing UP at 270°)
-			# Bottom Blue (#32ADDA) at (360, 880) held by Red and Green (opening facing DOWN at 90°)
-			# Left side (Cyan, Red): openings facing LEFT (180°)
-			# Right side (Orange, Green): openings facing RIGHT (0°)
+		4: # Level 4 (Video 00:54+): 5-Ring Chain
 			def.title = "Level 4"
-			def.instruction = "Free the outer rings to release the central core!"
-			def.par_moves = 6
+			def.instruction = "Work your way to the anchor!"
+			def.par_moves = 8
 			var r_center = PieceDefinitionScript.new(&"ring_center", Vector2(360, 600), 72.0, 24.0, Color("#8228D9"), 0.0, []) # Closed Purple O-ring
 			var r0 = PieceDefinitionScript.new(&"ring_0", Vector2(230, 460), 76.0, 24.0, Color("#3EA7C0"), 180.0, [GapDefinitionScript.new(0.0, 56.0, 6.0)]) # Cyan TL
 			var r1 = PieceDefinitionScript.new(&"ring_1", Vector2(490, 460), 76.0, 24.0, Color("#EA7829"), 0.0,   [GapDefinitionScript.new(0.0, 56.0, 6.0)]) # Orange TR
@@ -164,10 +159,10 @@ static func get_level(level_id: int):
 				SolutionStepScript.new(&"ring_2", 142.1, true)
 			]
 
-		6: # Level 6: Clover Constellation (9 pieces, closed O-ring center)
-			def.title = "Clover Constellation"
-			def.instruction = "Untangle the clover constellation."
-			def.par_moves = 6
+		6: # Level 6 (Video 01:21+): Clover Constellation
+			def.title = "Level 6"
+			def.instruction = "Release the outer leaves first!"
+			def.par_moves = 10
 			var r0 = PieceDefinitionScript.new(&"ring_0", Vector2(220, 360), 72.0, 24.0, Color("#F38224"), 270.0, [GapDefinitionScript.new(0.0, 56.0, 6.0)]) # Orange TL
 			var r1 = PieceDefinitionScript.new(&"ring_1", Vector2(500, 360), 72.0, 24.0, Color("#7D2AD4"), 270.0, [GapDefinitionScript.new(0.0, 56.0, 6.0)]) # Purple TR
 			var r2 = PieceDefinitionScript.new(&"ring_2", Vector2(360, 500), 68.0, 24.0, Color("#29B6F6"), 0.0,   []) # Closed Blue O-ring center
@@ -203,10 +198,10 @@ static func get_level(level_id: int):
 				SolutionStepScript.new(&"ring_1", 135.0, true)
 			]
 
-		7: # Level 7: Twin Pillars (Y-arch)
-			def.title = "Twin Pillars"
-			def.instruction = "Untangle the twin arch."
-			def.par_moves = 5
+		7: # Level 7 (Video 01:31+): Twin Pillars
+			def.title = "Level 7"
+			def.instruction = "Two paths, one solution."
+			def.par_moves = 6
 			var r0 = PieceDefinitionScript.new(&"ring_0", Vector2(220, 380), 76.0, 24.0, Color("#29B6F6"), 90.0, [GapDefinitionScript.new(0.0, 56.0, 6.0)])
 			var r1 = PieceDefinitionScript.new(&"ring_1", Vector2(500, 380), 76.0, 24.0, Color("#62C73E"), 90.0, [GapDefinitionScript.new(0.0, 56.0, 6.0)])
 			var r2 = PieceDefinitionScript.new(&"ring_2", Vector2(360, 520), 76.0, 24.0, Color("#7D2AD4"), 90.0, [GapDefinitionScript.new(0.0, 56.0, 6.0)])

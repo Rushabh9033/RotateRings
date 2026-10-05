@@ -28,34 +28,17 @@ static func is_piece_rotatable(
 	return true
 
 # Evaluates whether a piece is completely free to release/shatter
-static func is_piece_releasable(
-	piece,
-	all_pieces: Array,
-	links: Array
-) -> bool:
-	if not piece or piece.state == 6 or piece.state == 5: # RELEASED or RELEASING
-		return false
+static func evaluate_clearance(piece, all_pieces: Array, links: Array) -> Array:
+	var newly_detached = []
+	if not piece or piece.state == 6 or piece.state == 5:
+		return newly_detached
 		
 	var p_id: StringName = piece.piece_id
-	
-	# 1. If this piece owns any collar that is still attached to an active child, cannot release!
-	for link in links:
-		if link.def.from_piece_id == p_id and link.state != ConnectorRuntime.State.DETACHED:
-			var child_p = get_piece_by_id(link.def.to_piece_id, all_pieces)
-			if child_p and child_p.state != 6 and child_p.state != 5:
-				return false
-				
-	# 2. If this piece is still held by parent collars, ALL of them must be perfectly aligned with a gap!
-	var has_active_parents = false
-	var all_parents_aligned = true
 	
 	for link in links:
 		if link.def.to_piece_id == p_id and link.state != ConnectorRuntime.State.DETACHED:
 			var from_p = get_piece_by_id(link.def.from_piece_id, all_pieces)
 			if from_p and from_p.state != 6 and from_p.state != 5:
-				has_active_parents = true
-				
-				# Check if this connector is aligned with a gap
 				var world_angle_rad: float = deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
 				var dir := Vector2.from_angle(world_angle_rad)
 				var pos_cuff: Vector2 = from_p.position + dir * (link.def.stem_dist - piece.radius)
@@ -66,23 +49,37 @@ static func is_piece_releasable(
 				for gap in piece.gaps:
 					var gap_world_center := fposmod(piece.rotation_degrees + gap.center_angle_deg, 360.0)
 					var dist: float = absf(wrapf(angle_on_piece_deg - gap_world_center, -180.0, 180.0))
-					# Allow a tiny float margin for perfect snap
 					if dist < 1.0:
 						is_aligned = true
 						break
 				
-				if not is_aligned:
-					all_parents_aligned = false
-					break
+				if is_aligned:
+					link.state = ConnectorRuntime.State.DETACHED
+					newly_detached.append(link)
 					
-	if has_active_parents and not all_parents_aligned:
+	return newly_detached
+
+static func is_piece_releasable(piece, all_pieces: Array, links: Array) -> bool:
+	if not piece or piece.state == 6 or piece.state == 5:
 		return false
+		
+	var p_id: StringName = piece.piece_id
+	
+	for link in links:
+		if link.def.from_piece_id == p_id and link.state != ConnectorRuntime.State.DETACHED:
+			var child_p = get_piece_by_id(link.def.to_piece_id, all_pieces)
+			if child_p and child_p.state != 6 and child_p.state != 5:
+				return false
+				
+	for link in links:
+		if link.def.to_piece_id == p_id and link.state != ConnectorRuntime.State.DETACHED:
+			var from_p = get_piece_by_id(link.def.from_piece_id, all_pieces)
+			if from_p and from_p.state != 6 and from_p.state != 5:
+				return false
 					
-	# 3. If it had parents or children initially, and all attached links are now cleared:
 	if piece.has_meta("had_children_initially") or piece.has_meta("had_parents_initially"):
 		return true
 		
-	# 4. Standalone tutorial ring (Level 1): must align gap with exit target angle!
 	var target_exit: float = float(piece.get("target_exit_angle_deg")) if piece.get("target_exit_angle_deg") != null else 0.0
 	return piece.is_angle_in_any_gap(target_exit)
 

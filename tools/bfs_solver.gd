@@ -1,5 +1,5 @@
 extends RefCounted
-const DEBUG = true
+const DEBUG = false
 
 const PuzzleRulesScript = preload("res://gameplay/puzzle_rules.gd")
 const RingPiece2DScript = preload("res://gameplay/ring_piece_2d.gd")
@@ -117,10 +117,7 @@ static func _apply_move(state: Dictionary, move: Dictionary) -> void:
 	var p = PuzzleRulesScript.get_piece_by_id(move.piece_id, state.pieces)
 	p.rotation_degrees = move.target_rot
 	
-	for l in state.links:
-		if l.def.id == move.link_to_detach:
-			l.state = ConnectorRuntime.State.DETACHED
-			break
+	PuzzleRulesScript.evaluate_clearance(p, state.pieces, state.links)
 			
 	_cascade_check(state.pieces, state.links)
 
