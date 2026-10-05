@@ -48,6 +48,7 @@ func trigger_hint():
 				
 			var r = piece.radius
 			var center = piece.global_position
+			var grab_offset = Vector2.RIGHT * r
 			var from_pos = center + grab_offset.rotated(deg_to_rad(start_deg))
 			var to_pos = center + grab_offset.rotated(deg_to_rad(target_deg))
 			
