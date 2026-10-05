@@ -141,7 +141,7 @@ func _draw() -> void:
 		_draw_ring_arc(Vector2.ZERO, radius, 0.0, TAU, seg_count, cap_r, is_closed)
 		return
 
-	var arcs = RingGeometry.get_solid_arcs(gaps)
+	var arcs: Array = RingGeometry.get_solid_arcs(gaps)
 
 	for arc in arcs:
 		var arc_start: float = arc.start - deg_to_rad(rotation_degrees)

@@ -22,14 +22,14 @@ func _init() -> void:
 			continue
 		print("\n--- Auditing Level %d: '%s' ---" % [lvl, def.title])
 
-		var pieces_array := []
+		var pieces_array: Array = []
 		for p_def in def.pieces:
 			var p_node = RingPiece2DScript.new()
 			p_node.setup(p_def)
 			p_node.position = p_def.position
 			pieces_array.append(p_node)
 
-		var active_links := []
+		var active_links: Array = []
 		for link_def in def.links:
 			var cr = ConnectorRuntime.new(link_def)
 			var from_p = PuzzleRulesScript.get_piece_by_id(cr.def.from_piece_id, pieces_array)

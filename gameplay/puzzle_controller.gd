@@ -304,7 +304,7 @@ func unlock_and_release_piece(piece: Node2D) -> void:
 			l.state = ConnectorRuntime.State.DETACHED
 
 	# Remove outgoing links (piece's own stems/cuffs vanish with it)
-	var links_to_remove := []
+	var links_to_remove: Array = []
 	for l in active_links:
 		if l.def.from_piece_id == p_id:
 			links_to_remove.append(l)
@@ -329,7 +329,7 @@ func _on_piece_release_completed(piece: Node2D) -> void:
 	piece_count_updated.emit(active_pieces.size())
 	_redraw_connectors()
 
-	var remaining := active_pieces.filter(func(p):
+	var remaining = active_pieces.filter(func(p):
 		return is_instance_valid(p) and \
 			p.state != RingPiece2DScript.State.RELEASED and \
 			p.state != RingPiece2DScript.State.RELEASING
@@ -345,7 +345,7 @@ func _on_piece_release_completed(piece: Node2D) -> void:
 	_check_cascade_releases()
 
 func _check_cascade_releases() -> void:
-	var remaining := active_pieces.filter(func(p):
+	var remaining = active_pieces.filter(func(p):
 		return is_instance_valid(p) and \
 			p.state != RingPiece2DScript.State.RELEASED and \
 			p.state != RingPiece2DScript.State.RELEASING

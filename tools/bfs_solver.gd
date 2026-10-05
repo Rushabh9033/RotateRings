@@ -7,18 +7,18 @@ const ConnectorRuntime = preload("res://gameplay/connector_runtime.gd")
 
 static func _get_state_id(pieces: Array, links: Array) -> String:
 	var s = ""
-	var p_list = pieces.filter(func(p): return p.state != RingPiece2DScript.State.RELEASED)
+	var p_list: Array = pieces.filter(func(p): return p.state != RingPiece2DScript.State.RELEASED)
 	p_list.sort_custom(func(a, b): return a.piece_id < b.piece_id)
 	for p in p_list:
 		s += p.piece_id + ":" + str(snappedf(fposmod(p.rotation_degrees, 360.0), 1.0)) + "|"
-	var l_list = links.filter(func(l): return l.state != ConnectorRuntime.State.DETACHED)
+	var l_list: Array = links.filter(func(l): return l.state != ConnectorRuntime.State.DETACHED)
 	l_list.sort_custom(func(a, b): return a.def.id < b.def.id)
 	for l in l_list:
 		s += l.def.id + "|"
 	return s
 
 static func _clone_state(pieces: Array, links: Array) -> Dictionary:
-	var new_p = []
+	var new_p: Array = []
 	for p in pieces:
 		var n = RingPiece2DScript.new()
 		n.piece_id = p.piece_id
@@ -30,7 +30,7 @@ static func _clone_state(pieces: Array, links: Array) -> Dictionary:
 		n.gaps = p.gaps.duplicate(true)
 		new_p.append(n)
 	
-	var new_l = []
+	var new_l: Array = []
 	for l in links:
 		var def_clone = LinkDefinitionScript.new(l.def.id, l.def.from_piece_id, l.def.to_piece_id, l.def.joint_color)
 		def_clone.collar_angle_deg = l.def.collar_angle_deg
@@ -43,12 +43,12 @@ static func _clone_state(pieces: Array, links: Array) -> Dictionary:
 	return { "pieces": new_p, "links": new_l }
 
 static func _get_moves(pieces: Array, links: Array) -> Array:
-	var moves = []
+	var moves: Array = []
 	for p in pieces:
 		if p.state == RingPiece2DScript.State.RELEASED: continue
 		if not PuzzleRulesScript.is_piece_rotatable(p, pieces, links): continue
 		
-		var incoming = []
+		var incoming: Array = []
 		for l in links:
 			if l.def.to_piece_id == p.piece_id and l.state != ConnectorRuntime.State.DETACHED:
 				incoming.append(l)

@@ -189,7 +189,7 @@ func update_drag(global_pt: Vector2) -> void:
 	last_pointer_angle_deg = current_pointer_angle_deg
 
 	# Check physical connector collision
-	var clamp_res := PuzzleRulesScript.clamp_rotation_step(
+	var clamp_res = PuzzleRulesScript.clamp_rotation_step(
 		piece,
 		step_delta_deg,
 		current_active_pieces,
@@ -294,7 +294,7 @@ func end_drag() -> void:
 		var target_snap := roundf(piece.rotation_degrees / snap_step) * snap_step
 		snap_delta = target_snap - piece.rotation_degrees
 
-	var clamp_snap := PuzzleRulesScript.clamp_rotation_step(
+	var clamp_snap = PuzzleRulesScript.clamp_rotation_step(
 		piece,
 		snap_delta,
 		current_active_pieces,

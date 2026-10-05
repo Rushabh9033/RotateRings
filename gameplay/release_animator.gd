@@ -38,7 +38,7 @@ func animate_release(
 	# 1. Spawn Realistic Ring Fragments (RigidBody2D Arcs)
 	var shards_per_full_circle := 12
 	
-	var arcs = RingGeometry.get_solid_arcs(piece.gaps)
+	var arcs: Array = RingGeometry.get_solid_arcs(piece.gaps)
 	for arc in arcs:
 		var start_angle: float = arc.start
 		var end_angle: float = arc.end

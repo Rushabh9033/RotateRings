@@ -23,7 +23,7 @@ func setup(p_radius: float, p_thickness: float, p_color: Color, p_gaps: Array, p
 	_build_collision()
 
 func _build_collision() -> void:
-	var arcs_to_build = []
+	var arcs_to_build: Array = []
 	if use_custom_arc:
 		arcs_to_build.append({ "start": custom_arc_start, "end": custom_arc_end })
 	else:
@@ -79,7 +79,7 @@ func _draw() -> void:
 		_draw_ring_arc(Vector2.ZERO, radius, 0.0, TAU, seg_count, cap_r, is_closed)
 		return
 
-	var arcs = RingGeometry.get_solid_arcs(gaps)
+	var arcs: Array = RingGeometry.get_solid_arcs(gaps)
 	for arc in arcs:
 		var arc_start: float = arc.start
 		var arc_end: float = arc.end

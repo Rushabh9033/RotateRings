@@ -6,7 +6,7 @@ static func get_solid_arcs(gaps: Array) -> Array:
 	if gaps.is_empty():
 		return [{ "start": 0.0, "end": TAU }]
 	
-	var normalized_gaps = []
+	var normalized_gaps: Array = []
 	for gap in gaps:
 		if gap.width_deg <= 0.0: continue
 		var c = deg_to_rad(fposmod(gap.center_angle_deg, 360.0))
@@ -18,7 +18,7 @@ static func get_solid_arcs(gaps: Array) -> Array:
 	
 	normalized_gaps.sort_custom(func(a, b): return a.center < b.center)
 	
-	var solid_arcs = []
+	var solid_arcs: Array = []
 	for i in range(normalized_gaps.size()):
 		var current_gap = normalized_gaps[i]
 		var next_gap = normalized_gaps[(i + 1) % normalized_gaps.size()]
