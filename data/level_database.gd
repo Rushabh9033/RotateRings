@@ -124,10 +124,10 @@ static func get_level(level_id: int):
 				SolutionStepScript.new(&"ring_1", 230.0, true),
 				SolutionStepScript.new(&"ring_0", 50.0, true),
 				SolutionStepScript.new(&"ring_1", 130.0, true),
-				SolutionStepScript.new(&"ring_4", 230.0, true),
-				SolutionStepScript.new(&"ring_4", 310.0, true),
 				SolutionStepScript.new(&"ring_2", 310.0, true),
-				SolutionStepScript.new(&"ring_3", 230.0, true)
+				SolutionStepScript.new(&"ring_3", 230.0, true),
+				SolutionStepScript.new(&"ring_4", 230.0, true),
+				SolutionStepScript.new(&"ring_4", 310.0, true)
 			]
 
 		5: # Level 5 (Video 01:13+): Asymmetrical 7-Ring Web

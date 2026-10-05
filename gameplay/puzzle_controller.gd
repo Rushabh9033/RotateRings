@@ -239,7 +239,7 @@ func check_unlock_on_drag_ended(piece: Node2D) -> void:
 	if newly_clearing.size() > 0:
 		for link in newly_clearing:
 			var t = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-			t.tween_method(_update_link_dist.bind(link), link.current_stem_dist, link.def.stem_dist - 30.0, 0.2)
+			# t.tween_method(_update_link_dist.bind(link), link.current_stem_dist, link.def.stem_dist - 30.0, 0.2) # Do not retract stem, let it trap the gap!
 			t.tween_callback(func():
 				link.state = ConnectorRuntime.State.DETACHED
 				check_unlock_for_piece(piece)

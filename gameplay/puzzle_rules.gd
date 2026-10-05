@@ -13,13 +13,7 @@ static func is_piece_rotatable(
 		
 	var p_id: StringName = piece.piece_id
 	
-	# If this piece owns any collar that is still holding an attached child piece,
-	# this piece CANNOT rotate (it is physically locked until child ring detaches!)
-	for link in links:
-		if link.def.from_piece_id == p_id and link.state != ConnectorRuntime.State.DETACHED:
-			var child_p = get_piece_by_id(link.def.to_piece_id, all_pieces)
-			if child_p and child_p.state != 6 and child_p.state != 5:
-				return false
+	# Parents can rotate, as long as they dont hit anything.
 				
 	# If any incoming collar is currently clearing/retracting, lock rotation temporarily.
 	for link in links:
@@ -168,6 +162,46 @@ static func clamp_rotation_step(
 	var pos_limiter_parent = null
 	var neg_limiter_link_out = null
 	var neg_limiter_parent = null
+
+	# Prevent the gap from rotating away from a detached incoming stem (which traps the gap until parent shatters)
+	for link_in in links:
+		if link_in.def.to_piece_id != piece.piece_id:
+			continue
+		if link_in.state != ConnectorRuntime.State.DETACHED:
+			continue
+			
+		var parent_p = get_piece_by_id(link_in.def.from_piece_id, all_pieces)
+		if not is_instance_valid(parent_p) or parent_p.state == 6 or parent_p.state == 5:
+			continue # Parent is gone, stem is gone
+			
+		var world_angle_rad: float = deg_to_rad(parent_p.rotation_degrees + link_in.def.collar_angle_deg)
+		var dir := Vector2.from_angle(world_angle_rad)
+		var shape_type = piece.def.shape_type if piece.get("def") and "shape_type" in piece.def else 0
+		var child_r = PieceGeometry.get_world_boundary_distance(shape_type, piece.radius, piece.rotation, dir.angle() + PI)
+		var pos_cuff: Vector2 = parent_p.position + dir * (link_in.def.stem_dist - child_r)
+		var cuff_rel: Vector2 = pos_cuff - piece.position
+		var cuff_angle_world: float = fposmod(rad_to_deg(cuff_rel.angle()), 360.0)
+		
+		var trapped = false
+		for gap in piece.gaps:
+			var gap_world = curr_rot + gap.center_angle_deg
+			var d_curr = wrapf(gap_world - cuff_angle_world, -180.0, 180.0)
+			
+			if abs(d_curr) < 45.0: # Stem is inside this gap
+				var gap_width = link_in.def.clearance_tolerance_deg
+				var dist_pos = gap_width - d_curr
+				var dist_neg = -gap_width - d_curr
+				if dist_pos < max_pos_delta:
+					max_pos_delta = dist_pos
+					pos_limiter_link_out = null
+					pos_limiter_parent = parent_p
+				if dist_neg > min_neg_delta:
+					min_neg_delta = dist_neg
+					neg_limiter_link_out = null
+					neg_limiter_parent = parent_p
+				trapped = true
+				break
+
 
 	for link_out in links:
 		if link_out.def.from_piece_id != piece.piece_id:

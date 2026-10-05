@@ -30,6 +30,14 @@ The engine uses `PieceGeometry` to calculate exact boundaries for:
 **Rule**: Do NOT just draw a square and pretend it's a circle. The game handles boundary offsets correctly.
 **Rule**: NEVER create unsupported zero-length standard connectors between same-center pieces. Concentric rings are fine, but they cannot be linked to each other radially across distance 0.
 
+
+## Topological Deadlock Rules (The "Stem Trap")
+Rotate Rings gets its "Meaningful Difficulty" from strict dependency order.
+When a child piece clears a parent's stem, the parent's stem **remains physically in the child's gap** until the parent shatters.
+This traps the child's gap, preventing the child from rotating away!
+- **Rule**: If a child needs to clear multiple parents (A and B), the player MUST clear the parents from the roots down. If the child clears A, but A does not shatter (because A is held by something else), the child is permanently DEADLOCKED and the level is unsolvable.
+- **Rule**: NEVER create a situation where a child must rotate to clear multiple parents, UNLESS the first parent it clears is guaranteed to shatter immediately!
+
 ## Level Archetypes & Design Templates
 Do not generate completely random graphs. Use structured archetypes:
 - **CHAIN**: A ? B ? C ? D

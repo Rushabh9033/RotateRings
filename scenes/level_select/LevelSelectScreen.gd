@@ -122,4 +122,3 @@ func build_grid() -> void:
 
 func _scroll_to(scroll_node: ScrollContainer, val: float) -> void:
 	scroll_node.scroll_vertical = int(max(0, val))
-
