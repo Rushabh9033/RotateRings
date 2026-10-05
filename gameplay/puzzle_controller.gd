@@ -373,6 +373,14 @@ func _on_stems_layer_draw(ci: CanvasItem) -> void:
 		ci.draw_line(pos_stem_start, pos_cuff, c_main, stem_thickness, true)
 		# 4. Highlight bevel
 		ci.draw_line(pos_stem_start + Vector2(-1.5, -1.5), pos_cuff + Vector2(-1.5, -1.5), c_light, stem_thickness - 6.0, true)
+		
+		# Draw a rounded cap at the end of the stem if the cuff is detached
+		if link.state == ConnectorRuntime.State.DETACHED:
+			var cap_r := stem_thickness * 0.5
+			ci.draw_circle(pos_cuff + Vector2(0, 2.5), cap_r, c_dark)
+			ci.draw_circle(pos_cuff, cap_r, c_main)
+			ci.draw_circle(pos_cuff + Vector2(-1.0, -1.0), cap_r * 0.6, c_light)
+
 		# 5. Flared weld / fillet base at ring outer perimeter
 		var r_outer: float = from_p.radius + (from_p.thickness * 0.5)
 		var weld_center: Vector2 = from_p.position + dir * (r_outer - 1.0)
