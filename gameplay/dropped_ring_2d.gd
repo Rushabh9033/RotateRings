@@ -40,7 +40,7 @@ func _build_collision() -> void:
 		
 		# Generate polygon points for this arc
 		var pts := PackedVector2Array()
-		var segs := max(4, roundi((a_end - a_start) / (PI / 8.0)))
+		var segs: int = max(4, roundi((a_end - a_start) / (PI / 8.0)))
 		var r_outer = radius + (thickness * 0.5)
 		var r_inner = radius - (thickness * 0.5)
 		

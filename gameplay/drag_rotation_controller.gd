@@ -79,12 +79,12 @@ func jiggle_locked_piece(piece: Node2D) -> void:
 
 	# Emit collision particles at the blocking cuff contact point
 	for link in current_active_links:
-		if link.to_piece_id == piece.piece_id and not link.is_detached:
-			var parent_p = PuzzleRulesScript.get_piece_by_id(link.from_piece_id, current_active_pieces)
+		if link.def.to_piece_id == piece.piece_id and link.state != ConnectorRuntime.State.DETACHED:
+			var parent_p = PuzzleRulesScript.get_piece_by_id(link.def.from_piece_id, current_active_pieces)
 			if is_instance_valid(parent_p):
-				var world_angle_rad: float = deg_to_rad(parent_p.rotation_degrees + link.collar_angle_deg)
-				var dir := Vector2.from_angle(world_angle_rad)
-				var pos_cuff: Vector2 = parent_p.position + dir * (link.stem_dist - piece.radius)
+				var world_angle_rad: float = deg_to_rad(parent_p.rotation_degrees + link.def.collar_angle_deg)
+				var dir = Vector2.from_angle(world_angle_rad)
+				var pos_cuff: Vector2 = parent_p.position + dir * (link.def.stem_dist - piece.radius)
 				var c: Color = piece.ring_color if "ring_color" in piece else Color.WHITE
 				# Convert the local puzzle container pos_cuff to global position for particle spawning
 				var global_pos_cuff: Vector2 = piece.get_parent().to_global(pos_cuff)
@@ -300,15 +300,22 @@ func end_drag() -> void:
 		current_active_pieces,
 		current_active_links
 	)
-	var snapped_angle := piece.rotation_degrees + float(clamp_snap["allowed_delta"])
+	var snapped_angle: float = piece.rotation_degrees + float(clamp_snap["allowed_delta"])
 
-	var tween = piece.create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_property(piece, "rotation_degrees", snapped_angle, 0.12)
-	tween.finished.connect(func():
-		if is_instance_valid(piece):
-			piece.current_angle_deg = fposmod(piece.rotation_degrees, 360.0)
-			if piece.state != RingPiece2DScript.State.RELEASED and piece.state != RingPiece2DScript.State.RELEASING:
-				piece.state = RingPiece2DScript.State.IDLE
-			piece.queue_redraw()
-			piece_drag_ended.emit(piece)
-	)
+	if absf(snapped_angle - piece.rotation_degrees) > 0.01:
+		var tween = piece.create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(piece, "rotation_degrees", snapped_angle, 0.12)
+		tween.finished.connect(func():
+			if is_instance_valid(piece):
+				piece.current_angle_deg = fposmod(piece.rotation_degrees, 360.0)
+				if piece.state != RingPiece2DScript.State.RELEASED and piece.state != RingPiece2DScript.State.RELEASING:
+					piece.state = RingPiece2DScript.State.IDLE
+				piece.queue_redraw()
+				piece_drag_ended.emit(piece)
+		)
+	else:
+		piece.current_angle_deg = fposmod(piece.rotation_degrees, 360.0)
+		if piece.state != RingPiece2DScript.State.RELEASED and piece.state != RingPiece2DScript.State.RELEASING:
+			piece.state = RingPiece2DScript.State.IDLE
+		piece.queue_redraw()
+		piece_drag_ended.emit(piece)
