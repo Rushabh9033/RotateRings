@@ -156,8 +156,7 @@ func load_level(def) -> void:
 			var diff_pos: Vector2 = to_def.position - from_def.position
 			link.collar_angle_deg = fposmod(rad_to_deg(diff_pos.angle()) - from_def.start_angle_deg, 360.0)
 			link.stem_dist = diff_pos.length()
-			link.is_detached = false
-		active_links.append(link)
+		active_links.append(ConnectorRuntime.new(link))
 
 	# Keep connectors dirty for the full drop animation duration so falling rings stay connected
 	var total_drop_time: float = drop_delay + 1.2
@@ -226,19 +225,19 @@ func check_unlock_on_drag_ended(piece: Node2D) -> void:
 	var best_depth: float = -1.0
 
 	for link in active_links:
-		if link.to_piece_id != piece.piece_id or link.is_detached:
+		if link.def.to_piece_id != piece.piece_id or link.state == ConnectorRuntime.State.DETACHED or link.state == ConnectorRuntime.State.CLEARING:
 			continue
 
-		var parent_p = PuzzleRulesScript.get_piece_by_id(link.from_piece_id, active_pieces)
+		var parent_p = PuzzleRulesScript.get_piece_by_id(link.def.from_piece_id, active_pieces)
 		if not is_instance_valid(parent_p) or parent_p.state == RingPiece2DScript.State.RELEASED or parent_p.state == RingPiece2DScript.State.RELEASING:
 			# Parent already gone — auto-detach silently
-			link.is_detached = true
+			link.state = ConnectorRuntime.State.DETACHED
 			detached_any_link = true
 			continue
 
-		var world_angle_rad: float = deg_to_rad(parent_p.rotation_degrees + link.collar_angle_deg)
+		var world_angle_rad: float = deg_to_rad(parent_p.rotation_degrees + link.def.collar_angle_deg)
 		var dir := Vector2.from_angle(world_angle_rad)
-		var pos_cuff: Vector2 = parent_p.position + dir * (link.stem_dist - piece.radius)
+		var pos_cuff: Vector2 = parent_p.position + dir * (link.def.stem_dist - piece.radius)
 		var cuff_rel: Vector2 = pos_cuff - piece.position
 		var angle_on_piece_deg := fposmod(rad_to_deg(cuff_rel.angle()), 360.0)
 
@@ -249,46 +248,31 @@ func check_unlock_on_drag_ended(piece: Node2D) -> void:
 				best_depth = depth
 				best_link = link
 
-	# Only release the single most-centered connector this drag
+	# Only clear the single most-centered connector this drag
 	if best_link != null:
-		best_link.is_detached = true
+		best_link.state = ConnectorRuntime.State.CLEARING
 		detached_any_link = true
-
+		
+		# Animate the retraction
+		var retract_dist = (piece.thickness * 0.5) + 32.0 # Clear outer radius + cuff half-depth + margin
+		var target_dist = best_link.def.stem_dist - retract_dist
+		
+		var tween = create_tween()
+		tween.tween_property(best_link, "current_stem_dist", target_dist, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		tween.parallel().tween_property(best_link, "retract_progress", 1.0, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		tween.tween_callback(func():
+			best_link.state = ConnectorRuntime.State.DETACHED
+			_check_cascade_releases()
+			_redraw_connectors()
+		)
 	if detached_any_link:
 		if audio_service and audio_service.has_method("play_rotation_tick"):
 			audio_service.play_rotation_tick(1.6)
 		if haptic_service and haptic_service.has_method("trigger_selection"):
 			haptic_service.trigger_selection()
 		_redraw_connectors()
-
-	# 2. Check if this piece owns any collar holding an active child that hasn't detached yet
-	var holds_attached_child := false
-	for link in active_links:
-		if link.from_piece_id == piece.piece_id and not link.is_detached:
-			var child_p = PuzzleRulesScript.get_piece_by_id(link.to_piece_id, active_pieces)
-			if is_instance_valid(child_p) and child_p.state != RingPiece2DScript.State.RELEASED and child_p.state != RingPiece2DScript.State.RELEASING:
-				holds_attached_child = true
-				break
-
-	# 3. If ALL incoming links are now detached AND this piece holds no attached children:
-	var all_incoming_detached := true
-	for link in active_links:
-		if link.to_piece_id == piece.piece_id and not link.is_detached:
-			all_incoming_detached = false
-			break
-
-	if all_incoming_detached and not holds_attached_child:
-		var can_shatter := true
-		if not piece.has_meta("had_children_initially") and not piece.has_meta("had_parents_initially"):
-			var target_exit: float = float(piece.get("target_exit_angle_deg")) if piece.get("target_exit_angle_deg") != null else 0.0
-			can_shatter = piece.is_angle_in_any_gap(target_exit)
-
-		if can_shatter:
-			unlock_and_release_piece(piece)
-			return
-
-	# 4. If a link detached, check if any parent piece is now completely free to cascade release!
-	if detached_any_link:
+		
+		# Fallback/immediate check for piece if parent silently disappeared without clear animation
 		_check_cascade_releases()
 
 # Returns how centered (0.0 = at gap edge, 1.0 = perfectly centered) the cuff angle sits in the gap.
@@ -316,13 +300,13 @@ func unlock_and_release_piece(piece: Node2D) -> void:
 
 	# Mark all incoming links as detached
 	for l in active_links:
-		if l.to_piece_id == p_id:
-			l.is_detached = true
+		if l.def.to_piece_id == p_id:
+			l.state = ConnectorRuntime.State.DETACHED
 
 	# Remove outgoing links (piece's own stems/cuffs vanish with it)
 	var links_to_remove := []
 	for l in active_links:
-		if l.from_piece_id == p_id:
+		if l.def.from_piece_id == p_id:
 			links_to_remove.append(l)
 
 	for l in links_to_remove:
@@ -338,7 +322,7 @@ func _on_piece_release_completed(piece: Node2D) -> void:
 	# If it was the CHILD, keep the link so the parent can draw its stub!
 	var links_to_keep = []
 	for link in active_links:
-		if link.from_piece_id != piece.piece_id:
+		if link.def.from_piece_id != piece.piece_id:
 			links_to_keep.append(link)
 	active_links = links_to_keep
 	
@@ -385,33 +369,33 @@ func restart_level() -> void:
 	if current_level_def:
 		load_level(current_level_def)
 
-func _get_child_radius_for_link(link: LinkDefinitionScript) -> float:
-	var to_p = PuzzleRulesScript.get_piece_by_id(link.to_piece_id, active_pieces)
+func _get_child_radius_for_link(link: ConnectorRuntime) -> float:
+	var to_p = PuzzleRulesScript.get_piece_by_id(link.def.to_piece_id, active_pieces)
 	if is_instance_valid(to_p):
 		return to_p.radius
 	if current_level_def:
 		for p_def in current_level_def.pieces:
-			if p_def.id == link.to_piece_id:
+			if p_def.id == link.def.to_piece_id:
 				return p_def.radius
 	return 72.0
 
 func _on_stems_layer_draw(ci: CanvasItem) -> void:
 	for link in active_links:
-		var from_p = PuzzleRulesScript.get_piece_by_id(link.from_piece_id, active_pieces)
+		var from_p = PuzzleRulesScript.get_piece_by_id(link.def.from_piece_id, active_pieces)
 		if not is_instance_valid(from_p): continue
 		if from_p.state == RingPiece2DScript.State.RELEASED or from_p.state == RingPiece2DScript.State.RELEASING:
 			continue
 
-		var world_angle_rad := deg_to_rad(from_p.rotation_degrees + link.collar_angle_deg)
+		var world_angle_rad := deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
 		var dir := Vector2.from_angle(world_angle_rad)
 		var pos_stem_start: Vector2 = from_p.position + dir * from_p.radius
 
 		# FIX Bug 1 (Update): Users want the FULL connector (stem + cuff) to remain 
 		# even when the child ring breaks away.
 		var child_r: float = _get_child_radius_for_link(link)
-		var pos_cuff: Vector2 = from_p.position + dir * (link.stem_dist - child_r)
+		var pos_cuff: Vector2 = from_p.position + dir * (link.current_stem_dist - child_r)
 
-		var collar_color: Color = from_p.ring_color if link.joint_color == Color.TRANSPARENT else link.joint_color
+		var collar_color: Color = from_p.ring_color if link.def.joint_color == Color.TRANSPARENT else link.def.joint_color
 		var c_dark = collar_color.darkened(0.22)
 		var c_main = collar_color.lightened(0.02)
 		var c_light = collar_color.lightened(0.25)
@@ -436,18 +420,18 @@ func _on_stems_layer_draw(ci: CanvasItem) -> void:
 
 func _on_cuffs_layer_draw(ci: CanvasItem) -> void:
 	for link in active_links:
-		var from_p = PuzzleRulesScript.get_piece_by_id(link.from_piece_id, active_pieces)
+		var from_p = PuzzleRulesScript.get_piece_by_id(link.def.from_piece_id, active_pieces)
 		if not is_instance_valid(from_p): continue
 		if from_p.state == RingPiece2DScript.State.RELEASED or from_p.state == RingPiece2DScript.State.RELEASING:
 			continue
 
-		var world_angle_rad := deg_to_rad(from_p.rotation_degrees + link.collar_angle_deg)
+		var world_angle_rad := deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
 		var dir := Vector2.from_angle(world_angle_rad)
 		var child_r: float = _get_child_radius_for_link(link)
-		var pos_cuff: Vector2 = from_p.position + dir * (link.stem_dist - child_r)
+		var pos_cuff: Vector2 = from_p.position + dir * (link.current_stem_dist - child_r)
 
 		var tangent := Vector2(-dir.y, dir.x)
-		var collar_color: Color = from_p.ring_color if link.joint_color == Color.TRANSPARENT else link.joint_color
+		var collar_color: Color = from_p.ring_color if link.def.joint_color == Color.TRANSPARENT else link.def.joint_color
 		var c_dark = collar_color.darkened(0.22)
 		var c_main = collar_color.lightened(0.02)
 		var c_light = collar_color.lightened(0.25)

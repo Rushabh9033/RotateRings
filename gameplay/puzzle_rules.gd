@@ -15,10 +15,15 @@ static func is_piece_rotatable(
 	# If this piece owns any collar that is still holding an attached child piece,
 	# this piece CANNOT rotate (it is physically locked until child ring detaches!)
 	for link in links:
-		if link.from_piece_id == p_id and not link.is_detached:
-			var child_p = get_piece_by_id(link.to_piece_id, all_pieces)
+		if link.def.from_piece_id == p_id and link.state != ConnectorRuntime.State.DETACHED:
+			var child_p = get_piece_by_id(link.def.to_piece_id, all_pieces)
 			if child_p and child_p.state != 6 and child_p.state != 5:
 				return false
+				
+	# If any incoming collar is currently clearing/retracting, lock rotation temporarily.
+	for link in links:
+		if link.def.to_piece_id == p_id and link.state == ConnectorRuntime.State.CLEARING:
+			return false
 				
 	return true
 
@@ -35,15 +40,15 @@ static func is_piece_releasable(
 	
 	# 1. If this piece owns any collar that is still attached to an active child, cannot release!
 	for link in links:
-		if link.from_piece_id == p_id and not link.is_detached:
-			var child_p = get_piece_by_id(link.to_piece_id, all_pieces)
+		if link.def.from_piece_id == p_id and link.state != ConnectorRuntime.State.DETACHED:
+			var child_p = get_piece_by_id(link.def.to_piece_id, all_pieces)
 			if child_p and child_p.state != 6 and child_p.state != 5:
 				return false
 				
 	# 2. If this piece is still held by any parent collar that is not yet detached, cannot release!
 	for link in links:
-		if link.to_piece_id == p_id and not link.is_detached:
-			var from_p = get_piece_by_id(link.from_piece_id, all_pieces)
+		if link.def.to_piece_id == p_id and link.state != ConnectorRuntime.State.DETACHED:
+			var from_p = get_piece_by_id(link.def.from_piece_id, all_pieces)
 			if from_p and from_p.state != 6 and from_p.state != 5:
 				return false
 					
@@ -66,12 +71,12 @@ static func is_piece_near_alignment(
 		
 	var p_id: StringName = piece.piece_id
 	for link in links:
-		if link.to_piece_id == p_id and not link.is_detached:
-			var from_p = get_piece_by_id(link.from_piece_id, all_pieces)
+		if link.def.to_piece_id == p_id and link.state != ConnectorRuntime.State.DETACHED:
+			var from_p = get_piece_by_id(link.def.from_piece_id, all_pieces)
 			if from_p and from_p.state != 6 and from_p.state != 5:
-				var world_angle_rad: float = deg_to_rad(from_p.rotation_degrees + link.collar_angle_deg)
+				var world_angle_rad: float = deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
 				var dir := Vector2.from_angle(world_angle_rad)
-				var pos_cuff: Vector2 = from_p.position + dir * (link.stem_dist - piece.radius)
+				var pos_cuff: Vector2 = from_p.position + dir * (link.def.stem_dist - piece.radius)
 				var diff: Vector2 = pos_cuff - piece.position
 				var angle_on_piece_deg: float = fposmod(rad_to_deg(diff.angle()), 360.0)
 				if piece.is_angle_near_gap(angle_on_piece_deg, 20.0):
@@ -106,23 +111,23 @@ static func clamp_rotation_step(
 	var neg_limiter_parent = null
 
 	for link_out in links:
-		if link_out.from_piece_id != piece.piece_id:
+		if link_out.def.from_piece_id != piece.piece_id:
 			continue
-		var stem_offset: float = link_out.collar_angle_deg
+		var stem_offset: float = link_out.def.collar_angle_deg
 
 		for link_in in links:
-			if link_in.to_piece_id != piece.piece_id:
+			if link_in.def.to_piece_id != piece.piece_id:
 				continue
-			if link_in.is_detached:
+			if link_in.state == ConnectorRuntime.State.DETACHED:
 				continue
 
-			var parent_p = get_piece_by_id(link_in.from_piece_id, all_pieces)
+			var parent_p = get_piece_by_id(link_in.def.from_piece_id, all_pieces)
 			if not is_instance_valid(parent_p) or parent_p.state == 6 or parent_p.state == 5:
 				continue
 
-			var world_angle_rad: float = deg_to_rad(parent_p.rotation_degrees + link_in.collar_angle_deg)
+			var world_angle_rad: float = deg_to_rad(parent_p.rotation_degrees + link_in.def.collar_angle_deg)
 			var dir := Vector2.from_angle(world_angle_rad)
-			var pos_cuff: Vector2 = parent_p.position + dir * (link_in.stem_dist - piece.radius)
+			var pos_cuff: Vector2 = parent_p.position + dir * (link_in.def.stem_dist - piece.radius)
 			var cuff_rel: Vector2 = pos_cuff - piece.position
 			var cuff_angle_world: float = fposmod(rad_to_deg(cuff_rel.angle()), 360.0)
 
@@ -184,11 +189,11 @@ static func clamp_rotation_step(
 
 	if hit_stopper and active_limiter_link_out != null and is_instance_valid(active_limiter_parent):
 		var blocked_rot := curr_rot + allowed_delta
-		var blocked_stem_angle_rad := deg_to_rad(blocked_rot + active_limiter_link_out.collar_angle_deg)
+		var blocked_stem_angle_rad := deg_to_rad(blocked_rot + active_limiter_link_out.def.collar_angle_deg)
 		var stem_dir := Vector2.from_angle(blocked_stem_angle_rad)
-		var child_p = get_piece_by_id(active_limiter_link_out.to_piece_id, all_pieces)
+		var child_p = get_piece_by_id(active_limiter_link_out.def.to_piece_id, all_pieces)
 		var child_r: float = child_p.radius if child_p else 76.0
-		var pos_stem_head: Vector2 = piece.position + stem_dir * (active_limiter_link_out.stem_dist - child_r)
+		var pos_stem_head: Vector2 = piece.position + stem_dir * (active_limiter_link_out.def.stem_dist - child_r)
 
 		var to_head: Vector2 = pos_stem_head - active_limiter_parent.position
 		var parent_thickness: float = active_limiter_parent.thickness if "thickness" in active_limiter_parent else 24.0

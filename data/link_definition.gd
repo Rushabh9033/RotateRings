@@ -1,14 +1,6 @@
 extends Resource
 class_name LinkDefinition
 
-enum LinkRule {
-	STEM_CUFF,
-	EITHER_GAP_CLEARS,
-	A_GAP_REQUIRED,
-	B_GAP_REQUIRED,
-	BOTH_GAPS_REQUIRED
-}
-
 @export var id: StringName = &"link_0"
 @export var from_piece_id: StringName = &"ring_0" # Parent piece owning the stem
 @export var to_piece_id: StringName = &"ring_1"   # Child piece held inside the cuff

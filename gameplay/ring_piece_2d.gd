@@ -220,7 +220,7 @@ func is_angle_in_any_gap(target_world_angle_deg: float) -> bool:
 		if gap.width_deg <= 0.0: return false
 		var gap_world_center := fposmod(rotation_degrees + gap.center_angle_deg, 360.0)
 		var diff := absf(wrapf(gap_world_center - target_world_angle_deg, -180.0, 180.0))
-		var effective_half_gap: float = (gap.width_deg * 0.5) + gap.tolerance_deg
+		var effective_half_gap: float = gap.width_deg * 0.5
 		if diff <= effective_half_gap:
 			return true
 	return false

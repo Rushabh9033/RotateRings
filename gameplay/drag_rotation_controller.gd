@@ -255,10 +255,45 @@ func end_drag() -> void:
 	if accumulated_drag_deg >= 5.0:
 		move_counted.emit(piece)
 
-	# Snap to nearest 10deg step for clean feel, respecting collision blockers
-	var snap_step := 10.0
-	var target_snap := roundf(piece.rotation_degrees / snap_step) * snap_step
-	var snap_delta := target_snap - piece.rotation_degrees
+	# Snap logic: First try to snap perfectly to an incoming connector gap if within tolerance
+	var best_connector_snap: float = INF
+	var best_depth: float = -1.0
+	
+	for link in current_active_links:
+		if link.def.to_piece_id == piece.piece_id and link.state != ConnectorRuntime.State.DETACHED and link.state != ConnectorRuntime.State.CLEARING:
+			var parent_p = PuzzleRulesScript.get_piece_by_id(link.def.from_piece_id, current_active_pieces)
+			if is_instance_valid(parent_p) and parent_p.state != RingPiece2DScript.State.RELEASED and parent_p.state != RingPiece2DScript.State.RELEASING:
+				var world_angle_rad: float = deg_to_rad(parent_p.rotation_degrees + link.def.collar_angle_deg)
+				var dir := Vector2.from_angle(world_angle_rad)
+				var pos_cuff: Vector2 = parent_p.position + dir * (link.def.stem_dist - piece.radius)
+				var cuff_rel: Vector2 = pos_cuff - piece.position
+				# This is the world angle the cuff sits at from the child's perspective
+				var angle_on_piece_deg := fposmod(rad_to_deg(cuff_rel.angle()), 360.0)
+				
+				# Check each gap
+				for gap in piece.gaps:
+					var gap_world_center := fposmod(piece.rotation_degrees + gap.center_angle_deg, 360.0)
+					var diff := absf(wrapf(gap_world_center - angle_on_piece_deg, -180.0, 180.0))
+					# Include a generous magnetic assist zone
+					var assist_zone: float = (gap.width_deg * 0.5) + gap.tolerance_deg
+					if diff <= assist_zone:
+						# Target piece rotation so gap center is exactly at angle_on_piece_deg
+						var perfect_rot = angle_on_piece_deg - gap.center_angle_deg
+						var depth = 1.0 - (diff / assist_zone)
+						if depth > best_depth:
+							best_depth = depth
+							best_connector_snap = perfect_rot
+
+	var snap_delta := 0.0
+	if best_depth > -0.5 and best_connector_snap != INF:
+		# Snap exactly to the connector
+		snap_delta = wrapf(best_connector_snap - piece.rotation_degrees, -180.0, 180.0)
+	else:
+		# Fallback: Snap to nearest 10deg step for clean feel
+		var snap_step := 10.0
+		var target_snap := roundf(piece.rotation_degrees / snap_step) * snap_step
+		snap_delta = target_snap - piece.rotation_degrees
+
 	var clamp_snap := PuzzleRulesScript.clamp_rotation_step(
 		piece,
 		snap_delta,

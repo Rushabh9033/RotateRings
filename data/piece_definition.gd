@@ -2,11 +2,8 @@ extends Resource
 class_name PieceDefinition
 
 enum PieceType {
+	CLOSED_CIRCLE,
 	OPEN_CIRCLE,
-	D_SHAPE,
-	U_SHAPE,
-	ROUNDED_SQUARE,
-	ROUNDED_TRIANGLE,
 	DUAL_GAP_CIRCLE
 }
 
@@ -42,3 +39,10 @@ func _init(
 	start_angle_deg = p_start_angle
 	gaps = p_gaps
 	target_exit_angle_deg = p_target_exit
+	
+	if gaps.is_empty():
+		piece_type = PieceType.CLOSED_CIRCLE
+	elif gaps.size() == 1:
+		piece_type = PieceType.OPEN_CIRCLE
+	elif gaps.size() == 2:
+		piece_type = PieceType.DUAL_GAP_CIRCLE
