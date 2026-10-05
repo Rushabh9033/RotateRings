@@ -144,8 +144,8 @@ func _draw() -> void:
 	var arcs: Array = RingGeometry.get_solid_arcs(gaps)
 
 	for arc in arcs:
-		var arc_start: float = arc.start - deg_to_rad(rotation_degrees)
-		var arc_end: float = arc.end - deg_to_rad(rotation_degrees)
+		var arc_start: float = arc.start
+		var arc_end: float = arc.end
 		
 		# Ensure arc_end is greater than arc_start for Godot's draw_arc
 		if arc_end < arc_start:
