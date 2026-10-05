@@ -46,11 +46,14 @@ func trigger_hint():
 				# (Either the connector is already detached, or this step is obsolete)
 				continue
 				
-			var r = piece.radius
 			var center = piece.global_position
-			var grab_offset = Vector2.RIGHT * r
-			var from_pos = center + grab_offset.rotated(deg_to_rad(start_deg))
-			var to_pos = center + grab_offset.rotated(deg_to_rad(target_deg))
+			var p_shape = piece.def.shape_type if piece.get("def") and "shape_type" in piece.def else 0
+			var start_rad = deg_to_rad(start_deg)
+			var target_rad = deg_to_rad(target_deg)
+			var r_start = PieceGeometry.get_world_boundary_distance(p_shape, piece.radius, piece.rotation, start_rad)
+			var r_target = PieceGeometry.get_world_boundary_distance(p_shape, piece.radius, piece.rotation, target_rad)
+			var from_pos = center + Vector2(cos(start_rad), sin(start_rad)) * r_start
+			var to_pos = center + Vector2(cos(target_rad), sin(target_rad)) * r_target
 			
 			current_hand = TutorialHandScript.new()
 			piece.get_parent().add_child(current_hand)

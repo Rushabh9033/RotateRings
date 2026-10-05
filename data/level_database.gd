@@ -1820,4 +1820,4 @@ static func get_level(level_id: int):
 	return def
 
 static func get_total_levels() -> int:
-	return 50
+	return 12

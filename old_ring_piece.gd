@@ -1,4 +1,4 @@
-extends Node2D
+﻿extends Node2D
 class_name RingPiece2D
 
 const GapDefinitionScript = preload("res://data/gap_definition.gd")
@@ -110,7 +110,7 @@ func _draw() -> void:
 	var is_closed: bool = gaps.is_empty() or (gaps.size() == 1 and float(gaps[0].get("width_deg")) <= 0.0)
 
 	if is_closed:
-		_draw_ring_arc(Vector2.ZERO, radius, 0.0, TAU, seg_count, cap_r, is_closed, shape_type)
+		_draw_ring_arc(Vector2.ZERO, radius, 0.0, TAU, seg_count, cap_r, is_closed)
 		return
 
 	var arcs: Array = RingGeometry.get_solid_arcs(gaps)
@@ -126,57 +126,50 @@ func _draw() -> void:
 		# State-based outer glow
 		if state == State.SELECTED or state == State.ROTATING:
 			var glow_c := Color(ring_color.r, ring_color.g, ring_color.b, 0.30)
-			_draw_poly_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, glow_c, thickness + 12.0, shape_type)
+			draw_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, glow_c, thickness + 12.0, true)
 		elif state == State.NEAR_VALID:
-			_draw_poly_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, Color(1.0, 1.0, 0.6, 0.55), thickness + 9.0, shape_type)
+			draw_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, Color(1.0, 1.0, 0.6, 0.55), thickness + 9.0, true)
 		elif state == State.RELEASABLE:
-			_draw_poly_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, Color(0.4, 1.0, 0.4, 0.60), thickness + 9.0, shape_type)
+			draw_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, Color(0.4, 1.0, 0.4, 0.60), thickness + 9.0, true)
 
-		_draw_ring_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, cap_r, false, shape_type)
+		_draw_ring_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, cap_r, false)
 
 
-func _draw_ring_arc(center: Vector2, r: float, a_start: float, a_end: float, segs: int, cap_r: float, is_closed: bool, shape_type: int) -> void:
-	# PERFORMANCE: fixed 72 segs for shapes
+func _draw_ring_arc(center: Vector2, r: float, a_start: float, a_end: float, segs: int, cap_r: float, is_closed: bool) -> void:
+	# PERFORMANCE: fixed 72 segs — smooth enough, 3.5x faster than 256
 	segs = 72
-	
-	var shadow_off1 := Vector2(0, 6.0) * shadow_offset_mult
-	var off_dark := Vector2(0, 2.5)
-	
-	_draw_poly_arc(center + shadow_off1, r, a_start, a_end, segs, _c_shadow, thickness + 2.0, shape_type)
-	if not is_closed:
-		var p_start = center + shadow_off1 + Vector2.from_angle(a_start) * PieceGeometry.get_boundary_distance(shape_type, r, a_start)
-		var p_end = center + shadow_off1 + Vector2.from_angle(a_end) * PieceGeometry.get_boundary_distance(shape_type, r, a_end)
-		draw_circle(p_start, cap_r + 1.0, _c_shadow)
-		draw_circle(p_end, cap_r + 1.0, _c_shadow)
-		
-	_draw_poly_arc(center + off_dark, r, a_start, a_end, segs, _c_dark, thickness, shape_type)
-	if not is_closed:
-		var p_start = center + off_dark + Vector2.from_angle(a_start) * PieceGeometry.get_boundary_distance(shape_type, r, a_start)
-		var p_end = center + off_dark + Vector2.from_angle(a_end) * PieceGeometry.get_boundary_distance(shape_type, r, a_end)
-		draw_circle(p_start, cap_r, _c_dark)
-		draw_circle(p_end, cap_r, _c_dark)
-		
-	_draw_poly_arc(center, r, a_start, a_end, segs, _c_main, thickness, shape_type)
-	if not is_closed:
-		var p_start = center + Vector2.from_angle(a_start) * PieceGeometry.get_boundary_distance(shape_type, r, a_start)
-		var p_end = center + Vector2.from_angle(a_end) * PieceGeometry.get_boundary_distance(shape_type, r, a_end)
-		draw_circle(p_start, cap_r, _c_main)
-		draw_circle(p_end, cap_r, _c_main)
-		
-	var off_hl := Vector2(-1.5, -2.5)
-	var hl_w = thickness * 0.4
-	_draw_poly_arc(center + off_hl, r, a_start, a_end, segs, _c_light, hl_w, shape_type)
 
-func _draw_poly_arc(center: Vector2, r: float, a_start: float, a_end: float, segs: int, color: Color, line_width: float, shape_type: int) -> void:
-	var pts = PackedVector2Array()
-	var step = (a_end - a_start) / float(segs)
-	for i in range(segs + 1):
-		var theta = a_start + step * i
-		var dist = PieceGeometry.get_boundary_distance(shape_type, r, theta)
-		pts.append(center + Vector2(cos(theta), sin(theta)) * dist)
-	
-	if pts.size() >= 2:
-		draw_polyline(pts, color, line_width, true)
+	var shadow_off1 := Vector2(0, 6.0) * shadow_offset_mult
+
+	# === LAYER 1: Soft warm ambient shadow ===
+	draw_arc(center + shadow_off1, r, a_start, a_end, segs, _c_shadow, thickness + 2.0, true)
+	if not is_closed:
+		draw_circle(center + shadow_off1 + Vector2.from_angle(a_start) * r, cap_r + 1.0, _c_shadow)
+		draw_circle(center + shadow_off1 + Vector2.from_angle(a_end) * r, cap_r + 1.0, _c_shadow)
+
+	# === LAYER 2: Darker lower 3D base ===
+	var off_dark := Vector2(0, 2.5)
+	draw_arc(center + off_dark, r, a_start, a_end, segs, _c_dark, thickness, true)
+	if not is_closed:
+		draw_circle(center + off_dark + Vector2.from_angle(a_start) * r, cap_r, _c_dark)
+		draw_circle(center + off_dark + Vector2.from_angle(a_end) * r, cap_r, _c_dark)
+
+	# === LAYER 3: Main body ===
+	draw_arc(center, r, a_start, a_end, segs, _c_main, thickness, true)
+	if not is_closed:
+		draw_circle(center + Vector2.from_angle(a_start) * r, cap_r, _c_main)
+		draw_circle(center + Vector2.from_angle(a_end) * r, cap_r, _c_main)
+
+	# === LAYER 4: Bright top-left 3D highlight bevel ===
+	var off_light := Vector2(-1.5, -2.5)
+	draw_arc(center + off_light, r, a_start, a_end, segs, _c_light, thickness - 3.0, true)
+	if not is_closed:
+		draw_circle(center + off_light + Vector2.from_angle(a_start) * r, cap_r - 1.5, _c_light)
+		draw_circle(center + off_light + Vector2.from_angle(a_end) * r, cap_r - 1.5, _c_light)
+
+	# === LAYER 5: Tiny inner shadow for more depth ===
+	draw_arc(center + Vector2(0, -1.0), r - (thickness * 0.5) + 1.5, a_start, a_end, segs, _c_inner_dark, 1.5, true)
+
 
 func get_distance_to_ring(global_pt: Vector2) -> float:
 	var local_pos := to_local(global_pt)

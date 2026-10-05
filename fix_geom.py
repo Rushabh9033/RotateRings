@@ -1,21 +1,28 @@
-class_name PieceGeometry
+with open("D:/AI secound Brain/RotateRings/gameplay/piece_geometry.gd", "r", encoding="utf-8") as f:
+    text = f.read()
 
-const ShapeType = preload("res://data/piece_definition.gd").ShapeType
+triangle_code_old = """		ShapeType.ROUNDED_TRIANGLE:
+			# A rounded triangle (Reuleaux-like or 3-lobed).
+			# r(theta) = R * (1 + 0.15 * cos(3 * theta)) -- just a smooth 3-lobed shape.
+			return radius * (0.9 + 0.15 * cos(3.0 * local_angle_rad))"""
 
-## Returns the distance from the center to the boundary of the shape at a given LOCAL angle (in radians).
-static func get_boundary_distance(shape: int, radius: float, local_angle_rad: float) -> float:
-	match shape:
-		ShapeType.CIRCLE:
-			return radius
-		ShapeType.ROUNDED_SQUARE:
-			# A rounded square can be approximated by a superellipse or by taking the min of 1/cos and 1/sin.
-			# For a square of half-size R, the distance is R / max(|cos(a)|, |sin(a)|).
-			# To make it "rounded", we can use a p-norm (e.g. p=4).
-			# r(theta) = R * ( |cos(theta)|^4 + |sin(theta)|^4 )^(-1/4)
-			var c = abs(cos(local_angle_rad))
-			var s = abs(sin(local_angle_rad))
-			return radius * pow(pow(c, 4.0) + pow(s, 4.0), -0.25)
-		ShapeType.ROUNDED_TRIANGLE:
+# A better rounded triangle polar distance function:
+# We can find the intersection of a ray at angle `a` with a rounded triangle.
+# For a standard equilateral triangle with vertices at 0, 120, -120 deg.
+# The boundary is 3 lines. We can interpolate between a circle and a triangle.
+# Or use max(cos(a - 0), cos(a - 120), cos(a + 120))
+# Let h(a) = max(cos(a), cos(a - 2pi/3), cos(a + 2pi/3)). For a pure triangle, r(a) = (R/2) / h(a).
+# To make it rounded, we can use a p-norm of these projections!
+# r(a) = R_scale * ( (cos(a))^p + (cos(a-2pi/3))^p + (cos(a+2pi/3))^p )^(-1/p) (using positive parts only).
+# Actually, an easier smooth triangular function is:
+# r(a) = R * (1.0 - 0.2 * cos(3 * a)) is 3 lobed.
+# What about r(a) = R / (max(cos(a), cos(a - 2pi/3), cos(a + 2pi/3))) ? That's a sharp triangle!
+# We can smooth it using log-sum-exp:
+# h(a) = (1/k) * ln( exp(k*cos(a)) + exp(k*cos(a-2pi/3)) + exp(k*cos(a+2pi/3)) )
+# r(a) = (R/2) / h(a)
+# Let's use k = 5.0 for a nice rounded triangle!
+
+triangle_code_new = """		ShapeType.ROUNDED_TRIANGLE:
 			var a = local_angle_rad
 			var c1 = cos(a)
 			var c2 = cos(a - 2.094395)
@@ -46,17 +53,9 @@ static func get_boundary_distance(shape: int, radius: float, local_angle_rad: fl
 			# Let's test m=3.
 			var ca = abs(cos(1.5 * local_angle_rad))
 			var sa = abs(sin(1.5 * local_angle_rad))
-			return radius * pow(pow(ca, 3.5) + pow(sa, 3.5), -1.0/3.5)
-		ShapeType.OVAL:
-			# An ellipse with aspect ratio 1.5. (width = R, height = R/1.5)
-			var a = radius
-			var b = radius * 0.65
-			var c = cos(local_angle_rad)
-			var s = sin(local_angle_rad)
-			return (a * b) / sqrt(pow(b * c, 2.0) + pow(a * s, 2.0))
-	return radius
+			return radius * pow(pow(ca, 3.5) + pow(sa, 3.5), -1.0/3.5)"""
 
-## Given a world angle, compute the local boundary distance
-static func get_world_boundary_distance(shape: int, radius: float, piece_rotation_rad: float, world_angle_rad: float) -> float:
-	var local_angle = world_angle_rad - piece_rotation_rad
-	return get_boundary_distance(shape, radius, local_angle)
+text = text.replace(triangle_code_old, triangle_code_new)
+
+with open("D:/AI secound Brain/RotateRings/gameplay/piece_geometry.gd", "w", encoding="utf-8") as f:
+    f.write(text)
