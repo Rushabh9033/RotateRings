@@ -94,10 +94,10 @@ func _frame_puzzle() -> void:
 	if bounds.size.x <= 0 or bounds.size.y <= 0: return
 	
 	# Calculate safe area (assume full viewport for now, minus some padding)
-	# In portrait, typical viewport is 720x1280. We leave top 300px for TopHUD, bottom 300px for BottomHUD
+	# Reduce margins to use more screen real-estate
 	var viewport_size = get_viewport_rect().size
-	var safe_margin_top = 320.0
-	var safe_margin_bottom = 320.0
+	var safe_margin_top = 180.0
+	var safe_margin_bottom = 220.0
 	var safe_margin_x = 40.0
 	
 	var safe_width = viewport_size.x - (safe_margin_x * 2.0)
@@ -110,7 +110,7 @@ func _frame_puzzle() -> void:
 	var target_scale = minf(scale_x, scale_y)
 	
 	# Optional: limit max scale so simple puzzles aren't gigantic
-	target_scale = minf(target_scale, 1.25)
+	target_scale = minf(target_scale, 1.5)
 	
 	# Center the puzzle in the safe area
 	# We want puzzle_controller.position so that bounds.get_center() * target_scale is at safe_rect.get_center()

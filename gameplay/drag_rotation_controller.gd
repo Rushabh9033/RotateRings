@@ -129,8 +129,8 @@ func resolve_hit(global_pt: Vector2, pieces: Array):
 		var dist_from_center: float = (global_pt - p.global_position).length()
 		var dist_to_tube: float = absf(dist_from_center - global_radius)
 
-		# Best match: closest tube within generous touch band (thickness + margin)
-		var touch_margin: float = global_thickness + (52.0 * global_scale_factor)
+		# Best match: closest tube within reasonable touch band
+		var touch_margin: float = global_thickness + (24.0 * global_scale_factor)
 		if dist_to_tube < min_dist and dist_to_tube <= touch_margin:
 			min_dist = dist_to_tube
 			best_piece = p
