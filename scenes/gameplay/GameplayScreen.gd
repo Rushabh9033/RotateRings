@@ -181,27 +181,9 @@ func _on_level_completed(moves: int, par_moves: int, used_hint: bool) -> void:
 	if is_instance_valid(mascot):
 		mascot.set_state(MascotCompanionScript.State.CELEBRATING)
 		
-		# Animate mascot jumping to center screen to catch the final dropped ring
+		# Animate mascot jumping to center screen
 		var tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_SPRING).set_ease(Tween.EASE_OUT)
 		tween.tween_property(mascot, "position", viewport_center, 0.6)
-		
-		# Find the last dropped ring
-		var last_ring = null
-		for child in puzzle_controller.pieces_container.get_children():
-			if child is DroppedRing2DScript:
-				last_ring = child
-		
-		if is_instance_valid(last_ring):
-			# Mascot catches the ring piece, stops its physics
-			last_ring.gravity_scale = 0
-			last_ring.linear_velocity = Vector2.ZERO
-			last_ring.angular_velocity = 0
-			
-			# Animate ring shards becoming a portal
-			var rtween = create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC)
-			rtween.tween_property(last_ring, "global_position", viewport_center, 0.5)
-			rtween.tween_property(last_ring, "scale", Vector2(8.0, 8.0), 1.2).set_delay(0.5)
-			rtween.tween_property(last_ring, "modulate", Color(1.5, 1.5, 2.0, 0.0), 1.0).set_delay(0.7)
 			
 	await get_tree().create_timer(2.0).timeout
 	if is_instance_valid(victory_modal):
