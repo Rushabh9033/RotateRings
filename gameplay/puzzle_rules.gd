@@ -163,6 +163,17 @@ static func clamp_rotation_step(
 	var neg_limiter_link_out = null
 	var neg_limiter_parent = null
 
+	# Prevent the parent from rotating if it has an attached stem inside a non-concentric child!
+	# The stem is physically trapped in the child's track, so the parent cannot rotate at all.
+	for link_out in links:
+		if link_out.def.from_piece_id == piece.piece_id and link_out.state != ConnectorRuntime.State.DETACHED:
+			var child_p = get_piece_by_id(link_out.def.to_piece_id, all_pieces)
+			if is_instance_valid(child_p) and child_p.state != 6 and child_p.state != 5:
+				# If not concentric, locked!
+				if piece.position.distance_to(child_p.position) > 1.0:
+					return { "allowed_delta": 0.0, "hit_stopper": true, "contact_point": piece.global_position, "contact_color": Color.WHITE }
+
+
 	# Prevent the gap from rotating away from a detached incoming stem (which traps the gap until parent shatters)
 	for link_in in links:
 		if link_in.def.to_piece_id != piece.piece_id:
