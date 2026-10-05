@@ -223,22 +223,21 @@ func check_unlock_on_drag_ended(piece: Node2D) -> void:
 	if piece.state == RingPiece2DScript.State.RELEASED or piece.state == RingPiece2DScript.State.RELEASING:
 		return
 
-	# 1. Clear any newly aligned connectors
 	var newly_detached = PuzzleRulesScript.evaluate_clearance(piece, active_pieces, active_links)
+	var will_release = PuzzleRulesScript.is_piece_releasable(piece, active_pieces, active_links)
+
 	if newly_detached.size() > 0:
-		for link in newly_detached:
-			# Physically retract the stem
-			var t = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-			t.tween_method(_update_link_dist.bind(link), link.current_stem_dist, link.def.stem_dist - 30.0, 0.2)
+		if not will_release:
+			for link in newly_detached:
+				var t = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+				t.tween_method(_update_link_dist.bind(link), link.current_stem_dist, link.def.stem_dist - 30.0, 0.2)
 		
 		if audio_service and audio_service.has_method("play_rotation_tick"):
 			audio_service.play_rotation_tick(1.6)
 
-	# 2. Check if the entire piece can now be released
-	if PuzzleRulesScript.is_piece_releasable(piece, active_pieces, active_links):
+	if will_release:
 		if haptic_service and haptic_service.has_method("trigger_selection"):
 			haptic_service.trigger_selection()
-		
 		_redraw_connectors()
 		unlock_and_release_piece(piece)
 
@@ -254,10 +253,12 @@ func unlock_and_release_piece(piece: Node2D) -> void:
 
 	var p_id: StringName = piece.piece_id
 
-	# Mark all incoming links as detached
+	# Mark all incoming links as detached and restore their full length
 	for l in active_links:
 		if l.def.to_piece_id == p_id:
 			l.state = ConnectorRuntime.State.DETACHED
+			var t = create_tween().set_trans(Tween.TRANS_SPRING).set_ease(Tween.EASE_OUT)
+			t.tween_method(_update_link_dist.bind(l), l.current_stem_dist, l.def.stem_dist, 0.4)
 
 	# Remove outgoing links (piece's own stems/cuffs vanish with it)
 	var links_to_remove: Array = []
