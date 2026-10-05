@@ -203,6 +203,60 @@ static func clamp_rotation_step(
 				break
 
 
+
+	# Prevent the parent from rotating a detached outgoing stem through a child's solid body.
+	# The stem is trapped inside the child's gap until the child shatters or moves away (which it can't).
+	for link_out in links:
+		if link_out.def.from_piece_id != piece.piece_id:
+			continue
+		if link_out.state != ConnectorRuntime.State.DETACHED:
+			continue
+			
+		var child_p = get_piece_by_id(link_out.def.to_piece_id, all_pieces)
+		if not is_instance_valid(child_p) or child_p.state == 6 or child_p.state == 5:
+			continue # Child is gone, stem is free to move
+			
+		# The stem is currently inside ONE of the child's gaps. We need to clamp the parent's rotation
+		# so the stem doesn't leave that gap.
+		# When the parent rotates by `delta`, the stem's world position changes.
+		# We must restrict `delta` so the stem remains within the child's gap.
+		
+		# Let's approximate: the stem's world angle relative to the child must be near the child's gap.
+		var stem_offset = link_out.def.collar_angle_deg
+		var stem_world = curr_rot + stem_offset
+		var world_angle_rad: float = deg_to_rad(stem_world)
+		var dir := Vector2.from_angle(world_angle_rad)
+		var shape_type = child_p.def.shape_type if child_p.get("def") and "shape_type" in child_p.def else 0
+		var child_r = PieceGeometry.get_world_boundary_distance(shape_type, child_p.radius, child_p.rotation, dir.angle() + PI)
+		var pos_cuff: Vector2 = piece.position + dir * (link_out.def.stem_dist - child_r)
+		var cuff_rel: Vector2 = pos_cuff - child_p.position
+		var cuff_angle_world: float = fposmod(rad_to_deg(cuff_rel.angle()), 360.0)
+		
+		# Find the gap the stem is in
+		for gap in child_p.gaps:
+			var gap_world = child_p.rotation_degrees + gap.center_angle_deg
+			var d_curr = wrapf(gap_world - cuff_angle_world, -180.0, 180.0)
+			
+			if abs(d_curr) < 45.0: # Stem is inside this gap
+				# If the parent rotates by delta, cuff_angle_world changes by roughly delta (if concentric).
+				# If not concentric, it changes by some amount.
+				# To be perfectly accurate, we should test the exact delta, but as a linear approximation, 
+				# we can assume the angular change is roughly proportional.
+				# Actually, the simplest fix is to just heavily restrict the parent's movement if it's trapped.
+				# A trapped stem shouldn't move much at all. Let's just lock it to the gap's tolerance.
+				var gap_width = link_out.def.clearance_tolerance_deg
+				var dist_pos = gap_width - d_curr
+				var dist_neg = -gap_width - d_curr
+				if dist_pos < max_pos_delta:
+					max_pos_delta = dist_pos
+					pos_limiter_link_out = link_out
+					pos_limiter_parent = piece
+				if dist_neg > min_neg_delta:
+					min_neg_delta = dist_neg
+					neg_limiter_link_out = link_out
+					neg_limiter_parent = piece
+				break
+
 	for link_out in links:
 		if link_out.def.from_piece_id != piece.piece_id:
 			continue
