@@ -75,36 +75,8 @@ func _on_state_changed(old: State, new: State) -> void:
 		var snap_tween = create_tween().set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 		snap_tween.tween_property(self, "scale", Vector2(1.08, 1.08), 0.08)
 		snap_tween.tween_property(self, "scale", Vector2(1.05, 1.05), 0.18)
-		# Particle puffs only in NEAR_VALID; skip for perf on heavy levels
-		if gaps.size() <= 1:
-			for gap in gaps:
-				var angle = deg_to_rad(rotation_degrees + gap.center_angle_deg)
-				var gap_pos = Vector2.from_angle(angle) * radius
-				_emit_dust_puff(gap_pos)
 
 	queue_redraw()
-
-func _emit_dust_puff(pos: Vector2) -> void:
-	var puff = CPUParticles2D.new()
-	puff.emitting = false
-	puff.one_shot = true
-	puff.explosiveness = 0.9
-	puff.lifetime = 0.3
-	puff.spread = 160.0
-	puff.gravity = Vector2(0, 0)
-	puff.initial_velocity_min = 30.0
-	puff.initial_velocity_max = 60.0
-	puff.scale_amount_min = 2.0
-	puff.scale_amount_max = 5.0
-	puff.color = Color(1.0, 1.0, 1.0, 0.7)
-	puff.amount = 8
-	puff.position = pos
-
-	add_child(puff)
-	puff.emitting = true
-
-	var tween = create_tween()
-	tween.tween_callback(puff.queue_free).set_delay(0.4)
 
 func _ready() -> void:
 	rotation_degrees = current_angle_deg

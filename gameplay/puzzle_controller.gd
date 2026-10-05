@@ -373,13 +373,6 @@ func _on_stems_layer_draw(ci: CanvasItem) -> void:
 		ci.draw_line(pos_stem_start, pos_cuff, c_main, stem_thickness, true)
 		# 4. Highlight bevel
 		ci.draw_line(pos_stem_start + Vector2(-1.5, -1.5), pos_cuff + Vector2(-1.5, -1.5), c_light, stem_thickness - 6.0, true)
-		
-		# Draw a rounded cap at the end of the stem if the cuff is detached
-		if link.state == ConnectorRuntime.State.DETACHED:
-			var cap_r := stem_thickness * 0.5
-			ci.draw_circle(pos_cuff + Vector2(0, 2.5), cap_r, c_dark)
-			ci.draw_circle(pos_cuff, cap_r, c_main)
-			ci.draw_circle(pos_cuff + Vector2(-1.0, -1.0), cap_r * 0.6, c_light)
 
 		# 5. Flared weld / fillet base at ring outer perimeter
 		var r_outer: float = from_p.radius + (from_p.thickness * 0.5)
@@ -394,10 +387,6 @@ func _on_cuffs_layer_draw(ci: CanvasItem) -> void:
 		var from_p = PuzzleRulesScript.get_piece_by_id(link.def.from_piece_id, active_pieces)
 		if not is_instance_valid(from_p): continue
 		if from_p.state == RingPiece2DScript.State.RELEASED or from_p.state == RingPiece2DScript.State.RELEASING:
-			continue
-			
-		# Hide the cuff if the link is detached (child piece slipped out)
-		if link.state == ConnectorRuntime.State.DETACHED:
 			continue
 
 		var world_angle_rad := deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
@@ -436,10 +425,11 @@ func _on_cuffs_layer_draw(ci: CanvasItem) -> void:
 
 func _draw_rounded_rect(ci: CanvasItem, rect: Rect2, color: Color, radius: float) -> void:
 	var r := minf(radius, minf(rect.size.x * 0.5, rect.size.y * 0.5))
-	ci.draw_rect(Rect2(rect.position.x + r, rect.position.y, rect.size.x - 2.0 * r, rect.size.y), color, true)
-	ci.draw_rect(Rect2(rect.position.x, rect.position.y + r, r, rect.size.y - 2.0 * r), color, true)
-	ci.draw_rect(Rect2(rect.position.x + rect.size.x - r, rect.position.y + r, r, rect.size.y - 2.0 * r), color, true)
-	ci.draw_circle(rect.position + Vector2(r, r), r, color)
-	ci.draw_circle(rect.position + Vector2(rect.size.x - r, r), r, color)
-	ci.draw_circle(rect.position + Vector2(r, rect.size.y - r), r, color)
-	ci.draw_circle(rect.position + Vector2(rect.size.x - r, rect.size.y - r), r, color)
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = color
+	sb.corner_radius_top_left = int(r)
+	sb.corner_radius_top_right = int(r)
+	sb.corner_radius_bottom_left = int(r)
+	sb.corner_radius_bottom_right = int(r)
+	sb.anti_aliasing = true
+	sb.draw(ci.get_canvas_item(), rect)
