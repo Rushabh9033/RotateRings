@@ -45,7 +45,7 @@ func _init() -> void:
 
 		var res = BFSSolver.solve_bfs(pieces_array, active_links)
 		if res.solved:
-			print("   ? Solvable in %d moves!" % res.moves)
+			print("   ? Solvable in %d moves! (Direct releases: %d, Cascade releases: %d, Max cascade depth: %d)" % [res.moves, res.get("direct_releases", 0), res.get("cascade_releases", 0), res.get("max_cascade", 0)])
 			if res.moves < def.canonical_steps.size():
 				print("   ?? SHORTCUT FOUND! Solver found %d moves, canonical has %d" % [res.moves, def.canonical_steps.size()])
 			elif res.moves > def.canonical_steps.size():

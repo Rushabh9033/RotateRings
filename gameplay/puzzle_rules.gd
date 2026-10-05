@@ -54,7 +54,7 @@ static func evaluate_clearance(piece, all_pieces: Array, links: Array) -> Array:
 						break
 				
 				if is_aligned:
-					link.state = ConnectorRuntime.State.DETACHED
+					link.state = ConnectorRuntime.State.CLEARING
 					newly_detached.append(link)
 					
 	return newly_detached
@@ -135,6 +135,8 @@ static func clamp_rotation_step(
 
 	for link_out in links:
 		if link_out.def.from_piece_id != piece.piece_id:
+			continue
+		if link_out.state == ConnectorRuntime.State.DETACHED:
 			continue
 		var stem_offset: float = link_out.def.collar_angle_deg
 

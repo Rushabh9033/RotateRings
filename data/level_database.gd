@@ -274,22 +274,22 @@ static func get_level(level_id: int):
 
 		10: # Level 10: Dual-Gap Awakening
 			def.title = "Dual-Gap Ring"
-			def.instruction = "Center ring has 2 gaps! Align both collars."
+			def.instruction = "Center ring has 2 gaps! Align both collars sequentially."
 			def.par_moves = 2
-			var r0 = PieceDefinitionScript.new(&"ring_0", Vector2(360, 620), 80.0, 24.0, Color("#7D2AD4"), 90.0, [
+			var r0 = PieceDefinitionScript.new(&"ring_0", Vector2(360, 620), 80.0, 24.0, Color("#7D2AD4"), 45.0, [
 				GapDefinitionScript.new(0.0, 56.0, 6.0),
-				GapDefinitionScript.new(180.0, 56.0, 6.0)
+				GapDefinitionScript.new(90.0, 56.0, 6.0)
 			])
-			var r1 = PieceDefinitionScript.new(&"ring_1", Vector2(160, 620), 76.0, 24.0, Color("#29B6F6"), 90.0, [GapDefinitionScript.new(0.0, 56.0, 6.0)])
-			var r2 = PieceDefinitionScript.new(&"ring_2", Vector2(560, 620), 76.0, 24.0, Color("#F38224"), 90.0, [GapDefinitionScript.new(0.0, 56.0, 6.0)])
+			var r1 = PieceDefinitionScript.new(&"ring_1", Vector2(160, 620), 76.0, 24.0, Color("#29B6F6"), 180.0, [GapDefinitionScript.new(0.0, 56.0, 6.0)])
+			var r2 = PieceDefinitionScript.new(&"ring_2", Vector2(560, 620), 76.0, 24.0, Color("#F38224"), 0.0, [GapDefinitionScript.new(0.0, 56.0, 6.0)])
 			def.pieces = [r0, r1, r2]
 			def.links = [
-				LinkDefinitionScript.new(&"link_0", &"ring_0", &"ring_1", Color("#7D2AD4")),
-				LinkDefinitionScript.new(&"link_1", &"ring_0", &"ring_2", Color("#7D2AD4"))
+				LinkDefinitionScript.new(&"link_0", &"ring_1", &"ring_0", Color("#29B6F6")),
+				LinkDefinitionScript.new(&"link_1", &"ring_2", &"ring_0", Color("#F38224"))
 			]
 			def.canonical_steps = [
-				SolutionStepScript.new(&"ring_1", 0.0, true),
-				SolutionStepScript.new(&"ring_2", 180.0, true)
+				SolutionStepScript.new(&"ring_0", 180.0, true),
+				SolutionStepScript.new(&"ring_0", 270.0, true)
 			]
 
 		11: # Level 11: Hexa Constellation (hex ring)

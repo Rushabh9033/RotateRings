@@ -130,22 +130,10 @@ func resolve_hit(global_pt: Vector2, pieces: Array):
 		var dist_to_tube: float = absf(dist_from_center - global_radius)
 
 		# Best match: closest tube within reasonable touch band
-		var touch_margin: float = global_thickness + (24.0 * global_scale_factor)
+		var touch_margin: float = global_thickness + (40.0 * global_scale_factor)
 		if dist_to_tube < min_dist and dist_to_tube <= touch_margin:
 			min_dist = dist_to_tube
 			best_piece = p
-
-	# Fallback: if finger is inside a ring's hollow center
-	if not best_piece:
-		var min_center_dist := INF
-		for p in valid_pieces:
-			var global_scale_factor: float = p.global_scale.x
-			var global_radius: float = p.radius * global_scale_factor
-			var global_thickness: float = (float(p.get("thickness")) if p.get("thickness") != null else 12.0) * global_scale_factor
-			var c_dist: float = (global_pt - p.global_position).length()
-			if c_dist <= (global_radius + global_thickness) and c_dist < min_center_dist:
-				min_center_dist = c_dist
-				best_piece = p
 
 	return best_piece
 

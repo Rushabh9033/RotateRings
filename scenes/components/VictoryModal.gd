@@ -1,6 +1,8 @@
 extends Control
 class_name LoopshiftVictoryModal
 
+const LevelDatabaseScript = preload("res://data/level_database.gd")
+
 signal next_pressed
 signal replay_pressed
 signal levels_pressed
@@ -21,10 +23,13 @@ func show_victory(moves: int, _par_moves: int, is_perfect: bool, _best_moves: in
 		title_lbl.text = "You Did It!"
 		subtitle_lbl.text = "Keep pushing, you're getting even better!"
 		
-	var final_score := moves * 100 + 1500
-	score_lbl.text = str(final_score)
-	next_btn.text = "Level %d" % next_lvl_id
+	score_lbl.text = "Moves: %d / Par: %d" % [moves, _par_moves]
 	
+	if LevelDatabaseScript.get_level(next_lvl_id) != null:
+		next_btn.text = "Level %d" % next_lvl_id
+	else:
+		next_btn.text = "Levels"
+		
 	scale = Vector2(0.85, 0.85)
 	modulate.a = 0.0
 	show()

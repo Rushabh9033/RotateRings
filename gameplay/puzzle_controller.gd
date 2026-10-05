@@ -100,7 +100,7 @@ func load_level(def) -> void:
 	current_level_def = def
 	move_count = 0
 	used_hint = false
-	is_active = true
+	is_active = false
 	if release_animator and release_animator.has_method("reset_combo"):
 		release_animator.reset_combo()
 
@@ -160,6 +160,10 @@ func load_level(def) -> void:
 	# Keep connectors dirty for the full drop animation duration so falling rings stay connected
 	var total_drop_time: float = drop_delay + 1.2
 	_drop_anim_end_time = Time.get_ticks_msec() / 1000.0 + total_drop_time
+	
+	get_tree().create_timer(total_drop_time).timeout.connect(func():
+		is_active = true
+	)
 
 	hint_controller.set_level(def, active_pieces)
 	_redraw_connectors()
@@ -223,28 +227,30 @@ func check_unlock_on_drag_ended(piece: Node2D) -> void:
 	if piece.state == RingPiece2DScript.State.RELEASED or piece.state == RingPiece2DScript.State.RELEASING:
 		return
 
-	var newly_detached = PuzzleRulesScript.evaluate_clearance(piece, active_pieces, active_links)
-	var will_release = PuzzleRulesScript.is_piece_releasable(piece, active_pieces, active_links)
-
-	if newly_detached.size() > 0:
-		if not will_release:
-			for link in newly_detached:
-				var t = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-				t.tween_method(_update_link_dist.bind(link), link.current_stem_dist, link.def.stem_dist - 30.0, 0.2)
+	var newly_clearing = PuzzleRulesScript.evaluate_clearance(piece, active_pieces, active_links)
+	if newly_clearing.size() > 0:
+		for link in newly_clearing:
+			var t = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+			t.tween_method(_update_link_dist.bind(link), link.current_stem_dist, link.def.stem_dist - 30.0, 0.2)
+			t.tween_callback(func():
+				link.state = ConnectorRuntime.State.DETACHED
+				check_unlock_for_piece(piece)
+			)
 		
 		if audio_service and audio_service.has_method("play_rotation_tick"):
 			audio_service.play_rotation_tick(1.6)
 
+	var will_release = PuzzleRulesScript.is_piece_releasable(piece, active_pieces, active_links)
 	if will_release:
 		if haptic_service and haptic_service.has_method("trigger_selection"):
 			haptic_service.trigger_selection()
 		_redraw_connectors()
-		unlock_and_release_piece(piece)
+		unlock_and_release_piece(piece, true)
 
 func check_unlock_for_piece(piece: Node2D) -> void:
 	check_unlock_on_drag_ended(piece)
 
-func unlock_and_release_piece(piece: Node2D) -> void:
+func unlock_and_release_piece(piece: Node2D, is_direct: bool = false) -> void:
 	if not is_instance_valid(piece): return
 	if piece.state == RingPiece2DScript.State.RELEASING or piece.state == RingPiece2DScript.State.RELEASED:
 		return
@@ -270,7 +276,7 @@ func unlock_and_release_piece(piece: Node2D) -> void:
 		active_links.erase(l)
 
 	_redraw_connectors()
-	release_animator.animate_release(piece, _on_piece_release_completed)
+	release_animator.animate_release(piece, _on_piece_release_completed, is_direct)
 
 func _on_piece_release_completed(piece: Node2D) -> void:
 	active_pieces.erase(piece)

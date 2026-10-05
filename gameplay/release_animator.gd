@@ -8,6 +8,64 @@ const DroppedRing2DScript = preload("res://gameplay/dropped_ring_2d.gd")
 var audio_service: Node = null
 var haptic_service: Node = null
 var combo_count: int = 0
+var _pending_praise: bool = false
+var _pending_praise_pos: Vector2 = Vector2.ZERO
+var _pending_praise_direct: bool = false
+var _cascade_count: int = 0
+var _viewport_rect: Rect2 = Rect2()
+
+func _ready() -> void:
+	_viewport_rect = get_viewport().get_visible_rect()
+
+func _register_release_for_praise(pos: Vector2, is_direct: bool) -> void:
+	if is_direct:
+		_cascade_count = 0
+	else:
+		_cascade_count += 1
+		
+	_pending_praise_pos = pos
+	if is_direct:
+		_pending_praise_direct = true
+		
+	if not _pending_praise:
+		_pending_praise = true
+		call_deferred("_spawn_aggregated_praise")
+
+func _spawn_aggregated_praise() -> void:
+	if not _pending_praise: return
+	_pending_praise = false
+	
+	var praise_text := ""
+	var praise_color := Color.WHITE
+	
+	if _pending_praise_direct:
+		praise_text = "Good!"
+		praise_color = Color("#4CAF50")
+		if combo_count == 2:
+			praise_text = "Great!"
+			praise_color = Color("#29B6F6")
+		elif combo_count >= 3:
+			praise_text = "Excellent!"
+			praise_color = Color("#9C27B0")
+	elif _cascade_count > 0:
+		praise_text = "Combo x%d" % (_cascade_count + 1)
+		praise_color = Color("#FF9800")
+		
+	if praise_text != "":
+		var float_lbl := FloatingTextScript.new()
+		var spawn_pos = _pending_praise_pos + Vector2(0, -20)
+		# Clamp to screen bounds
+		spawn_pos.x = clampf(spawn_pos.x, 80.0, _viewport_rect.size.x - 80.0)
+		spawn_pos.y = clampf(spawn_pos.y, 80.0, _viewport_rect.size.y - 80.0)
+		float_lbl.setup(spawn_pos, praise_text, praise_color)
+		
+		# Find a parent
+		var parent = get_parent()
+		if is_instance_valid(parent):
+			parent.add_child(float_lbl)
+			
+	_pending_praise_direct = false
+
 
 func setup(audio: Node, haptic: Node) -> void:
 	audio_service = audio
@@ -19,7 +77,8 @@ func reset_combo() -> void:
 
 func animate_release(
 	piece: Node2D,
-	on_completed: Callable
+	on_completed: Callable,
+	is_direct: bool = false
 ) -> void:
 	piece.state = 5 # RELEASING
 	piece.is_interactive = false
@@ -47,11 +106,22 @@ func animate_release(
 			
 		var arc_len = end_angle - start_angle
 		var shards_count = max(2, roundi((arc_len / TAU) * shards_per_full_circle))
-		var arc_per_shard = arc_len / float(shards_count)
+		
+		# Generate randomized weights for irregular shards
+		var weights := []
+		var total_weight := 0.0
+		for i in range(shards_count):
+			var w = randf_range(0.4, 1.6)
+			weights.append(w)
+			total_weight += w
+			
+		var current_s_start = start_angle
 		
 		for i in range(shards_count):
-			var s_start = start_angle + (i * arc_per_shard)
+			var arc_per_shard = arc_len * (weights[i] / total_weight)
+			var s_start = current_s_start
 			var s_end = s_start + arc_per_shard
+			current_s_start = s_end
 			
 			# Gap between fragments so they look shattered
 			s_start += 0.05
@@ -78,19 +148,8 @@ func animate_release(
 			dropped_shard.apply_central_impulse(impulse)
 			dropped_shard.apply_torque_impulse(randf_range(-3000.0, 3000.0))
 	
-	# 2. Spawn Floating Combo Praise Text
-	var praise_text := "Good!"
-	var praise_color := Color("#4CAF50") # Green
-	if combo_count == 2:
-		praise_text = "Great!"
-		praise_color = Color("#29B6F6") # Blue
-	elif combo_count >= 3:
-		praise_text = "Excellent!"
-		praise_color = Color("#9C27B0") # Purple
-		
-	var float_lbl := FloatingTextScript.new()
-	float_lbl.setup(pos + Vector2(0, -20), praise_text, praise_color)
-	parent.add_child(float_lbl)
+	# 2. Handle Praise / Combo
+	_register_release_for_praise(pos, is_direct)
 	
 	# We immediately consider the piece released and free the old Kinematic visual
 	piece.state = 6 # RELEASED

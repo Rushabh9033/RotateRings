@@ -32,10 +32,13 @@ func trigger_hint():
 	for step in current_level_def.canonical_steps:
 		var piece = PuzzleRulesScript.get_piece_by_id(step.piece_id, active_pieces)
 		if piece and piece.state != 6 and piece.state != 5: # not RELEASED/RELEASING
-			# Find target world angle
 			var target_deg = step.target_angle_deg
 			var start_deg = piece.rotation_degrees
 			
+			var diff = absf(wrapf(target_deg - start_deg, -180.0, 180.0))
+			if diff < 5.0:
+				continue # This step is already completed
+				
 			var r = piece.radius
 			var center = piece.global_position
 			

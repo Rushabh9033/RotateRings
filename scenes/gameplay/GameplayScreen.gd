@@ -95,8 +95,12 @@ func _frame_puzzle() -> void:
 	
 	# Calculate safe area dynamically based on UI nodes
 	var viewport_size = get_viewport_rect().size
-	var safe_margin_top = 200.0
-	var safe_margin_bottom = 260.0
+	
+	var top_hud = $SafeArea/TopHUD
+	var bottom_hud = $SafeArea/BottomHUD
+	
+	var safe_margin_top = top_hud.size.y + 40.0 if is_instance_valid(top_hud) else 200.0
+	var safe_margin_bottom = bottom_hud.size.y + 40.0 if is_instance_valid(bottom_hud) else 260.0
 	var safe_margin_x = 40.0
 	
 	var safe_width = viewport_size.x - (safe_margin_x * 2.0)
@@ -121,17 +125,11 @@ func _frame_puzzle() -> void:
 	tween.tween_property(puzzle_controller, "scale", Vector2(target_scale, target_scale), 0.6)
 	tween.tween_property(puzzle_controller, "position", target_pos, 0.6)
 
-func _on_moves_updated(_moves: int, _par_moves: int) -> void:
-	pass
-
 var total_pieces_in_level: int = 0
 
 func _on_piece_count_updated(remaining: int) -> void:
 	if total_pieces_in_level == 0:
 		total_pieces_in_level = remaining
-		current_score = 0
-		target_score = 0
-		score_lbl.text = "0"
 		if is_instance_valid(mascot):
 			mascot.set_state(MascotCompanionScript.State.WATCHING)
 			mascot.look_target = puzzle_controller.global_position
@@ -143,20 +141,12 @@ func _on_piece_count_updated(remaining: int) -> void:
 			if is_instance_valid(mascot) and mascot.current_state != MascotCompanionScript.State.CELEBRATING:
 				mascot.set_state(MascotCompanionScript.State.WATCHING)
 		)
-		
-	var pieces_cleared := total_pieces_in_level - remaining
-	target_score = pieces_cleared * 200
-	var tween = create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+func _on_moves_updated(moves: int, par_moves: int) -> void:
+	score_lbl.text = "Moves: " + str(moves) + " / " + str(par_moves)
 	
-	# Score roll
-	tween.tween_method(func(val: int):
-		current_score = val
-		score_lbl.text = str(val)
-	, current_score, target_score, 0.5)
-	
-	# Pill Bounce effect
 	var pill = get_node_or_null("SafeArea/TopHUD/ScorePill")
-	if pill:
+	if pill and moves > 0:
 		var ptween = create_tween().set_trans(Tween.TRANS_SPRING).set_ease(Tween.EASE_OUT)
 		pill.pivot_offset = pill.size / 2.0
 		ptween.tween_property(pill, "scale", Vector2(1.15, 1.15), 0.1)

@@ -96,55 +96,71 @@ static func _get_moves(pieces: Array, links: Array) -> Array:
 					})
 	return moves
 
-static func _cascade_check(pieces: Array, links: Array) -> void:
+static func _cascade_check(pieces: Array, links: Array) -> int:
 	var changed = true
+	var released_count = 0
 	while changed:
 		changed = false
 		for p in pieces:
 			if p.state == RingPiece2DScript.State.RELEASED: continue
 			var rel = PuzzleRulesScript.is_piece_releasable(p, pieces, links)
-			if DEBUG: print("  _cascade_check piece ", p.piece_id, " releasable? ", rel)
 			if rel:
 				p.state = RingPiece2DScript.State.RELEASED
+				released_count += 1
 				for l in links:
 					if l.def.to_piece_id == p.piece_id:
 						l.state = ConnectorRuntime.State.DETACHED
 					if l.def.from_piece_id == p.piece_id:
 						l.state = ConnectorRuntime.State.DETACHED
 				changed = true
+	return released_count
 
-static func _apply_move(state: Dictionary, move: Dictionary) -> void:
+static func _apply_move(state: Dictionary, move: Dictionary) -> int:
 	var p = PuzzleRulesScript.get_piece_by_id(move.piece_id, state.pieces)
 	p.rotation_degrees = move.target_rot
 	
-	PuzzleRulesScript.evaluate_clearance(p, state.pieces, state.links)
+	var newly_clearing = PuzzleRulesScript.evaluate_clearance(p, state.pieces, state.links)
+	for link in newly_clearing:
+		link.state = ConnectorRuntime.State.DETACHED
 			
-	_cascade_check(state.pieces, state.links)
+	return _cascade_check(state.pieces, state.links)
 
 static func solve_bfs(start_pieces: Array, start_links: Array) -> Dictionary:
-	_cascade_check(start_pieces, start_links)
+	var initial_releases = _cascade_check(start_pieces, start_links)
 	var start_id = _get_state_id(start_pieces, start_links)
 	if start_pieces.filter(func(p): return p.state != RingPiece2DScript.State.RELEASED).is_empty():
-		return { "solved": true, "moves": 0 }
+		return { "solved": true, "moves": 0, "direct_releases": 0, "cascade_releases": initial_releases, "max_cascade": initial_releases }
 		
-	var queue = [{ "pieces": start_pieces, "links": start_links, "moves": 0 }]
+	var queue = [{ "pieces": start_pieces, "links": start_links, "moves": 0, "direct_releases": 0, "cascade_releases": initial_releases, "max_cascade": initial_releases }]
 	var visited = { start_id: true }
 	
 	while queue.size() > 0:
 		var curr = queue.pop_front()
-		if DEBUG: print("BFS Queue pop: ", curr.moves, " pieces left: ", curr.pieces.filter(func(p): return p.state != RingPiece2DScript.State.RELEASED).size())
 		if curr.pieces.filter(func(p): return p.state != RingPiece2DScript.State.RELEASED).is_empty():
-			return { "solved": true, "moves": curr.moves }
+			return { "solved": true, "moves": curr.moves, "direct_releases": curr.direct_releases, "cascade_releases": curr.cascade_releases, "max_cascade": curr.max_cascade }
 			
 		var moves = _get_moves(curr.pieces, curr.links)
-		if DEBUG: print("Found moves: ", moves)
 		for m in moves:
 			var next_state = _clone_state(curr.pieces, curr.links)
-			_apply_move(next_state, m)
+			var released_now = _apply_move(next_state, m)
+			
+			var direct = 0
+			var cascade = 0
+			if released_now > 0:
+				direct = 1
+				cascade = released_now - 1
+			
+			var new_max_cascade = curr.max_cascade
+			if cascade > new_max_cascade:
+				new_max_cascade = cascade
+				
 			var n_id = _get_state_id(next_state.pieces, next_state.links)
 			if not visited.has(n_id):
 				visited[n_id] = true
 				next_state["moves"] = curr.moves + 1
+				next_state["direct_releases"] = curr.direct_releases + direct
+				next_state["cascade_releases"] = curr.cascade_releases + cascade
+				next_state["max_cascade"] = new_max_cascade
 				queue.append(next_state)
 				
 	return { "solved": false, "moves": 0 }
