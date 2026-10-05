@@ -83,10 +83,12 @@ func record_level_completion(lvl_num: int, moves: int, par_moves: int, used_hint
 	}
 	save_data["levels"] = levels
 	
-	# Unlock next level
+	# Unlock next level, clamped to total levels
 	var current_highest: int = int(save_data.get("highest_unlocked_level", 1))
 	if lvl_num >= current_highest:
-		save_data["highest_unlocked_level"] = lvl_num + 1
+		var LevelDatabaseScript = load("res://data/level_database.gd")
+		var total_levels: int = LevelDatabaseScript.get_total_levels() if LevelDatabaseScript else 12
+		save_data["highest_unlocked_level"] = mini(lvl_num + 1, total_levels)
 		
 	save_data_to_disk()
 	

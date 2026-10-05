@@ -12,9 +12,12 @@ var current_hand: Node2D = null
 func setup(audio: Node) -> void:
 	audio_service = audio
 
-func set_level(def, pieces: Array) -> void:
+var active_links: Array = []
+
+func set_level(def, pieces: Array, links: Array) -> void:
 	current_level_def = def
 	active_pieces = pieces
+	active_links = links
 	
 	if current_hand and is_instance_valid(current_hand):
 		current_hand.stop()
@@ -35,15 +38,16 @@ func trigger_hint():
 			var target_deg = step.target_angle_deg
 			var start_deg = piece.rotation_degrees
 			
-			var diff = absf(wrapf(target_deg - start_deg, -180.0, 180.0))
-			if diff < 5.0:
-				continue # This step is already completed
+			# Check if rotating to this target angle actually clears any active connector
+			var newly_cleared = PuzzleRulesScript.evaluate_clearance_hypothetical(piece, target_deg, active_pieces, active_links)
+			
+			if newly_cleared.size() == 0:
+				# If rotating there doesn't clear anything new, this step is already completed!
+				# (Either the connector is already detached, or this step is obsolete)
+				continue
 				
 			var r = piece.radius
 			var center = piece.global_position
-			
-			# Pick a point on the ring to drag from (e.g., at 0 degrees local)
-			var grab_offset = Vector2.RIGHT * r
 			var from_pos = center + grab_offset.rotated(deg_to_rad(start_deg))
 			var to_pos = center + grab_offset.rotated(deg_to_rad(target_deg))
 			

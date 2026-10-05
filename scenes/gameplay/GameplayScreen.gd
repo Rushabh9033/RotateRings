@@ -47,7 +47,7 @@ func _ready() -> void:
 	if hammer_btn: hammer_btn.disabled = true
 	
 	mascot = MascotCompanionScript.new()
-	mascot.position = Vector2(get_viewport_rect().size.x * 0.5, 200.0)
+	mascot.position = Vector2(get_viewport().get_visible_rect().size.x * 0.5, 200.0)
 	mascot.z_index = 50
 	$SafeArea/TopHUD.add_sibling(mascot)
 	
@@ -55,7 +55,7 @@ func _ready() -> void:
 	puzzle_controller.piece_count_updated.connect(_on_piece_count_updated)
 	puzzle_controller.level_completed.connect(_on_level_completed)
 	
-	pause_modal.resume_pressed.connect(func(): puzzle_controller.is_active = true)
+	pause_modal.resume_pressed.connect(func(): puzzle_controller.resume_game())
 	pause_modal.restart_btn.pressed.connect(restart_level)
 	pause_modal.levels_pressed.connect(func(): back_to_levels_requested.emit())
 	pause_modal.home_pressed.connect(func(): back_to_home_requested.emit())
@@ -95,16 +95,20 @@ func _frame_puzzle() -> void:
 	if bounds.size.x <= 0 or bounds.size.y <= 0: return
 	
 	# Calculate safe area dynamically based on UI nodes
-	var viewport_size = get_viewport_rect().size
+	var viewport_size = get_viewport().get_visible_rect().size
 	
 	var top_hud = $SafeArea/TopHUD
 	var bottom_hud = $SafeArea/BottomHUD
 	
-	var safe_margin_top = top_hud.size.y + 40.0 if is_instance_valid(top_hud) and top_hud.size.y > 0 else 200.0
-	
-	# Fallback to 160 if bottom_hud size is 0 (layout not ready)
-	var bh_h = bottom_hud.size.y if is_instance_valid(bottom_hud) else 0.0
-	var safe_margin_bottom = (bh_h + 40.0) if bh_h > 0 else 160.0
+	# Use global layout bounds for TopHUD
+	var safe_margin_top = 200.0
+	if is_instance_valid(top_hud) and top_hud.size.y > 0:
+		safe_margin_top = top_hud.global_position.y + top_hud.size.y + 40.0
+		
+	# Use global layout bounds for BottomHUD
+	var safe_margin_bottom = 160.0
+	if is_instance_valid(bottom_hud) and bottom_hud.size.y > 0:
+		safe_margin_bottom = viewport_size.y - bottom_hud.global_position.y + 40.0
 	
 	var safe_margin_x = 40.0
 	
@@ -167,7 +171,7 @@ func _on_level_completed(moves: int, par_moves: int, used_hint: bool) -> void:
 		haptic_service.trigger_level_complete()
 		
 	# Trigger Mascot Portal Completion Sequence!
-	var viewport_center = get_viewport_rect().size * 0.5
+	var viewport_center = get_viewport().get_visible_rect().size * 0.5
 	
 	# Fire Confetti Burst!
 	_fire_confetti(viewport_center)

@@ -25,7 +25,7 @@ func show_victory(moves: int, _par_moves: int, is_perfect: bool, _best_moves: in
 		
 	score_lbl.text = "Moves: %d / Par: %d" % [moves, _par_moves]
 	
-	if LevelDatabaseScript.get_level(next_lvl_id) != null:
+	if next_lvl_id <= LevelDatabaseScript.get_total_levels():
 		next_btn.text = "Level %d" % next_lvl_id
 	else:
 		next_btn.text = "Levels"

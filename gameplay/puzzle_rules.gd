@@ -59,6 +59,35 @@ static func evaluate_clearance(piece, all_pieces: Array, links: Array) -> Array:
 					
 	return newly_detached
 
+# Evaluates whether rotating to a specific angle would clear any connectors
+static func evaluate_clearance_hypothetical(piece, target_rotation_degrees: float, all_pieces: Array, links: Array) -> Array:
+	var newly_detached = []
+	if not piece or piece.state == 6 or piece.state == 5:
+		return newly_detached
+		
+	var p_id: StringName = piece.piece_id
+	
+	for link in links:
+		if link.def.to_piece_id == p_id and link.state != ConnectorRuntime.State.DETACHED:
+			var from_p = get_piece_by_id(link.def.from_piece_id, all_pieces)
+			if from_p and from_p.state != 6 and from_p.state != 5:
+				var world_angle_rad: float = deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
+				var dir := Vector2.from_angle(world_angle_rad)
+				var pos_cuff: Vector2 = from_p.position + dir * (link.def.stem_dist - piece.radius)
+				var cuff_rel: Vector2 = pos_cuff - piece.position
+				var angle_on_piece_deg := fposmod(rad_to_deg(cuff_rel.angle()), 360.0)
+				
+				var is_cleared := false
+				for gap in piece.gaps:
+					var gap_world_angle := fposmod(target_rotation_degrees + gap.get("angle_deg", 0.0), 360.0)
+					if abs(angle_difference(deg_to_rad(angle_on_piece_deg), deg_to_rad(gap_world_angle))) <= deg_to_rad(link.def.clearance_tolerance_deg):
+						is_cleared = true
+						break
+				if is_cleared:
+					newly_detached.append(link)
+					
+	return newly_detached
+
 static func is_piece_releasable(piece, all_pieces: Array, links: Array) -> bool:
 	if not piece or piece.state == 6 or piece.state == 5:
 		return false

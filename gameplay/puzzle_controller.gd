@@ -23,6 +23,8 @@ var current_level_def = null
 var move_count: int = 0
 var used_hint: bool = false
 var is_active: bool = false
+var _intro_token: int = 0
+var _is_intro_done: bool = false
 
 var drag_controller: Node
 var release_animator: Node
@@ -161,11 +163,16 @@ func load_level(def) -> void:
 	var total_drop_time: float = drop_delay + 1.2
 	_drop_anim_end_time = Time.get_ticks_msec() / 1000.0 + total_drop_time
 	
+	_intro_token += 1
+	var expected_token = _intro_token
+	_is_intro_done = false
 	get_tree().create_timer(total_drop_time).timeout.connect(func():
-		is_active = true
+		if _intro_token == expected_token:
+			_is_intro_done = true
+			is_active = true
 	)
 
-	hint_controller.set_level(def, active_pieces)
+	hint_controller.set_level(def, active_pieces, active_links)
 	_redraw_connectors()
 	piece_count_updated.emit(active_pieces.size())
 
@@ -323,6 +330,10 @@ func _check_cascade_releases() -> void:
 				if is_instance_valid(captured_p) and PuzzleRulesScript.is_piece_releasable(captured_p, active_pieces, active_links):
 					unlock_and_release_piece(captured_p)
 			)
+
+func resume_game() -> void:
+	if _is_intro_done:
+		is_active = true
 
 func request_hint() -> void:
 	used_hint = true
