@@ -19,6 +19,44 @@ func setup(p_radius: float, p_thickness: float, p_color: Color, p_gaps: Array, p
 	custom_arc_start = arc_start
 	custom_arc_end = arc_end
 	queue_redraw()
+	
+	_build_collision()
+
+func _build_collision() -> void:
+	var arcs_to_build = []
+	if use_custom_arc:
+		arcs_to_build.append({ "start": custom_arc_start, "end": custom_arc_end })
+	else:
+		var is_closed: bool = gaps.is_empty() or (gaps.size() == 1 and float(gaps[0].get("width_deg")) <= 0.0)
+		if is_closed:
+			arcs_to_build.append({ "start": 0.0, "end": TAU })
+		else:
+			arcs_to_build = RingGeometry.get_solid_arcs(gaps)
+			
+	for arc in arcs_to_build:
+		var a_start = arc.start
+		var a_end = arc.end
+		if a_end < a_start: a_end += TAU
+		
+		# Generate polygon points for this arc
+		var pts := PackedVector2Array()
+		var segs := max(4, roundi((a_end - a_start) / (PI / 8.0)))
+		var r_outer = radius + (thickness * 0.5)
+		var r_inner = radius - (thickness * 0.5)
+		
+		# Outer arc
+		for i in range(segs + 1):
+			var a = lerpf(a_start, a_end, float(i) / float(segs))
+			pts.append(Vector2.from_angle(a) * r_outer)
+			
+		# Inner arc (reverse)
+		for i in range(segs, -1, -1):
+			var a = lerpf(a_start, a_end, float(i) / float(segs))
+			pts.append(Vector2.from_angle(a) * r_inner)
+			
+		var col = CollisionPolygon2D.new()
+		col.polygon = pts
+		add_child(col)
 
 func _ready() -> void:
 	pass
