@@ -346,15 +346,24 @@ func restart_level() -> void:
 	if current_level_def:
 		load_level(current_level_def)
 
-func _get_child_radius_for_link(link: ConnectorRuntime) -> float:
+func _get_child_boundary_distance(link: ConnectorRuntime, dir: Vector2) -> float:
+	var shape_type = 0
+	var r = 72.0
+	var rot = 0.0
 	var to_p = PuzzleRulesScript.get_piece_by_id(link.def.to_piece_id, active_pieces)
 	if is_instance_valid(to_p):
-		return to_p.radius
-	if current_level_def:
+		shape_type = to_p.def.shape_type if to_p.get("def") and "shape_type" in to_p.def else 0
+		r = to_p.radius
+		rot = to_p.global_rotation
+	elif current_level_def:
 		for p_def in current_level_def.pieces:
 			if p_def.id == link.def.to_piece_id:
-				return p_def.radius
-	return 72.0
+				shape_type = p_def.shape_type if "shape_type" in p_def else 0
+				r = p_def.radius
+				rot = deg_to_rad(p_def.start_angle_deg)
+				break
+	return PieceGeometry.get_world_boundary_distance(shape_type, r, rot, dir.angle() + PI)
+
 
 func _on_stems_layer_draw(ci: CanvasItem) -> void:
 	for link in active_links:
@@ -365,11 +374,12 @@ func _on_stems_layer_draw(ci: CanvasItem) -> void:
 
 		var world_angle_rad := deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
 		var dir := Vector2.from_angle(world_angle_rad)
-		var pos_stem_start: Vector2 = from_p.position + dir * from_p.radius
+		var parent_shape = from_p.def.shape_type if from_p.get("def") and "shape_type" in from_p.def else 0
+		var pos_stem_start: Vector2 = from_p.position + dir * PieceGeometry.get_boundary_distance(parent_shape, from_p.radius, deg_to_rad(link.def.collar_angle_deg))
 
 		# FIX Bug 1 (Update): Users want the FULL connector (stem + cuff) to remain 
 		# even when the child ring breaks away.
-		var child_r: float = _get_child_radius_for_link(link)
+		var child_r: float = _get_child_boundary_distance(link, dir)
 		var pos_cuff: Vector2 = from_p.position + dir * (link.current_stem_dist - child_r)
 
 		var collar_color: Color = from_p.ring_color if link.def.joint_color == Color.TRANSPARENT else link.def.joint_color
@@ -405,7 +415,7 @@ func _on_cuffs_layer_draw(ci: CanvasItem) -> void:
 
 		var world_angle_rad := deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
 		var dir := Vector2.from_angle(world_angle_rad)
-		var child_r: float = _get_child_radius_for_link(link)
+		var child_r: float = _get_child_boundary_distance(link, dir)
 		var pos_cuff: Vector2 = from_p.position + dir * (link.current_stem_dist - child_r)
 
 		var tangent := Vector2(-dir.y, dir.x)

@@ -41,7 +41,9 @@ static func evaluate_clearance(piece, all_pieces: Array, links: Array) -> Array:
 			if from_p and from_p.state != 6 and from_p.state != 5:
 				var world_angle_rad: float = deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
 				var dir := Vector2.from_angle(world_angle_rad)
-				var pos_cuff: Vector2 = from_p.position + dir * (link.def.stem_dist - piece.radius)
+				var shape_type = piece.def.shape_type if piece.get("def") and "shape_type" in piece.def else 0
+				var child_r = PieceGeometry.get_world_boundary_distance(shape_type, piece.radius, piece.rotation, dir.angle() + PI)
+				var pos_cuff: Vector2 = from_p.position + dir * (link.def.stem_dist - child_r)
 				var cuff_rel: Vector2 = pos_cuff - piece.position
 				var angle_on_piece_deg := fposmod(rad_to_deg(cuff_rel.angle()), 360.0)
 				
@@ -73,7 +75,9 @@ static func evaluate_clearance_hypothetical(piece, target_rotation_degrees: floa
 			if from_p and from_p.state != 6 and from_p.state != 5:
 				var world_angle_rad: float = deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
 				var dir := Vector2.from_angle(world_angle_rad)
-				var pos_cuff: Vector2 = from_p.position + dir * (link.def.stem_dist - piece.radius)
+				var shape_type = piece.def.shape_type if piece.get("def") and "shape_type" in piece.def else 0
+				var child_r = PieceGeometry.get_world_boundary_distance(shape_type, piece.radius, piece.rotation, dir.angle() + PI)
+				var pos_cuff: Vector2 = from_p.position + dir * (link.def.stem_dist - child_r)
 				var cuff_rel: Vector2 = pos_cuff - piece.position
 				var angle_on_piece_deg := fposmod(rad_to_deg(cuff_rel.angle()), 360.0)
 				
@@ -128,7 +132,9 @@ static func is_piece_near_alignment(
 			if from_p and from_p.state != 6 and from_p.state != 5:
 				var world_angle_rad: float = deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
 				var dir := Vector2.from_angle(world_angle_rad)
-				var pos_cuff: Vector2 = from_p.position + dir * (link.def.stem_dist - piece.radius)
+				var shape_type = piece.def.shape_type if piece.get("def") and "shape_type" in piece.def else 0
+				var child_r = PieceGeometry.get_world_boundary_distance(shape_type, piece.radius, piece.rotation, dir.angle() + PI)
+				var pos_cuff: Vector2 = from_p.position + dir * (link.def.stem_dist - child_r)
 				var diff: Vector2 = pos_cuff - piece.position
 				var angle_on_piece_deg: float = fposmod(rad_to_deg(diff.angle()), 360.0)
 				if piece.is_angle_near_gap(angle_on_piece_deg, 20.0):
@@ -181,7 +187,9 @@ static func clamp_rotation_step(
 
 			var world_angle_rad: float = deg_to_rad(parent_p.rotation_degrees + link_in.def.collar_angle_deg)
 			var dir := Vector2.from_angle(world_angle_rad)
-			var pos_cuff: Vector2 = parent_p.position + dir * (link_in.def.stem_dist - piece.radius)
+			var shape_type = piece.def.shape_type if piece.get("def") and "shape_type" in piece.def else 0
+			var child_r = PieceGeometry.get_world_boundary_distance(shape_type, piece.radius, piece.rotation, dir.angle() + PI)
+			var pos_cuff: Vector2 = parent_p.position + dir * (link_in.def.stem_dist - child_r)
 			var cuff_rel: Vector2 = pos_cuff - piece.position
 			var cuff_angle_world: float = fposmod(rad_to_deg(cuff_rel.angle()), 360.0)
 
@@ -246,12 +254,15 @@ static func clamp_rotation_step(
 		var blocked_stem_angle_rad := deg_to_rad(blocked_rot + active_limiter_link_out.def.collar_angle_deg)
 		var stem_dir := Vector2.from_angle(blocked_stem_angle_rad)
 		var child_p = get_piece_by_id(active_limiter_link_out.def.to_piece_id, all_pieces)
-		var child_r: float = child_p.radius if child_p else 76.0
+		var shape_type = child_p.def.shape_type if child_p and child_p.get("def") and "shape_type" in child_p.def else 0
+		var c_rot = child_p.rotation if child_p else 0.0
+		var child_r: float = PieceGeometry.get_world_boundary_distance(shape_type, child_p.radius if child_p else 76.0, c_rot, stem_dir.angle() + PI)
 		var pos_stem_head: Vector2 = piece.position + stem_dir * (active_limiter_link_out.def.stem_dist - child_r)
 
 		var to_head: Vector2 = pos_stem_head - active_limiter_parent.position
 		var parent_thickness: float = active_limiter_parent.thickness if "thickness" in active_limiter_parent else 24.0
-		var parent_outer_r: float = active_limiter_parent.radius + parent_thickness * 0.5
+		var p_shape = active_limiter_parent.def.shape_type if active_limiter_parent.get("def") and "shape_type" in active_limiter_parent.def else 0
+		var parent_outer_r: float = PieceGeometry.get_world_boundary_distance(p_shape, active_limiter_parent.radius, active_limiter_parent.rotation, to_head.angle()) + parent_thickness * 0.5
 		var contact_on_parent: Vector2 = active_limiter_parent.position + to_head.normalized() * parent_outer_r
 
 		# Exact contact interface between the connector head and the collided ring rim (local space)

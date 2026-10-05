@@ -9,7 +9,7 @@ signal back_pressed
 @onready var back_btn: Button = $SafeArea/VBox/Header/TopRow/BackBtn
 @onready var chapter_title: Label = $SafeArea/VBox/Header/ChapterTitle
 @onready var progress_lbl: Label = $SafeArea/VBox/Header/ProgressLbl
-@onready var grid_container: GridContainer = $SafeArea/VBox/Scroll/Grid
+@onready var map_container: Control = $SafeArea/VBox/Scroll/MapContainer
 
 var save_service: Node = null
 var audio_service: Node = null
@@ -27,13 +27,12 @@ func _ready() -> void:
 	)
 
 func build_grid() -> void:
-	if not is_instance_valid(grid_container): return
+	if not is_instance_valid(map_container): return
 	
-	# Replace GridContainer with a generic Control for custom mapping
-	var scroll = $SafeArea/VBox/Scroll
-	var journey_map = Control.new()
-	scroll.add_child(journey_map)
-	grid_container.queue_free()
+	for child in map_container.get_children():
+		child.queue_free()
+		
+	var journey_map = map_container
 	
 	var total_levels: int = LevelDatabaseScript.get_total_levels()
 	var cleared_count := 0
@@ -108,3 +107,19 @@ func build_grid() -> void:
 	path_drawer.setup_path(total_levels, vertical_spacing, horizontal_amp, map_height)
 		
 	progress_lbl.text = "%d / %d Cleared" % [cleared_count, total_levels]
+	
+	# Scroll to the highest unlocked level
+	var highest_unlocked = 1
+	for lvl in range(total_levels, 0, -1):
+		if save_service and save_service.has_method("is_level_unlocked") and save_service.is_level_unlocked(lvl):
+			highest_unlocked = lvl
+			break
+			
+	var target_y = map_height - (highest_unlocked * vertical_spacing) - 100.0
+	var scroll_node = $SafeArea/VBox/Scroll
+	# Center the target_y in the scroll container
+	call_deferred("_scroll_to", scroll_node, target_y - (scroll_node.size.y / 2.0))
+
+func _scroll_to(scroll_node: ScrollContainer, val: float) -> void:
+	scroll_node.scroll_vertical = int(max(0, val))
+

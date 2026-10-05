@@ -1,6 +1,15 @@
 extends Resource
 class_name PieceDefinition
 
+
+enum ShapeType {
+	CIRCLE,
+	ROUNDED_SQUARE,
+	ROUNDED_TRIANGLE,
+	OVAL
+}
+
+@export var shape_type: ShapeType = ShapeType.CIRCLE
 enum PieceType {
 	CLOSED_CIRCLE,
 	OPEN_CIRCLE,
@@ -29,7 +38,8 @@ func _init(
 	p_color: Color = Color("#00B4D8"),
 	p_start_angle: float = 90.0,
 	p_gaps: Array = [],
-	p_target_exit: float = 0.0
+	p_target_exit: float = 0.0,
+	p_shape: ShapeType = ShapeType.CIRCLE
 ) -> void:
 	id = p_id
 	position = p_pos
@@ -39,6 +49,7 @@ func _init(
 	start_angle_deg = p_start_angle
 	gaps = p_gaps
 	target_exit_angle_deg = p_target_exit
+	shape_type = p_shape
 	
 	if gaps.is_empty():
 		piece_type = PieceType.CLOSED_CIRCLE

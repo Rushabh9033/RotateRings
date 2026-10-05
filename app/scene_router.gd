@@ -69,3 +69,12 @@ func show_gameplay(level_id: int) -> void:
 	level_select_screen.hide()
 	gameplay_screen.show()
 	gameplay_screen.load_level_by_id(level_id)
+
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.keycode == KEY_ESCAPE and event.pressed):
+		if current_screen == Screen.GAMEPLAY:
+			show_level_select()
+			get_viewport().set_input_as_handled()
+		elif current_screen == Screen.LEVEL_SELECT:
+			show_home()
+			get_viewport().set_input_as_handled()
