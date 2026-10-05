@@ -43,7 +43,8 @@ func _ready() -> void:
 
 	pause_btn.pressed.connect(_on_pause_pressed)
 	if rocket_btn: rocket_btn.pressed.connect(_on_hint_pressed)
-	if hammer_btn: hammer_btn.pressed.connect(_on_hint_pressed)
+	# Hammer is locked, do not connect to hint
+	if hammer_btn: hammer_btn.disabled = true
 	
 	mascot = MascotCompanionScript.new()
 	mascot.position = Vector2(get_viewport_rect().size.x * 0.5, 200.0)
@@ -99,8 +100,12 @@ func _frame_puzzle() -> void:
 	var top_hud = $SafeArea/TopHUD
 	var bottom_hud = $SafeArea/BottomHUD
 	
-	var safe_margin_top = top_hud.size.y + 40.0 if is_instance_valid(top_hud) else 200.0
-	var safe_margin_bottom = bottom_hud.size.y + 40.0 if is_instance_valid(bottom_hud) else 260.0
+	var safe_margin_top = top_hud.size.y + 40.0 if is_instance_valid(top_hud) and top_hud.size.y > 0 else 200.0
+	
+	# Fallback to 160 if bottom_hud size is 0 (layout not ready)
+	var bh_h = bottom_hud.size.y if is_instance_valid(bottom_hud) else 0.0
+	var safe_margin_bottom = (bh_h + 40.0) if bh_h > 0 else 160.0
+	
 	var safe_margin_x = 40.0
 	
 	var safe_width = viewport_size.x - (safe_margin_x * 2.0)

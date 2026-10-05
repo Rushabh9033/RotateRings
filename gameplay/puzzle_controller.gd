@@ -387,6 +387,10 @@ func _on_cuffs_layer_draw(ci: CanvasItem) -> void:
 		if not is_instance_valid(from_p): continue
 		if from_p.state == RingPiece2DScript.State.RELEASED or from_p.state == RingPiece2DScript.State.RELEASING:
 			continue
+			
+		# Hide the cuff if the link is detached (child piece slipped out)
+		if link.state == ConnectorRuntime.State.DETACHED:
+			continue
 
 		var world_angle_rad := deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
 		var dir := Vector2.from_angle(world_angle_rad)
