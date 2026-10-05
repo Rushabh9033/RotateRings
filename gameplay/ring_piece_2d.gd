@@ -28,6 +28,8 @@ var shape_type: int = 0
 @export var target_exit_angle_deg: float = 0.0
 
 var gaps: Array = []
+var def = null
+var role: int = 0
 var attached_collars: Array = []
 var state: State = State.IDLE:
 	set(value):
@@ -57,7 +59,8 @@ func _precompute_colors() -> void:
 	_c_inner_dark.a = 0.5
 
 func _on_state_changed(old: State, new: State) -> void:
-	if new == State.RELEASED: return
+	if new == State.RELEASED or new == State.RELEASING:
+		return
 
 	var tween = create_tween().set_trans(Tween.TRANS_SPRING).set_ease(Tween.EASE_OUT)
 
@@ -91,15 +94,18 @@ func _process(_delta: float) -> void:
 	if absf(shadow_offset_mult - 1.0) > 0.001:
 		queue_redraw()
 
-func setup(def) -> void:
-	piece_id = def.id
-	radius = def.radius
-	thickness = def.thickness
-	ring_color = def.color
-	current_angle_deg = def.start_angle_deg
-	target_exit_angle_deg = def.target_exit_angle_deg if def.get("target_exit_angle_deg") != null else 0.0
+func setup(p_def) -> void:
+	def = p_def
+	piece_id = p_def.id
+	radius = p_def.radius
+	thickness = p_def.thickness
+	ring_color = p_def.color
+	shape_type = int(p_def.shape_type)
+	current_angle_deg = p_def.start_angle_deg
+	target_exit_angle_deg = p_def.target_exit_angle_deg if p_def.get("target_exit_angle_deg") != null else 0.0
 	rotation_degrees = current_angle_deg
-	gaps = def.gaps.duplicate()
+	gaps = p_def.gaps.duplicate()
+	role = 1 if gaps.is_empty() else 0
 	_precompute_colors()
 	queue_redraw()
 

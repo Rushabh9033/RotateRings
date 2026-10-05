@@ -12,11 +12,13 @@ const LinkDefinitionScript = preload("res://data/link_definition.gd")
 const AudioServiceScript = preload("res://app/audio_service.gd")
 const HapticServiceScript = preload("res://app/haptic_service.gd")
 const CollisionSparkBurstScript = preload("res://gameplay/collision_spark_burst.gd")
+const PuzzleStateScript = preload("res://gameplay/puzzle_state.gd")
 
 signal moves_updated(moves: int, par_moves: int)
 signal level_completed(moves: int, par_moves: int, used_hint: bool)
 signal piece_count_updated(remaining: int)
 
+var board = PuzzleStateScript.new()
 var active_pieces: Array[Node2D] = []
 var active_links: Array = []
 var current_level_def = null
@@ -152,13 +154,14 @@ func load_level(def) -> void:
 			var from_p = piece_map.get(link.from_piece_id)
 			var to_p = piece_map.get(link.to_piece_id)
 			if from_p and to_p:
-				from_p.set_meta("had_children_initially", true)
-				to_p.set_meta("had_parents_initially", true)
-			# Use DEFINITION positions (not mid-drop node positions) for correct collar angle
-			var diff_pos: Vector2 = to_def.position - from_def.position
-			link.collar_angle_deg = fposmod(rad_to_deg(diff_pos.angle()) - from_def.start_angle_deg, 360.0)
-			link.stem_dist = diff_pos.length()
+				from_p.role = 1 if from_p.gaps.is_empty() else 0
+				to_p.role = 1 if to_p.gaps.is_empty() else 0
+			# Use definition positions. The drop tween has not reached them yet.
+			PuzzleRulesScript.bind_connector(link, from_def.position, from_def.start_angle_deg, to_def.position)
 		active_links.append(ConnectorRuntime.new(link))
+
+	board.pieces = active_pieces
+	board.links = active_links
 
 	# Keep connectors dirty for the full drop animation duration so falling rings stay connected
 	var total_drop_time: float = drop_delay + 1.2
@@ -235,56 +238,56 @@ func check_unlock_on_drag_ended(piece: Node2D) -> void:
 	if piece.state == RingPiece2DScript.State.RELEASED or piece.state == RingPiece2DScript.State.RELEASING:
 		return
 
+	var snap := PuzzleRulesScript.snap_assist_delta(piece, active_pieces, active_links)
+	if absf(snap) > 0.05:
+		piece.rotation_degrees += snap
+		piece.current_angle_deg = fposmod(piece.rotation_degrees, 360.0)
+		piece.queue_redraw()
+
 	var newly_clearing = PuzzleRulesScript.evaluate_clearance(piece, active_pieces, active_links)
 	if newly_clearing.size() > 0:
 		for link in newly_clearing:
-			var t = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-			# t.tween_method(_update_link_dist.bind(link), link.current_stem_dist, link.def.stem_dist - 30.0, 0.2) # Do not retract stem, let it trap the gap!
+			var pull := PuzzleRulesScript.retraction_distance(piece.thickness)
+			var target_dist := maxf(0.0, link.current_stem_dist - pull)
+			var t = create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			t.tween_method(_update_link_dist.bind(link), link.current_stem_dist, target_dist, 0.18)
 			t.tween_callback(func():
-				link.state = ConnectorRuntime.State.DETACHED
-				check_unlock_for_piece(piece)
+				PuzzleRulesScript.complete_clearance(link)
+				var child_p = PuzzleRulesScript.get_piece_by_id(link.def.to_piece_id, active_pieces)
 				var parent_p = PuzzleRulesScript.get_piece_by_id(link.def.from_piece_id, active_pieces)
+				if is_instance_valid(child_p):
+					_release_if_legal.call_deferred(child_p)
 				if is_instance_valid(parent_p):
-					check_unlock_for_piece(parent_p)
+					_release_if_legal.call_deferred(parent_p)
 			)
-		
 		if audio_service and audio_service.has_method("play_rotation_tick"):
 			audio_service.play_rotation_tick(1.6)
-
-	var will_release = PuzzleRulesScript.is_piece_releasable(piece, active_pieces, active_links)
-	if will_release:
-		if haptic_service and haptic_service.has_method("trigger_selection"):
-			haptic_service.trigger_selection()
 		_redraw_connectors()
-		unlock_and_release_piece(piece, true)
+		return
+
+	_release_if_legal(piece)
 
 func check_unlock_for_piece(piece: Node2D) -> void:
 	check_unlock_on_drag_ended(piece)
+
+func _release_if_legal(piece: Node2D) -> void:
+	if not is_instance_valid(piece):
+		return
+	if not PuzzleRulesScript.is_piece_releasable(piece, active_pieces, active_links):
+		return
+	if haptic_service and haptic_service.has_method("trigger_selection"):
+		haptic_service.trigger_selection()
+	_redraw_connectors()
+	unlock_and_release_piece(piece, true)
 
 func unlock_and_release_piece(piece: Node2D, is_direct: bool = false) -> void:
 	if not is_instance_valid(piece): return
 	if piece.state == RingPiece2DScript.State.RELEASING or piece.state == RingPiece2DScript.State.RELEASED:
 		return
+	piece.set_meta("release_reason", PuzzleRulesScript.release_reason(piece, active_pieces, active_links))
+	PuzzleRulesScript.on_piece_released(piece, active_links)
 	piece.state = RingPiece2DScript.State.RELEASING
 	piece.is_interactive = false
-
-	var p_id: StringName = piece.piece_id
-
-	# Mark all incoming links as detached and restore their full length
-	for l in active_links:
-		if l.def.to_piece_id == p_id:
-			l.state = ConnectorRuntime.State.DETACHED
-			var t = create_tween().set_trans(Tween.TRANS_SPRING).set_ease(Tween.EASE_OUT)
-			t.tween_method(_update_link_dist.bind(l), l.current_stem_dist, l.def.stem_dist, 0.4)
-
-	# Remove outgoing links (piece's own stems/cuffs vanish with it)
-	var links_to_remove: Array = []
-	for l in active_links:
-		if l.def.from_piece_id == p_id:
-			links_to_remove.append(l)
-
-	for l in links_to_remove:
-		active_links.erase(l)
 
 	_redraw_connectors()
 	release_animator.animate_release(piece, _on_piece_release_completed, is_direct)
@@ -299,6 +302,7 @@ func _on_piece_release_completed(piece: Node2D) -> void:
 		if link.def.from_piece_id != piece.piece_id:
 			links_to_keep.append(link)
 	active_links = links_to_keep
+	board.links = active_links
 	
 	piece_count_updated.emit(active_pieces.size())
 	_redraw_connectors()
@@ -309,7 +313,7 @@ func _on_piece_release_completed(piece: Node2D) -> void:
 			p.state != RingPiece2DScript.State.RELEASING
 	)
 
-	if remaining.is_empty():
+	if PuzzleRulesScript.is_puzzle_won(active_pieces, active_links) or remaining.is_empty():
 		if is_active:
 			is_active = false
 			var par: int = current_level_def.par_moves if current_level_def else 1
@@ -327,12 +331,13 @@ func _check_cascade_releases() -> void:
 	var cascade_idx := 0
 	for p in remaining:
 		if PuzzleRulesScript.is_piece_releasable(p, active_pieces, active_links):
-			var captured_p: Node2D = p
+			var captured_id: StringName = p.piece_id
 			var delay: float = 0.40 + (cascade_idx * 0.25)
 			cascade_idx += 1
 			get_tree().create_timer(delay).timeout.connect(func():
-				if is_instance_valid(captured_p) and PuzzleRulesScript.is_piece_releasable(captured_p, active_pieces, active_links):
-					unlock_and_release_piece(captured_p)
+				var live = PuzzleRulesScript.get_piece_by_id(captured_id, active_pieces)
+				if is_instance_valid(live) and PuzzleRulesScript.is_piece_releasable(live, active_pieces, active_links):
+					unlock_and_release_piece(live)
 			)
 
 func resume_game() -> void:

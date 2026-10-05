@@ -60,3 +60,51 @@ static func get_boundary_distance(shape: int, radius: float, local_angle_rad: fl
 static func get_world_boundary_distance(shape: int, radius: float, piece_rotation_rad: float, world_angle_rad: float) -> float:
 	var local_angle = world_angle_rad - piece_rotation_rad
 	return get_boundary_distance(shape, radius, local_angle)
+
+## Arc-length of the whole contour. Circles are exact (2πr). Other authored outlines are sampled on the same boundary function used for hit tests and connectors.
+static func contour_length(shape: int, radius: float) -> float:
+	if shape == ShapeType.CIRCLE:
+		return TAU * radius
+	var steps := 96
+	var length := 0.0
+	var prev := Vector2.from_angle(0.0) * get_boundary_distance(shape, radius, 0.0)
+	for i in range(1, steps + 1):
+		var ang := TAU * float(i) / float(steps)
+		var point := Vector2.from_angle(ang) * get_boundary_distance(shape, radius, ang)
+		length += prev.distance_to(point)
+		prev = point
+	return length
+
+## Perimeter parameter s in [0, 1). Circles map angle to s exactly.
+static func angle_to_s(angle_deg: float) -> float:
+	return fposmod(angle_deg, 360.0) / 360.0
+
+static func gap_interval_s(center_angle_deg: float, width_deg: float) -> Vector2:
+	var half := maxf(width_deg, 0.0) / 360.0 * 0.5
+	var center_s := angle_to_s(center_angle_deg)
+	return Vector2(fposmod(center_s - half, 1.0), fposmod(center_s + half, 1.0))
+
+static func opening_length(shape: int, radius: float, width_deg: float) -> float:
+	return contour_length(shape, radius) * (maxf(width_deg, 0.0) / 360.0)
+
+static func opening_accepts_cuff(opening_len: float, cuff_width: float, margin: float) -> bool:
+	return opening_len + 0.001 >= cuff_width + margin * 2.0
+
+static func s_inside_gap(s: float, start_s: float, end_s: float) -> bool:
+	s = fposmod(s, 1.0)
+	start_s = fposmod(start_s, 1.0)
+	end_s = fposmod(end_s, 1.0)
+	if is_equal_approx(start_s, end_s):
+		return false
+	if start_s < end_s:
+		return s >= start_s - 0.00001 and s <= end_s + 0.00001
+	return s >= start_s - 0.00001 or s <= end_s + 0.00001
+
+## True when the whole cuff, plus safety margin on both ends, sits inside the opening.
+static func cuff_span_inside(start_s: float, end_s: float, contact_s: float, cuff_width: float, contour_len: float, margin: float) -> bool:
+	if contour_len <= 0.001:
+		return false
+	var half := (cuff_width * 0.5 + margin) / contour_len
+	var a := fposmod(contact_s - half, 1.0)
+	var b := fposmod(contact_s + half, 1.0)
+	return s_inside_gap(contact_s, start_s, end_s) and s_inside_gap(a, start_s, end_s) and s_inside_gap(b, start_s, end_s)

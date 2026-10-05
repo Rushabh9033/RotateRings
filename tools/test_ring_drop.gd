@@ -3,12 +3,12 @@ extends SceneTree
 func _init() -> void:
 	print("Starting drop test...")
 	var root = get_root()
-	var gameplay = load("res://gameplay/gameplay_screen.tscn").instantiate()
+	var gameplay = load("res://scenes/gameplay/GameplayScreen.tscn").instantiate()
 	root.add_child(gameplay)
 	
 	await create_timer(1.0).timeout
 	print("Loading Level 1...")
-	gameplay.load_level_by_index(0) # Level 1 is index 0
+	gameplay.load_level_by_id(1)
 	
 	await create_timer(1.0).timeout
 	print("Forcing unlock of a ring...")

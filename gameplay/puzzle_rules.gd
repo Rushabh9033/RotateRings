@@ -1,385 +1,296 @@
 extends RefCounted
-class_name PuzzleRules
-const PieceGeometry = preload("res://gameplay/piece_geometry.gd")
+class_name PuzzleRuleEngine
 
-# Evaluates whether a piece is currently allowed to rotate
-static func is_piece_rotatable(
-	piece,
-	all_pieces: Array,
-	links: Array
-) -> bool:
-	if not piece or piece.state == 6 or piece.state == 5: # RELEASED or RELEASING
+const PieceGeometry = preload("res://gameplay/piece_geometry.gd")
+const ConnectorRuntimeScript = preload("res://gameplay/connector_runtime.gd")
+
+enum PieceRole {
+	NORMAL,
+	ROOT_ANCHOR,
+	EXIT,
+	SPECIAL,
+}
+
+enum ReleaseReason {
+	NONE,
+	PLAYER_CLEAR,
+	ROOT_COMPLETE,
+	EXIT_COMPLETE,
+}
+
+const _RELEASED := 6
+const _RELEASING := 5
+
+static func infer_role(gaps: Array) -> int:
+	if gaps.is_empty():
+		return PieceRole.ROOT_ANCHOR
+	return PieceRole.NORMAL
+
+static func piece_role(piece) -> int:
+	if piece != null and "role" in piece:
+		return int(piece.role)
+	if piece != null and piece.get("gaps") != null and piece.gaps.is_empty():
+		return PieceRole.ROOT_ANCHOR
+	return PieceRole.NORMAL
+
+static func piece_shape(piece) -> int:
+	if piece != null and "shape_type" in piece:
+		return int(piece.shape_type)
+	return 0
+
+static func piece_thickness(piece) -> float:
+	if piece != null and piece.get("thickness") != null:
+		return float(piece.thickness)
+	return 24.0
+
+static func _is_gone(piece) -> bool:
+	return piece == null or not is_instance_valid(piece) or piece.state == _RELEASED or piece.state == _RELEASING
+
+static func bind_connector(link_def, from_pos: Vector2, from_rot_deg: float, to_pos: Vector2) -> void:
+	var diff: Vector2 = to_pos - from_pos
+	link_def.stem_dist = diff.length()
+	link_def.collar_angle_deg = fposmod(rad_to_deg(diff.angle()) - from_rot_deg, 360.0)
+
+static func is_piece_rotatable(piece, _all_pieces: Array, links: Array) -> bool:
+	if _is_gone(piece):
 		return false
-		
 	var p_id: StringName = piece.piece_id
-	
-	# Parents can rotate, as long as they dont hit anything.
-				
-	# If any incoming collar is currently clearing/retracting, lock rotation temporarily.
 	for link in links:
-		if link.def.to_piece_id == p_id and link.state == ConnectorRuntime.State.CLEARING:
+		if link.def.to_piece_id == p_id and link.state == ConnectorRuntimeScript.State.CLEARING:
 			return false
-				
+		if link.def.from_piece_id != p_id:
+			continue
+		if link.state == ConnectorRuntimeScript.State.DETACHED:
+			continue
+		var child = get_piece_by_id(link.def.to_piece_id, _all_pieces)
+		if not _is_gone(child):
+			return false
 	return true
 
-# Evaluates whether a piece is completely free to release/shatter
-static func evaluate_clearance(piece, all_pieces: Array, links: Array) -> Array:
-	var newly_detached = []
-	if not piece or piece.state == 6 or piece.state == 5:
-		return newly_detached
-		
-	var p_id: StringName = piece.piece_id
-	
-	for link in links:
-		if link.def.to_piece_id == p_id and link.state != ConnectorRuntime.State.DETACHED:
-			var from_p = get_piece_by_id(link.def.from_piece_id, all_pieces)
-			if from_p and from_p.state != 6 and from_p.state != 5:
-				var world_angle_rad: float = deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
-				var dir := Vector2.from_angle(world_angle_rad)
-				var shape_type = piece.def.shape_type if piece.get("def") and "shape_type" in piece.def else 0
-				var child_r = PieceGeometry.get_world_boundary_distance(shape_type, piece.radius, piece.rotation, dir.angle() + PI)
-				var pos_cuff: Vector2 = from_p.position + dir * (link.def.stem_dist - child_r)
-				var cuff_rel: Vector2 = pos_cuff - piece.position
-				var angle_on_piece_deg := fposmod(rad_to_deg(cuff_rel.angle()), 360.0)
-				
-				var is_aligned = false
-				for gap in piece.gaps:
-					var gap_world_center := fposmod(piece.rotation_degrees + gap.center_angle_deg, 360.0)
-					var dist: float = absf(wrapf(angle_on_piece_deg - gap_world_center, -180.0, 180.0))
-					if dist <= link.def.clearance_tolerance_deg:
-						is_aligned = true
-						break
-				
-				if is_aligned:
-					link.state = ConnectorRuntime.State.CLEARING
-					newly_detached.append(link)
-					
-	return newly_detached
+static func cuff_world_angle_deg(child, link, pieces: Array) -> float:
+	var parent_p = get_piece_by_id(link.def.from_piece_id, pieces)
+	if _is_gone(parent_p) and parent_p == null:
+		return 0.0
+	var world_rad: float = deg_to_rad(parent_p.rotation_degrees + link.def.collar_angle_deg)
+	var dir := Vector2.from_angle(world_rad)
+	var child_r: float = PieceGeometry.get_world_boundary_distance(piece_shape(child), child.radius, child.rotation, dir.angle() + PI)
+	var pos_cuff: Vector2 = parent_p.position + dir * (link.def.stem_dist - child_r)
+	var rel: Vector2 = pos_cuff - child.position
+	if rel.length_squared() < 0.0001:
+		return 0.0
+	return fposmod(rad_to_deg(rel.angle()), 360.0)
 
-# Evaluates whether rotating to a specific angle would clear any connectors
-static func evaluate_clearance_hypothetical(piece, target_rotation_degrees: float, all_pieces: Array, links: Array) -> Array:
-	var newly_detached = []
-	if not piece or piece.state == 6 or piece.state == 5:
-		return newly_detached
-		
+static func alignment_rotation_deg(child, link, pieces: Array, gap) -> float:
+	var contact := cuff_world_angle_deg(child, link, pieces)
+	return fposmod(contact - float(gap.center_angle_deg), 360.0)
+
+static func connector_fits(child, rotation_deg: float, link, pieces: Array) -> bool:
+	if child == null or child.gaps == null or child.gaps.is_empty():
+		return false
+	var contact_world := cuff_world_angle_deg(child, link, pieces)
+	var local_deg := fposmod(contact_world - rotation_deg, 360.0)
+	var contact_s := PieceGeometry.angle_to_s(local_deg)
+	var shape := piece_shape(child)
+	var perim := PieceGeometry.contour_length(shape, child.radius)
+	var cuff_w := ConnectorRuntimeScript.TANGENTIAL_WIDTH
+	var margin := ConnectorRuntimeScript.SAFETY_MARGIN
+	for gap in child.gaps:
+		var opening := PieceGeometry.opening_length(shape, child.radius, float(gap.width_deg))
+		if not PieceGeometry.opening_accepts_cuff(opening, cuff_w, margin):
+			continue
+		var interval := PieceGeometry.gap_interval_s(float(gap.center_angle_deg), float(gap.width_deg))
+		if PieceGeometry.cuff_span_inside(interval.x, interval.y, contact_s, cuff_w, perim, margin):
+			return true
+	return false
+
+static func evaluate_clearance(piece, all_pieces: Array, links: Array) -> Array:
+	var newly: Array = []
+	if _is_gone(piece):
+		return newly
 	var p_id: StringName = piece.piece_id
-	
 	for link in links:
-		if link.def.to_piece_id == p_id and link.state != ConnectorRuntime.State.DETACHED:
-			var from_p = get_piece_by_id(link.def.from_piece_id, all_pieces)
-			if from_p and from_p.state != 6 and from_p.state != 5:
-				var world_angle_rad: float = deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
-				var dir := Vector2.from_angle(world_angle_rad)
-				var shape_type = piece.def.shape_type if piece.get("def") and "shape_type" in piece.def else 0
-				var child_r = PieceGeometry.get_world_boundary_distance(shape_type, piece.radius, piece.rotation, dir.angle() + PI)
-				var pos_cuff: Vector2 = from_p.position + dir * (link.def.stem_dist - child_r)
-				var cuff_rel: Vector2 = pos_cuff - piece.position
-				var angle_on_piece_deg := fposmod(rad_to_deg(cuff_rel.angle()), 360.0)
-				
-				var is_cleared := false
-				for gap in piece.gaps:
-					var gap_world_angle := fposmod(target_rotation_degrees + gap.center_angle_deg, 360.0)
-					if abs(angle_difference(deg_to_rad(angle_on_piece_deg), deg_to_rad(gap_world_angle))) <= deg_to_rad(link.def.clearance_tolerance_deg):
-						is_cleared = true
-						break
-				if is_cleared:
-					newly_detached.append(link)
-					
-	return newly_detached
+		if link.def.to_piece_id != p_id:
+			continue
+		if link.state != ConnectorRuntimeScript.State.ENGAGED:
+			continue
+		var parent_p = get_piece_by_id(link.def.from_piece_id, all_pieces)
+		if _is_gone(parent_p):
+			continue
+		if connector_fits(piece, piece.rotation_degrees, link, all_pieces):
+			link.state = ConnectorRuntimeScript.State.CLEARING
+			newly.append(link)
+	return newly
+
+static func evaluate_clearance_hypothetical(piece, target_rotation_degrees: float, all_pieces: Array, links: Array) -> Array:
+	var found: Array = []
+	if _is_gone(piece):
+		return found
+	var p_id: StringName = piece.piece_id
+	for link in links:
+		if link.def.to_piece_id != p_id:
+			continue
+		if link.state != ConnectorRuntimeScript.State.ENGAGED:
+			continue
+		if connector_fits(piece, target_rotation_degrees, link, all_pieces):
+			found.append(link)
+	return found
+
+static func complete_clearance(link) -> void:
+	if link != null and link.state == ConnectorRuntimeScript.State.CLEARING:
+		link.state = ConnectorRuntimeScript.State.DETACHED
+
+static func retraction_distance(tube_thickness: float) -> float:
+	return ConnectorRuntimeScript.retraction_distance(tube_thickness)
 
 static func is_piece_releasable(piece, all_pieces: Array, links: Array) -> bool:
-	if not piece or piece.state == 6 or piece.state == 5:
+	if _is_gone(piece):
 		return false
-		
 	var p_id: StringName = piece.piece_id
-	
 	for link in links:
-		if link.def.from_piece_id == p_id and link.state != ConnectorRuntime.State.DETACHED:
-			var child_p = get_piece_by_id(link.def.to_piece_id, all_pieces)
-			if child_p and child_p.state != 6 and child_p.state != 5:
+		if link.def.from_piece_id == p_id and link.state != ConnectorRuntimeScript.State.DETACHED:
+			var child = get_piece_by_id(link.def.to_piece_id, all_pieces)
+			if not _is_gone(child):
 				return false
-				
-	for link in links:
-		if link.def.to_piece_id == p_id and link.state != ConnectorRuntime.State.DETACHED:
-			var from_p = get_piece_by_id(link.def.from_piece_id, all_pieces)
-			if from_p and from_p.state != 6 and from_p.state != 5:
+		if link.def.to_piece_id == p_id and link.state != ConnectorRuntimeScript.State.DETACHED:
+			var parent_p = get_piece_by_id(link.def.from_piece_id, all_pieces)
+			if not _is_gone(parent_p):
 				return false
-					
-	if piece.has_meta("had_children_initially") or piece.has_meta("had_parents_initially"):
-		return true
-		
-	var target_exit: float = float(piece.get("target_exit_angle_deg")) if piece.get("target_exit_angle_deg") != null else 0.0
-	return piece.is_angle_in_any_gap(target_exit)
+	return true
 
-# Evaluates whether a piece is near valid alignment with any incoming collar
-static func is_piece_near_alignment(
-	piece,
-	all_pieces: Array,
-	links: Array
-) -> bool:
-	if not piece or piece.state == 6:
-		return false
-		
+static func release_reason(piece, _all_pieces: Array, _links: Array) -> int:
+	var role := piece_role(piece)
+	if role == PieceRole.ROOT_ANCHOR:
+		return ReleaseReason.ROOT_COMPLETE
+	if role == PieceRole.EXIT:
+		return ReleaseReason.EXIT_COMPLETE
+	return ReleaseReason.PLAYER_CLEAR
+
+static func on_piece_released(piece, links: Array) -> void:
+	if piece == null:
+		return
 	var p_id: StringName = piece.piece_id
 	for link in links:
-		if link.def.to_piece_id == p_id and link.state != ConnectorRuntime.State.DETACHED:
-			var from_p = get_piece_by_id(link.def.from_piece_id, all_pieces)
-			if from_p and from_p.state != 6 and from_p.state != 5:
-				var world_angle_rad: float = deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
-				var dir := Vector2.from_angle(world_angle_rad)
-				var shape_type = piece.def.shape_type if piece.get("def") and "shape_type" in piece.def else 0
-				var child_r = PieceGeometry.get_world_boundary_distance(shape_type, piece.radius, piece.rotation, dir.angle() + PI)
-				var pos_cuff: Vector2 = from_p.position + dir * (link.def.stem_dist - child_r)
-				var diff: Vector2 = pos_cuff - piece.position
-				var angle_on_piece_deg: float = fposmod(rad_to_deg(diff.angle()), 360.0)
-				if piece.is_angle_near_gap(angle_on_piece_deg, 20.0):
-					return true
+		if link.def.from_piece_id == p_id or link.def.to_piece_id == p_id:
+			link.state = ConnectorRuntimeScript.State.DETACHED
+
+static func resolve_releases(pieces: Array, links: Array) -> Array:
+	var released: Array = []
+	var changed := true
+	while changed:
+		changed = false
+		for piece in pieces:
+			if _is_gone(piece):
+				continue
+			if not is_piece_releasable(piece, pieces, links):
+				continue
+			var reason := release_reason(piece, pieces, links)
+			piece.set_meta("release_reason", reason)
+			piece.state = _RELEASED
+			on_piece_released(piece, links)
+			released.append(piece)
+			changed = true
+	return released
+
+static func is_puzzle_won(pieces: Array, links: Array) -> bool:
+	var any_piece := false
+	for piece in pieces:
+		if piece == null or not is_instance_valid(piece):
+			continue
+		any_piece = true
+		if not _is_gone(piece):
+			return false
+	if not any_piece:
+		return false
+	for link in links:
+		if link.state == ConnectorRuntimeScript.State.DETACHED:
+			continue
+		var parent_p = get_piece_by_id(link.def.from_piece_id, pieces)
+		var child = get_piece_by_id(link.def.to_piece_id, pieces)
+		if _is_gone(parent_p) and _is_gone(child):
+			continue
+		return false
+	return true
+
+static func snap_assist_delta(piece, pieces: Array, links: Array) -> float:
+	if _is_gone(piece):
+		return 0.0
+	var best := 0.0
+	var best_abs := INF
+	var found := false
+	for link in links:
+		if link.def.to_piece_id != piece.piece_id:
+			continue
+		if link.state != ConnectorRuntimeScript.State.ENGAGED:
+			continue
+		if not connector_fits(piece, piece.rotation_degrees, link, pieces):
+			continue
+		for gap in piece.gaps:
+			var target := alignment_rotation_deg(piece, link, pieces, gap)
+			if not connector_fits(piece, target, link, pieces):
+				continue
+			var delta := wrapf(target - piece.rotation_degrees, -180.0, 180.0)
+			if absf(delta) < best_abs:
+				best_abs = absf(delta)
+				best = delta
+				found = true
+	if not found:
+		return 0.0
+	return best
+
+static func clamp_rotation_step(piece: Node2D, step_delta_deg: float, all_pieces: Array, links: Array) -> Dictionary:
+	if not is_instance_valid(piece):
+		return { "allowed_delta": 0.0, "hit_stopper": false, "contact_point": Vector2.ZERO, "contact_color": Color.WHITE }
+	if not is_piece_rotatable(piece, all_pieces, links):
+		var blocked_at := piece.position
+		if piece.is_inside_tree():
+			blocked_at = piece.global_position
+		return { "allowed_delta": 0.0, "hit_stopper": true, "contact_point": blocked_at, "contact_color": Color.WHITE }
+	return { "allowed_delta": step_delta_deg, "hit_stopper": false, "contact_point": Vector2.ZERO, "contact_color": Color.WHITE }
+
+static func apply_settled_rotation(piece, target_rotation_deg: float, pieces: Array, links: Array) -> Dictionary:
+	var result := {
+		"applied": false,
+		"cleared": [],
+		"released": [],
+		"won": false,
+	}
+	if _is_gone(piece):
+		return result
+	var delta := wrapf(target_rotation_deg - piece.rotation_degrees, -180.0, 180.0)
+	var clamped: Dictionary = clamp_rotation_step(piece, delta, pieces, links)
+	if bool(clamped["hit_stopper"]):
+		return result
+	if absf(float(clamped["allowed_delta"]) - delta) > 0.5:
+		return result
+	piece.rotation_degrees += float(clamped["allowed_delta"])
+	if "current_angle_deg" in piece:
+		piece.current_angle_deg = fposmod(piece.rotation_degrees, 360.0)
+	result["applied"] = true
+	var clearing: Array = evaluate_clearance(piece, pieces, links)
+	for link in clearing:
+		complete_clearance(link)
+	result["cleared"] = clearing
+	result["released"] = resolve_releases(pieces, links)
+	result["won"] = is_puzzle_won(pieces, links)
+	return result
+
+static func is_piece_near_alignment(piece, all_pieces: Array, links: Array) -> bool:
+	if _is_gone(piece):
+		return false
+	var p_id: StringName = piece.piece_id
+	for link in links:
+		if link.def.to_piece_id != p_id or link.state != ConnectorRuntimeScript.State.ENGAGED:
+			continue
+		var contact := cuff_world_angle_deg(piece, link, all_pieces)
+		var local_deg := fposmod(contact - piece.rotation_degrees, 360.0)
+		for gap in piece.gaps:
+			var dist := absf(wrapf(local_deg - float(gap.center_angle_deg), -180.0, 180.0))
+			if dist <= float(gap.width_deg) * 0.5:
+				return true
 	return false
 
 static func get_piece_by_id(id: StringName, pieces: Array):
-	for p in pieces:
-		if is_instance_valid(p) and p.piece_id == id:
-			return p
+	for piece in pieces:
+		if is_instance_valid(piece) and piece.piece_id == id:
+			return piece
 	return null
-
-# Evaluates allowed rotation delta and detects connector-to-connector physical collisions.
-# Prevents any outgoing stem on piece from rotating through incoming cuffs attached to piece.
-static func clamp_rotation_step(
-	piece: Node2D,
-	step_delta_deg: float,
-	all_pieces: Array,
-	links: Array
-) -> Dictionary:
-	if not is_instance_valid(piece) or absf(step_delta_deg) < 0.0001:
-		return { "allowed_delta": step_delta_deg, "hit_stopper": false, "contact_point": Vector2.ZERO, "contact_color": Color.WHITE }
-
-	var curr_rot: float = piece.rotation_degrees
-	var col_threshold: float = 24.0
-
-	var max_pos_delta: float = 360.0
-	var min_neg_delta: float = -360.0
-	var pos_limiter_link_out = null
-	var pos_limiter_parent = null
-	var neg_limiter_link_out = null
-	var neg_limiter_parent = null
-
-	# Prevent the parent from rotating if it has an attached stem inside a non-concentric child!
-	# The stem is physically trapped in the child's track, so the parent cannot rotate at all.
-	for link_out in links:
-		if link_out.def.from_piece_id == piece.piece_id and link_out.state != ConnectorRuntime.State.DETACHED:
-			var child_p = get_piece_by_id(link_out.def.to_piece_id, all_pieces)
-			if is_instance_valid(child_p) and child_p.state != 6 and child_p.state != 5:
-				# If not concentric, locked!
-				if piece.position.distance_to(child_p.position) > 1.0:
-					return { "allowed_delta": 0.0, "hit_stopper": true, "contact_point": piece.global_position, "contact_color": Color.WHITE }
-
-
-	# Prevent the gap from rotating away from a detached incoming stem (which traps the gap until parent shatters)
-	for link_in in links:
-		if link_in.def.to_piece_id != piece.piece_id:
-			continue
-		if link_in.state != ConnectorRuntime.State.DETACHED:
-			continue
-			
-		var parent_p = get_piece_by_id(link_in.def.from_piece_id, all_pieces)
-		if not is_instance_valid(parent_p) or parent_p.state == 6 or parent_p.state == 5:
-			continue # Parent is gone, stem is gone
-			
-		var world_angle_rad: float = deg_to_rad(parent_p.rotation_degrees + link_in.def.collar_angle_deg)
-		var dir := Vector2.from_angle(world_angle_rad)
-		var shape_type = piece.def.shape_type if piece.get("def") and "shape_type" in piece.def else 0
-		var child_r = PieceGeometry.get_world_boundary_distance(shape_type, piece.radius, piece.rotation, dir.angle() + PI)
-		var pos_cuff: Vector2 = parent_p.position + dir * (link_in.def.stem_dist - child_r)
-		var cuff_rel: Vector2 = pos_cuff - piece.position
-		var cuff_angle_world: float = fposmod(rad_to_deg(cuff_rel.angle()), 360.0)
-		
-		var trapped = false
-		for gap in piece.gaps:
-			var gap_world = curr_rot + gap.center_angle_deg
-			var d_curr = wrapf(gap_world - cuff_angle_world, -180.0, 180.0)
-			
-			if abs(d_curr) < 45.0: # Stem is inside this gap
-				var gap_width = link_in.def.clearance_tolerance_deg
-				var dist_pos = gap_width - d_curr
-				var dist_neg = -gap_width - d_curr
-				if dist_pos < max_pos_delta:
-					max_pos_delta = dist_pos
-					pos_limiter_link_out = null
-					pos_limiter_parent = parent_p
-				if dist_neg > min_neg_delta:
-					min_neg_delta = dist_neg
-					neg_limiter_link_out = null
-					neg_limiter_parent = parent_p
-				trapped = true
-				break
-
-
-
-	# Prevent the parent from rotating a detached outgoing stem through a child's solid body.
-	# The stem is trapped inside the child's gap until the child shatters or moves away (which it can't).
-	for link_out in links:
-		if link_out.def.from_piece_id != piece.piece_id:
-			continue
-		if link_out.state != ConnectorRuntime.State.DETACHED:
-			continue
-			
-		var child_p = get_piece_by_id(link_out.def.to_piece_id, all_pieces)
-		if not is_instance_valid(child_p) or child_p.state == 6 or child_p.state == 5:
-			continue # Child is gone, stem is free to move
-			
-		# The stem is currently inside ONE of the child's gaps. We need to clamp the parent's rotation
-		# so the stem doesn't leave that gap.
-		# When the parent rotates by `delta`, the stem's world position changes.
-		# We must restrict `delta` so the stem remains within the child's gap.
-		
-		# Let's approximate: the stem's world angle relative to the child must be near the child's gap.
-		var stem_offset = link_out.def.collar_angle_deg
-		var stem_world = curr_rot + stem_offset
-		var world_angle_rad: float = deg_to_rad(stem_world)
-		var dir := Vector2.from_angle(world_angle_rad)
-		var shape_type = child_p.def.shape_type if child_p.get("def") and "shape_type" in child_p.def else 0
-		var child_r = PieceGeometry.get_world_boundary_distance(shape_type, child_p.radius, child_p.rotation, dir.angle() + PI)
-		var pos_cuff: Vector2 = piece.position + dir * (link_out.def.stem_dist - child_r)
-		var cuff_rel: Vector2 = pos_cuff - child_p.position
-		var cuff_angle_world: float = fposmod(rad_to_deg(cuff_rel.angle()), 360.0)
-		
-		# Find the gap the stem is in
-		for gap in child_p.gaps:
-			var gap_world = child_p.rotation_degrees + gap.center_angle_deg
-			var d_curr = wrapf(gap_world - cuff_angle_world, -180.0, 180.0)
-			
-			if abs(d_curr) < 45.0: # Stem is inside this gap
-				# If the parent rotates by delta, cuff_angle_world changes by roughly delta (if concentric).
-				# If not concentric, it changes by some amount.
-				# To be perfectly accurate, we should test the exact delta, but as a linear approximation, 
-				# we can assume the angular change is roughly proportional.
-				# Actually, the simplest fix is to just heavily restrict the parent's movement if it's trapped.
-				# A trapped stem shouldn't move much at all. Let's just lock it to the gap's tolerance.
-				var gap_width = link_out.def.clearance_tolerance_deg
-				var dist_pos = gap_width - d_curr
-				var dist_neg = -gap_width - d_curr
-				if dist_pos < max_pos_delta:
-					max_pos_delta = dist_pos
-					pos_limiter_link_out = link_out
-					pos_limiter_parent = piece
-				if dist_neg > min_neg_delta:
-					min_neg_delta = dist_neg
-					neg_limiter_link_out = link_out
-					neg_limiter_parent = piece
-				break
-
-	for link_out in links:
-		if link_out.def.from_piece_id != piece.piece_id:
-			continue
-		if link_out.state == ConnectorRuntime.State.DETACHED:
-			continue
-		var stem_offset: float = link_out.def.collar_angle_deg
-
-		for link_in in links:
-			if link_in.def.to_piece_id != piece.piece_id:
-				continue
-			if link_in.state == ConnectorRuntime.State.DETACHED:
-				continue
-
-			var parent_p = get_piece_by_id(link_in.def.from_piece_id, all_pieces)
-			if not is_instance_valid(parent_p) or parent_p.state == 6 or parent_p.state == 5:
-				continue
-
-			var world_angle_rad: float = deg_to_rad(parent_p.rotation_degrees + link_in.def.collar_angle_deg)
-			var dir := Vector2.from_angle(world_angle_rad)
-			var shape_type = piece.def.shape_type if piece.get("def") and "shape_type" in piece.def else 0
-			var child_r = PieceGeometry.get_world_boundary_distance(shape_type, piece.radius, piece.rotation, dir.angle() + PI)
-			var pos_cuff: Vector2 = parent_p.position + dir * (link_in.def.stem_dist - child_r)
-			var cuff_rel: Vector2 = pos_cuff - piece.position
-			var cuff_angle_world: float = fposmod(rad_to_deg(cuff_rel.angle()), 360.0)
-
-			var stem_world := curr_rot + stem_offset
-			var d_curr := wrapf(stem_world - cuff_angle_world, -180.0, 180.0)
-
-			if d_curr > col_threshold:
-				var dist_neg := -(d_curr - col_threshold)
-				if dist_neg > min_neg_delta:
-					min_neg_delta = dist_neg
-					neg_limiter_link_out = link_out
-					neg_limiter_parent = parent_p
-				var dist_pos := (360.0 - d_curr - col_threshold)
-				if dist_pos < max_pos_delta:
-					max_pos_delta = dist_pos
-					pos_limiter_link_out = link_out
-					pos_limiter_parent = parent_p
-			elif d_curr < -col_threshold:
-				var dist_pos := (-col_threshold - d_curr)
-				if dist_pos < max_pos_delta:
-					max_pos_delta = dist_pos
-					pos_limiter_link_out = link_out
-					pos_limiter_parent = parent_p
-				var dist_neg := -(360.0 + d_curr - col_threshold)
-				if dist_neg > min_neg_delta:
-					min_neg_delta = dist_neg
-					neg_limiter_link_out = link_out
-					neg_limiter_parent = parent_p
-			else:
-				if d_curr >= 0.0:
-					if 0.0 > min_neg_delta:
-						min_neg_delta = 0.0
-						neg_limiter_link_out = link_out
-						neg_limiter_parent = parent_p
-				else:
-					if 0.0 < max_pos_delta:
-						max_pos_delta = 0.0
-						pos_limiter_link_out = link_out
-						pos_limiter_parent = parent_p
-
-	var allowed_delta := step_delta_deg
-	var hit_stopper := false
-	var hit_contact_point := Vector2.ZERO
-	var hit_contact_color := Color(1.0, 0.90, 0.20, 1.0) # Brilliant golden star color
-
-	var active_limiter_link_out = null
-	var active_limiter_parent = null
-
-	if step_delta_deg > max_pos_delta:
-		allowed_delta = max_pos_delta
-		hit_stopper = true
-		active_limiter_link_out = pos_limiter_link_out
-		active_limiter_parent = pos_limiter_parent
-	elif step_delta_deg < min_neg_delta:
-		allowed_delta = min_neg_delta
-		hit_stopper = true
-		active_limiter_link_out = neg_limiter_link_out
-		active_limiter_parent = neg_limiter_parent
-
-	if hit_stopper and active_limiter_link_out != null and is_instance_valid(active_limiter_parent):
-		var blocked_rot := curr_rot + allowed_delta
-		var blocked_stem_angle_rad := deg_to_rad(blocked_rot + active_limiter_link_out.def.collar_angle_deg)
-		var stem_dir := Vector2.from_angle(blocked_stem_angle_rad)
-		var child_p = get_piece_by_id(active_limiter_link_out.def.to_piece_id, all_pieces)
-		var shape_type = child_p.def.shape_type if child_p and child_p.get("def") and "shape_type" in child_p.def else 0
-		var c_rot = child_p.rotation if child_p else 0.0
-		var child_r: float = PieceGeometry.get_world_boundary_distance(shape_type, child_p.radius if child_p else 76.0, c_rot, stem_dir.angle() + PI)
-		var pos_stem_head: Vector2 = piece.position + stem_dir * (active_limiter_link_out.def.stem_dist - child_r)
-
-		var to_head: Vector2 = pos_stem_head - active_limiter_parent.position
-		var parent_thickness: float = active_limiter_parent.thickness if "thickness" in active_limiter_parent else 24.0
-		var p_shape = active_limiter_parent.def.shape_type if active_limiter_parent.get("def") and "shape_type" in active_limiter_parent.def else 0
-		var parent_outer_r: float = PieceGeometry.get_world_boundary_distance(p_shape, active_limiter_parent.radius, active_limiter_parent.rotation, to_head.angle()) + parent_thickness * 0.5
-		var contact_on_parent: Vector2 = active_limiter_parent.position + to_head.normalized() * parent_outer_r
-
-		# Exact contact interface between the connector head and the collided ring rim (local space)
-		var local_contact_point = (pos_stem_head + contact_on_parent) * 0.5
-		if piece.get_parent():
-			hit_contact_point = piece.get_parent().to_global(local_contact_point)
-		else:
-			hit_contact_point = local_contact_point
-	elif hit_stopper:
-		if piece.is_inside_tree():
-			hit_contact_point = piece.global_position
-		else:
-			hit_contact_point = piece.position
-
-	return {
-		"allowed_delta": allowed_delta,
-		"hit_stopper": hit_stopper,
-		"contact_point": hit_contact_point,
-		"contact_color": hit_contact_color
-	}

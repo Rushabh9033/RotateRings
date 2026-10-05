@@ -5,6 +5,7 @@ const PuzzleRulesScript = preload("res://gameplay/puzzle_rules.gd")
 const RingPiece2DScript = preload("res://gameplay/ring_piece_2d.gd")
 const LinkDefinitionScript = preload("res://data/link_definition.gd")
 const ConnectorRuntime = preload("res://gameplay/connector_runtime.gd")
+const PuzzleStateScript = preload("res://gameplay/puzzle_state.gd")
 
 static func _get_state_id(pieces: Array, links: Array) -> String:
 	var s = ""
@@ -29,12 +30,14 @@ static func _clone_state(pieces: Array, links: Array) -> Dictionary:
 		n.rotation_degrees = p.rotation_degrees
 		n.state = p.state
 		n.gaps = p.gaps.duplicate(true)
+		n.shape_type = p.shape_type
+		n.thickness = p.thickness
+		n.role = p.role
+		n.def = p.def
 		if "target_exit_angle_deg" in p:
 			n.set("target_exit_angle_deg", p.get("target_exit_angle_deg"))
-		if p.has_meta("had_parents_initially"):
-			n.set_meta("had_parents_initially", p.get_meta("had_parents_initially"))
-		if p.has_meta("had_children_initially"):
-			n.set_meta("had_children_initially", p.get_meta("had_children_initially"))
+		if p.has_meta("release_reason"):
+			n.set_meta("release_reason", p.get_meta("release_reason"))
 		new_p.append(n)
 	
 	var new_l: Array = []
@@ -47,7 +50,8 @@ static func _clone_state(pieces: Array, links: Array) -> Dictionary:
 		nl.current_stem_dist = l.current_stem_dist
 		new_l.append(nl)
 	
-	return { "pieces": new_p, "links": new_l }
+	var board := PuzzleStateScript.new(new_p, new_l)
+	return { "pieces": board.pieces, "links": board.links, "board": board }
 
 static func _get_moves(pieces: Array, links: Array) -> Array:
 	var moves: Array = []
@@ -63,80 +67,42 @@ static func _get_moves(pieces: Array, links: Array) -> Array:
 		for link in incoming:
 			var parent_p = PuzzleRulesScript.get_piece_by_id(link.def.from_piece_id, pieces)
 			if not parent_p or parent_p.state == RingPiece2DScript.State.RELEASED: continue
-			
-			var world_angle_rad: float = deg_to_rad(parent_p.rotation_degrees + link.def.collar_angle_deg)
-			var dir := Vector2.from_angle(world_angle_rad)
-			var pos_cuff: Vector2 = parent_p.position + dir * (link.def.stem_dist - p.radius)
-			var cuff_rel: Vector2 = pos_cuff - p.position
-			var angle_on_child_deg := fposmod(rad_to_deg(cuff_rel.angle()), 360.0)
-			
 			for gap in p.gaps:
-				var target_rot = angle_on_child_deg - gap.center_angle_deg
-				var target_rot_norm = fposmod(target_rot, 360.0)
-				var current_rot_norm = fposmod(p.rotation_degrees, 360.0)
-				
-				var cw_delta = fposmod(target_rot_norm - current_rot_norm, 360.0)
-				var ccw_delta = cw_delta - 360.0
-				
-				var can_cw = false
-				var clamp_cw = PuzzleRulesScript.clamp_rotation_step(p, cw_delta, pieces, links)
-				if not clamp_cw.hit_stopper or absf(float(clamp_cw.allowed_delta) - cw_delta) < 0.1:
-					can_cw = true
-					
-				var can_ccw = false
-				var clamp_ccw = PuzzleRulesScript.clamp_rotation_step(p, ccw_delta, pieces, links)
-				if not clamp_ccw.hit_stopper or absf(float(clamp_ccw.allowed_delta) - ccw_delta) < 0.1:
-					can_ccw = true
-					
-				if can_cw or can_ccw:
-					moves.append({
-						"piece_id": p.piece_id,
-						"target_rot": p.rotation_degrees + (cw_delta if can_cw else ccw_delta),
-						"link_to_detach": link.def.id
-					})
+				var target_rot: float = PuzzleRulesScript.alignment_rotation_deg(p, link, pieces, gap)
+				if not PuzzleRulesScript.connector_fits(p, target_rot, link, pieces):
+					continue
+				var delta := wrapf(target_rot - p.rotation_degrees, -180.0, 180.0)
+				var clamped: Dictionary = PuzzleRulesScript.clamp_rotation_step(p, delta, pieces, links)
+				if bool(clamped.get("hit_stopper", false)):
+					continue
+				if absf(float(clamped["allowed_delta"]) - delta) > 0.5:
+					continue
+				moves.append({
+					"piece_id": p.piece_id,
+					"target_rot": target_rot,
+				})
 	return moves
-
-static func _cascade_check(pieces: Array, links: Array) -> int:
-	var changed = true
-	var released_count = 0
-	while changed:
-		changed = false
-		for p in pieces:
-			if p.state == RingPiece2DScript.State.RELEASED: continue
-			var rel = PuzzleRulesScript.is_piece_releasable(p, pieces, links)
-			if rel:
-				p.state = RingPiece2DScript.State.RELEASED
-				released_count += 1
-				for l in links:
-					if l.def.to_piece_id == p.piece_id:
-						l.state = ConnectorRuntime.State.DETACHED
-					if l.def.from_piece_id == p.piece_id:
-						l.state = ConnectorRuntime.State.DETACHED
-				changed = true
-	return released_count
 
 static func _apply_move(state: Dictionary, move: Dictionary) -> int:
 	var p = PuzzleRulesScript.get_piece_by_id(move.piece_id, state.pieces)
-	p.rotation_degrees = move.target_rot
-	
-	var newly_clearing = PuzzleRulesScript.evaluate_clearance(p, state.pieces, state.links)
-	for link in newly_clearing:
-		link.state = ConnectorRuntime.State.DETACHED
-			
-	return _cascade_check(state.pieces, state.links)
+	var result: Dictionary = PuzzleRulesScript.apply_settled_rotation(p, move.target_rot, state.pieces, state.links)
+	if not bool(result["applied"]):
+		return 0
+	return int(result["released"].size())
 
 static func solve_bfs(start_pieces: Array, start_links: Array) -> Dictionary:
-	var initial_releases = _cascade_check(start_pieces, start_links)
+	var initial_releases = PuzzleRulesScript.resolve_releases(start_pieces, start_links).size()
 	var start_id = _get_state_id(start_pieces, start_links)
 	if start_pieces.filter(func(p): return p.state != RingPiece2DScript.State.RELEASED).is_empty():
 		return { "solved": true, "moves": 0, "direct_releases": 0, "cascade_releases": initial_releases, "max_cascade": initial_releases }
 		
-	var queue = [{ "pieces": start_pieces, "links": start_links, "moves": 0, "direct_releases": 0, "cascade_releases": initial_releases, "max_cascade": initial_releases }]
+	var start_board := PuzzleStateScript.new(start_pieces, start_links)
+	var queue = [{ "pieces": start_board.pieces, "links": start_board.links, "board": start_board, "moves": 0, "direct_releases": 0, "cascade_releases": initial_releases, "max_cascade": initial_releases }]
 	var visited = { start_id: true }
 	
 	while queue.size() > 0:
 		var curr = queue.pop_front()
-		if curr.pieces.filter(func(p): return p.state != RingPiece2DScript.State.RELEASED).is_empty():
+		if PuzzleRulesScript.is_puzzle_won(curr.pieces, curr.links):
 			return { "solved": true, "moves": curr.moves, "direct_releases": curr.direct_releases, "cascade_releases": curr.cascade_releases, "max_cascade": curr.max_cascade }
 			
 		var moves = _get_moves(curr.pieces, curr.links)
