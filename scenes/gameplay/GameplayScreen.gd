@@ -103,12 +103,16 @@ func _frame_puzzle() -> void:
 	# Use global layout bounds for TopHUD
 	var safe_margin_top = 200.0
 	if is_instance_valid(top_hud) and top_hud.size.y > 0:
-		safe_margin_top = top_hud.global_position.y + top_hud.size.y + 40.0
+		var top_bottom = top_hud.global_position.y + top_hud.size.y
+		if top_bottom > 10.0:
+			safe_margin_top = top_bottom + 40.0
 		
 	# Use global layout bounds for BottomHUD
 	var safe_margin_bottom = 160.0
 	if is_instance_valid(bottom_hud) and bottom_hud.size.y > 0:
-		safe_margin_bottom = viewport_size.y - bottom_hud.global_position.y + 40.0
+		var bot_y = bottom_hud.global_position.y
+		if bot_y > 10.0:
+			safe_margin_bottom = viewport_size.y - bot_y + 40.0
 	
 	var safe_margin_x = 40.0
 	

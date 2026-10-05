@@ -79,7 +79,7 @@ static func evaluate_clearance_hypothetical(piece, target_rotation_degrees: floa
 				
 				var is_cleared := false
 				for gap in piece.gaps:
-					var gap_world_angle := fposmod(target_rotation_degrees + gap.get("angle_deg", 0.0), 360.0)
+					var gap_world_angle := fposmod(target_rotation_degrees + gap.center_angle_deg, 360.0)
 					if abs(angle_difference(deg_to_rad(angle_on_piece_deg), deg_to_rad(gap_world_angle))) <= deg_to_rad(link.def.clearance_tolerance_deg):
 						is_cleared = true
 						break
