@@ -220,71 +220,15 @@ func check_unlock_on_drag_ended(piece: Node2D) -> void:
 	if piece.state == RingPiece2DScript.State.RELEASED or piece.state == RingPiece2DScript.State.RELEASING:
 		return
 
-	var detached_any_link := false
-	var best_link = null
-	var best_depth: float = -1.0
-
-	for link in active_links:
-		if link.def.to_piece_id != piece.piece_id or link.state == ConnectorRuntime.State.DETACHED or link.state == ConnectorRuntime.State.CLEARING:
-			continue
-
-		var parent_p = PuzzleRulesScript.get_piece_by_id(link.def.from_piece_id, active_pieces)
-		if not is_instance_valid(parent_p) or parent_p.state == RingPiece2DScript.State.RELEASED or parent_p.state == RingPiece2DScript.State.RELEASING:
-			# Parent already gone — auto-detach silently
-			link.state = ConnectorRuntime.State.DETACHED
-			detached_any_link = true
-			continue
-
-		var world_angle_rad: float = deg_to_rad(parent_p.rotation_degrees + link.def.collar_angle_deg)
-		var dir := Vector2.from_angle(world_angle_rad)
-		var pos_cuff: Vector2 = parent_p.position + dir * (link.def.stem_dist - piece.radius)
-		var cuff_rel: Vector2 = pos_cuff - piece.position
-		var angle_on_piece_deg := fposmod(rad_to_deg(cuff_rel.angle()), 360.0)
-
-		if piece.is_angle_in_any_gap(angle_on_piece_deg):
-			# Score how deeply centered this cuff is inside the gap
-			var depth := _gap_alignment_depth(piece, angle_on_piece_deg)
-			if depth > best_depth:
-				best_depth = depth
-				best_link = link
-
-	# Only clear the single most-centered connector this drag
-	if best_link != null:
-		best_link.state = ConnectorRuntime.State.CLEARING
-		detached_any_link = true
-		
-		# Animate the retraction
-		var retract_dist = (piece.thickness * 0.5) + 32.0 # Clear outer radius + cuff half-depth + margin
-		var target_dist = best_link.def.stem_dist - retract_dist
-		
-		var tween = create_tween()
-		tween.tween_property(best_link, "current_stem_dist", target_dist, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		tween.parallel().tween_property(best_link, "retract_progress", 1.0, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		tween.tween_callback(func():
-			best_link.state = ConnectorRuntime.State.DETACHED
-			_check_cascade_releases()
-			_redraw_connectors()
-		)
-	if detached_any_link:
+	if PuzzleRulesScript.is_piece_releasable(piece, active_pieces, active_links):
 		if audio_service and audio_service.has_method("play_rotation_tick"):
 			audio_service.play_rotation_tick(1.6)
 		if haptic_service and haptic_service.has_method("trigger_selection"):
 			haptic_service.trigger_selection()
-		_redraw_connectors()
 		
-		# Fallback/immediate check for piece if parent silently disappeared without clear animation
-		_check_cascade_releases()
-
-# Returns how centered (0.0 = at gap edge, 1.0 = perfectly centered) the cuff angle sits in the gap.
-# Used to select the single "best" connector to detach per drag gesture.
-func _gap_alignment_depth(piece: Node2D, angle_on_piece_deg: float) -> float:
-	var best_depth := 0.0
-	for gap in piece.gaps:
-		var half_w: float = gap.width_deg * 0.5
-		var dist: float = absf(wrapf(angle_on_piece_deg - (gap.center_angle_deg + piece.rotation_degrees), -180.0, 180.0))
-		if dist <= half_w:
-			best_depth = maxf(best_depth, 1.0 - (dist / half_w))
-	return best_depth
+		# Fallback/immediate check for cascade
+		_redraw_connectors()
+		unlock_and_release_piece(piece)
 
 func check_unlock_for_piece(piece: Node2D) -> void:
 	check_unlock_on_drag_ended(piece)

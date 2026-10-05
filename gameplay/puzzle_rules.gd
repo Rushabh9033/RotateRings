@@ -45,12 +45,38 @@ static func is_piece_releasable(
 			if child_p and child_p.state != 6 and child_p.state != 5:
 				return false
 				
-	# 2. If this piece is still held by any parent collar that is not yet detached, cannot release!
+	# 2. If this piece is still held by parent collars, ALL of them must be perfectly aligned with a gap!
+	var has_active_parents = false
+	var all_parents_aligned = true
+	
 	for link in links:
 		if link.def.to_piece_id == p_id and link.state != ConnectorRuntime.State.DETACHED:
 			var from_p = get_piece_by_id(link.def.from_piece_id, all_pieces)
 			if from_p and from_p.state != 6 and from_p.state != 5:
-				return false
+				has_active_parents = true
+				
+				# Check if this connector is aligned with a gap
+				var world_angle_rad: float = deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
+				var dir := Vector2.from_angle(world_angle_rad)
+				var pos_cuff: Vector2 = from_p.position + dir * (link.def.stem_dist - piece.radius)
+				var cuff_rel: Vector2 = pos_cuff - piece.position
+				var angle_on_piece_deg := fposmod(rad_to_deg(cuff_rel.angle()), 360.0)
+				
+				var is_aligned = false
+				for gap in piece.gaps:
+					var gap_world_center := fposmod(piece.rotation_degrees + gap.center_angle_deg, 360.0)
+					var dist: float = absf(wrapf(angle_on_piece_deg - gap_world_center, -180.0, 180.0))
+					# Allow a tiny float margin for perfect snap
+					if dist < 1.0:
+						is_aligned = true
+						break
+				
+				if not is_aligned:
+					all_parents_aligned = false
+					break
+					
+	if has_active_parents and not all_parents_aligned:
+		return false
 					
 	# 3. If it had parents or children initially, and all attached links are now cleared:
 	if piece.has_meta("had_children_initially") or piece.has_meta("had_parents_initially"):
