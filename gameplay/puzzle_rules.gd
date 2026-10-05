@@ -1,5 +1,6 @@
 extends RefCounted
 class_name PuzzleRules
+const PieceGeometry = preload("res://gameplay/piece_geometry.gd")
 
 # Evaluates whether a piece is currently allowed to rotate
 static func is_piece_rotatable(

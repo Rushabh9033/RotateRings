@@ -1,5 +1,6 @@
 extends Node
 class_name HintController
+const PieceGeometry = preload("res://gameplay/piece_geometry.gd")
 
 const PuzzleRulesScript = preload("res://gameplay/puzzle_rules.gd")
 const TutorialHandScript = preload("res://gameplay/tutorial_hand.gd")

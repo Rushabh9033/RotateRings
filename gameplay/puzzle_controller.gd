@@ -1,5 +1,6 @@
 extends Node2D
 class_name PuzzleController
+const PieceGeometry = preload("res://gameplay/piece_geometry.gd")
 
 const RingPiece2DScript = preload("res://gameplay/ring_piece_2d.gd")
 const PuzzleRulesScript = preload("res://gameplay/puzzle_rules.gd")

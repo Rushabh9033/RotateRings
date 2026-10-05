@@ -1,5 +1,6 @@
 extends Node
 class_name DragRotationController
+const PieceGeometry = preload("res://gameplay/piece_geometry.gd")
 
 signal move_counted(piece: Node2D)
 signal piece_selected(piece: Node2D)

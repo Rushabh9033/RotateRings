@@ -1,5 +1,6 @@
 extends Node2D
 class_name RingPiece2D
+const PieceGeometry = preload("res://gameplay/piece_geometry.gd")
 
 const GapDefinitionScript = preload("res://data/gap_definition.gd")
 
@@ -21,6 +22,7 @@ signal release_completed(piece: Node2D)
 @export var piece_id: StringName = &"ring_0"
 @export var radius: float = 80.0
 @export var thickness: float = 26.0
+var shape_type: int = 0
 @export var ring_color: Color = Color("#29B6F6")
 @export var current_angle_deg: float = 90.0
 @export var target_exit_angle_deg: float = 0.0
