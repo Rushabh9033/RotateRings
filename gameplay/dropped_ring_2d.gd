@@ -64,6 +64,10 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	# Keep the visual drawing rotated properly matching physical rotation
 	queue_redraw()
+	
+	# Fragment lifecycle - cleanup to prevent physics memory leaks
+	if global_position.y > 2500.0 or global_position.x < -1500.0 or global_position.x > 2500.0:
+		queue_free()
 
 func _draw() -> void:
 	var seg_count := 48

@@ -83,3 +83,14 @@
 8. **Premium Transformation Phase 4 - Interactive Tutorial:**
    - **Handcrafted Animated Tutorial (`tutorial_hand.gd`, `hint_controller.gd`):** Built a stylized, soft-shaded 2D hand using `_draw()`. Replaced the basic "scale pulse" hint with a full path-following swipe animation that demonstrates exactly how to drag the correct ring to its target angle.
    - **Auto-Trigger & Interrupt:** The tutorial automatically plays when starting Level 1. It smoothly loops the swipe animation, but instantly fades out and destroys itself the moment the player touches a ring (`piece_selected` signal), respecting player agency.
+
+8. **Final Core Stabilization (v1.0.0 Release Pass):**
+   - **Multi-Connector Loophole Fixed:** Rewrote is_piece_releasable to require ALL incoming connectors to be perfectly aligned with gaps SIMULTANEOUSLY before a ring can release. Sequential unblocking works naturally.
+   - **Connector Visual Retraction:** Retraction animation (where the connector stem shortened before release) was completely removed. When a child ring drops, the parent's connector now remains fully extended pointing into space, satisfying the visual rule 'connector should not break'.
+   - **Fragment Lifecycle & Physics Leaks Fixed:** Replaced partial cleanup in puzzle_controller.gd with full pieces_container.get_children() cleanup. Added an out-of-bounds global_position bounds check to dropped_ring_2d.gd to prevent RigidBody2D fragments from simulating infinitely if they fall off screen.
+   - **Responsive Puzzle Framing Fixed:** Modified _frame_puzzle() in GameplayScreen.gd to dynamically read the actual Y-bounds of TopHUD and BottomHUD, removing hardcoded pixel margin guesses, ensuring scaling is perfect on any screen size.
+   - **Gap Rotation Rendering Fixed:** Removed - deg_to_rad(rotation_degrees) subtraction in RingPiece2D arc drawing, correctly aligning visible gap rendering with world-space logical gaps.
+   - **Full 100% BFS Solvability:** Fixed fs_solver.gd crashing when cloning 	arget_exit_angle_deg and had_parents_initially metadata. Re-audited all 12 levels. All 12 are 100% solvable.
+   - **Par Moves Tuned:** Adjusted par moves for Level 4 (8), Level 6 (10), and Level 7 (4) based on mathematically optimal BFS solution paths.
+   - **Rotation Tunneling Prevented:** Confirmed clamp_rotation_step uses exact clamped angle bounding limits, mathematically preventing high-speed drag events from tunneling through solid blocking rings.
+

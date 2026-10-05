@@ -104,9 +104,8 @@ func load_level(def) -> void:
 	if release_animator and release_animator.has_method("reset_combo"):
 		release_animator.reset_combo()
 
-	for p in active_pieces:
-		if is_instance_valid(p):
-			p.queue_free()
+	for child in pieces_container.get_children():
+		child.queue_free()
 	active_pieces.clear()
 	active_links.clear()
 

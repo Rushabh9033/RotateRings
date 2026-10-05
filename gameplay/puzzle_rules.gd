@@ -228,9 +228,15 @@ static func clamp_rotation_step(
 
 		# Exact contact interface between the connector head and the collided ring rim (local space)
 		var local_contact_point = (pos_stem_head + contact_on_parent) * 0.5
-		hit_contact_point = piece.get_parent().to_global(local_contact_point)
+		if piece.get_parent():
+			hit_contact_point = piece.get_parent().to_global(local_contact_point)
+		else:
+			hit_contact_point = local_contact_point
 	elif hit_stopper:
-		hit_contact_point = piece.global_position
+		if piece.is_inside_tree():
+			hit_contact_point = piece.global_position
+		else:
+			hit_contact_point = piece.position
 
 	return {
 		"allowed_delta": allowed_delta,

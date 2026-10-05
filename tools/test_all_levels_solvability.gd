@@ -35,6 +35,8 @@ func _init() -> void:
 			var from_p = PuzzleRulesScript.get_piece_by_id(cr.def.from_piece_id, pieces_array)
 			var to_p = PuzzleRulesScript.get_piece_by_id(cr.def.to_piece_id, pieces_array)
 			if from_p and to_p:
+				from_p.set_meta("had_children_initially", true)
+				to_p.set_meta("had_parents_initially", true)
 				var diff_pos: Vector2 = to_p.position - from_p.position
 				cr.def.collar_angle_deg = fposmod(rad_to_deg(diff_pos.angle()) - from_p.rotation_degrees, 360.0)
 				cr.def.stem_dist = diff_pos.length()
@@ -51,6 +53,9 @@ func _init() -> void:
 		else:
 			print("   ? UNSOLVABLE!")
 			all_passed = false
+			
+		for p in pieces_array:
+			p.queue_free()
 
 	print("\n=======================================================")
 	quit(0 if all_passed else 1)

@@ -1,4 +1,5 @@
 extends RefCounted
+const DEBUG = true
 
 const PuzzleRulesScript = preload("res://gameplay/puzzle_rules.gd")
 const RingPiece2DScript = preload("res://gameplay/ring_piece_2d.gd")
@@ -28,6 +29,12 @@ static func _clone_state(pieces: Array, links: Array) -> Dictionary:
 		n.rotation_degrees = p.rotation_degrees
 		n.state = p.state
 		n.gaps = p.gaps.duplicate(true)
+		if "target_exit_angle_deg" in p:
+			n.set("target_exit_angle_deg", p.get("target_exit_angle_deg"))
+		if p.has_meta("had_parents_initially"):
+			n.set_meta("had_parents_initially", p.get_meta("had_parents_initially"))
+		if p.has_meta("had_children_initially"):
+			n.set_meta("had_children_initially", p.get_meta("had_children_initially"))
 		new_p.append(n)
 	
 	var new_l: Array = []
@@ -95,7 +102,9 @@ static func _cascade_check(pieces: Array, links: Array) -> void:
 		changed = false
 		for p in pieces:
 			if p.state == RingPiece2DScript.State.RELEASED: continue
-			if PuzzleRulesScript.is_piece_releasable(p, pieces, links):
+			var rel = PuzzleRulesScript.is_piece_releasable(p, pieces, links)
+			if DEBUG: print("  _cascade_check piece ", p.piece_id, " releasable? ", rel)
+			if rel:
 				p.state = RingPiece2DScript.State.RELEASED
 				for l in links:
 					if l.def.to_piece_id == p.piece_id:
@@ -126,10 +135,12 @@ static func solve_bfs(start_pieces: Array, start_links: Array) -> Dictionary:
 	
 	while queue.size() > 0:
 		var curr = queue.pop_front()
+		if DEBUG: print("BFS Queue pop: ", curr.moves, " pieces left: ", curr.pieces.filter(func(p): return p.state != RingPiece2DScript.State.RELEASED).size())
 		if curr.pieces.filter(func(p): return p.state != RingPiece2DScript.State.RELEASED).is_empty():
 			return { "solved": true, "moves": curr.moves }
 			
 		var moves = _get_moves(curr.pieces, curr.links)
+		if DEBUG: print("Found moves: ", moves)
 		for m in moves:
 			var next_state = _clone_state(curr.pieces, curr.links)
 			_apply_move(next_state, m)
