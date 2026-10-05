@@ -133,31 +133,34 @@ func _draw() -> void:
 	if state == State.RELEASED:
 		return
 
-	# PERFORMANCE: 72 segments — indistinguishable from 256 at mobile resolution
 	var seg_count := 72
 	var cap_r: float = thickness * 0.5
-
 	var is_closed: bool = gaps.is_empty() or (gaps.size() == 1 and float(gaps[0].get("width_deg")) <= 0.0)
 
 	if is_closed:
 		_draw_ring_arc(Vector2.ZERO, radius, 0.0, TAU, seg_count, cap_r, is_closed)
 		return
 
-	var gap = gaps[0]
-	var half_gap := deg_to_rad(gap.width_deg * 0.5)
-	var arc_start := half_gap
-	var arc_end := TAU - half_gap
+	var arcs = RingGeometry.get_solid_arcs(gaps)
 
-	# State-based outer glow
-	if state == State.SELECTED or state == State.ROTATING:
-		var glow_c := Color(ring_color.r, ring_color.g, ring_color.b, 0.30)
-		draw_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, glow_c, thickness + 12.0, true)
-	elif state == State.NEAR_VALID:
-		draw_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, Color(1.0, 1.0, 0.6, 0.55), thickness + 9.0, true)
-	elif state == State.RELEASABLE:
-		draw_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, Color(0.4, 1.0, 0.4, 0.60), thickness + 9.0, true)
+	for arc in arcs:
+		var arc_start: float = arc.start - deg_to_rad(rotation_degrees)
+		var arc_end: float = arc.end - deg_to_rad(rotation_degrees)
+		
+		# Ensure arc_end is greater than arc_start for Godot's draw_arc
+		if arc_end < arc_start:
+			arc_end += TAU
 
-	_draw_ring_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, cap_r, false)
+		# State-based outer glow
+		if state == State.SELECTED or state == State.ROTATING:
+			var glow_c := Color(ring_color.r, ring_color.g, ring_color.b, 0.30)
+			draw_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, glow_c, thickness + 12.0, true)
+		elif state == State.NEAR_VALID:
+			draw_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, Color(1.0, 1.0, 0.6, 0.55), thickness + 9.0, true)
+		elif state == State.RELEASABLE:
+			draw_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, Color(0.4, 1.0, 0.4, 0.60), thickness + 9.0, true)
+
+		_draw_ring_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, cap_r, false)
 
 
 func _draw_ring_arc(center: Vector2, r: float, a_start: float, a_end: float, segs: int, cap_r: float, is_closed: bool) -> void:

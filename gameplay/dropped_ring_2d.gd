@@ -41,12 +41,13 @@ func _draw() -> void:
 		_draw_ring_arc(Vector2.ZERO, radius, 0.0, TAU, seg_count, cap_r, is_closed)
 		return
 
-	var gap = gaps[0]
-	var half_gap := deg_to_rad(gap.width_deg * 0.5)
-	var arc_start := half_gap
-	var arc_end := TAU - half_gap
-
-	_draw_ring_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, cap_r, false)
+	var arcs = RingGeometry.get_solid_arcs(gaps)
+	for arc in arcs:
+		var arc_start: float = arc.start
+		var arc_end: float = arc.end
+		if arc_end < arc_start:
+			arc_end += TAU
+		_draw_ring_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, cap_r, false)
 
 func _draw_ring_arc(center: Vector2, r: float, a_start: float, a_end: float, segs: int, cap_r: float, is_closed: bool) -> void:
 	segs = 64

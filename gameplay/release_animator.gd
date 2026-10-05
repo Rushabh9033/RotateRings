@@ -35,41 +35,48 @@ func animate_release(
 	var rad: float = float(piece.get("radius")) if piece.get("radius") != null else 100.0
 	var ring_color: Color = piece.get("ring_color") if piece.get("ring_color") != null else Color("#29B6F6")
 	
-	var gap = piece.gaps[0] if not piece.gaps.is_empty() and piece.gaps[0].width_deg > 0.0 else null
-	var half_gap: float = deg_to_rad(gap.width_deg * 0.5) if gap else 0.0
-	var start_angle: float = deg_to_rad(piece.rotation_degrees) + half_gap
-	var end_angle: float = deg_to_rad(piece.rotation_degrees) + TAU - half_gap
-	
 	# 1. Spawn Realistic Ring Fragments (RigidBody2D Arcs)
-	var shards_count := 10
-	var total_arc := TAU - (half_gap * 2.0)
-	var arc_per_shard := total_arc / float(shards_count)
+	var shards_per_full_circle := 12
 	
-	for i in range(shards_count):
-		var s_start = start_angle + (i * arc_per_shard)
-		var s_end = s_start + arc_per_shard
+	var arcs = RingGeometry.get_solid_arcs(piece.gaps)
+	for arc in arcs:
+		var start_angle: float = arc.start
+		var end_angle: float = arc.end
+		if end_angle < start_angle:
+			end_angle += TAU
+			
+		var arc_len = end_angle - start_angle
+		var shards_count = max(2, roundi((arc_len / TAU) * shards_per_full_circle))
+		var arc_per_shard = arc_len / float(shards_count)
 		
-		# Gap between fragments so they look shattered
-		s_start += 0.05
-		s_end -= 0.05
-		
-		if s_end <= s_start: continue
-		
-		var dropped_shard := DroppedRing2DScript.new()
-		dropped_shard.setup(rad, piece.get("thickness") if piece.get("thickness") != null else 26.0, ring_color, piece.gaps, piece.rotation_degrees, s_start, s_end, true)
-		dropped_shard.global_position = pos
-		
-		dropped_shard.mass = 0.5
-		dropped_shard.gravity_scale = 4.0
-		parent.add_child(dropped_shard)
-		
-		# Calculate outward explosion
-		var center_angle = rad_to_deg(s_start + (s_end - s_start) * 0.5)
-		var exp_dir = Vector2.from_angle(deg_to_rad(center_angle))
-		
-		var impulse = (exp_dir * randf_range(200.0, 450.0)) + Vector2(0, -250.0)
-		dropped_shard.apply_central_impulse(impulse)
-		dropped_shard.apply_torque_impulse(randf_range(-6000.0, 6000.0))
+		for i in range(shards_count):
+			var s_start = start_angle + (i * arc_per_shard)
+			var s_end = s_start + arc_per_shard
+			
+			# Gap between fragments so they look shattered
+			s_start += 0.05
+			s_end -= 0.05
+			
+			if s_end <= s_start: continue
+			
+			var dropped_shard := DroppedRing2DScript.new()
+			dropped_shard.setup(rad, piece.get("thickness") if piece.get("thickness") != null else 26.0, ring_color, piece.gaps, piece.rotation_degrees, s_start, s_end, true)
+			dropped_shard.global_position = pos
+			
+			# H. Release impulse is more explosive than naturally weighted. Let's make it more natural/heavy
+			dropped_shard.mass = 0.8
+			dropped_shard.gravity_scale = 3.5
+			parent.add_child(dropped_shard)
+			
+			# Calculate outward explosion (in global space)
+			var center_angle_local = s_start + (s_end - s_start) * 0.5
+			var center_angle_global = center_angle_local + deg_to_rad(piece.rotation_degrees)
+			var exp_dir = Vector2.from_angle(center_angle_global)
+			
+			# Natural heavy release: smaller random outward impulse, less extreme upward
+			var impulse = (exp_dir * randf_range(100.0, 250.0)) + Vector2(0, -100.0)
+			dropped_shard.apply_central_impulse(impulse)
+			dropped_shard.apply_torque_impulse(randf_range(-3000.0, 3000.0))
 	
 	# 2. Spawn Floating Combo Praise Text
 	var praise_text := "Good!"
