@@ -49,7 +49,7 @@ static func evaluate_clearance(piece, all_pieces: Array, links: Array) -> Array:
 				for gap in piece.gaps:
 					var gap_world_center := fposmod(piece.rotation_degrees + gap.center_angle_deg, 360.0)
 					var dist: float = absf(wrapf(angle_on_piece_deg - gap_world_center, -180.0, 180.0))
-					if dist < 1.0:
+					if dist <= link.def.clearance_tolerance_deg:
 						is_aligned = true
 						break
 				
@@ -272,4 +272,3 @@ static func clamp_rotation_step(
 		"contact_point": hit_contact_point,
 		"contact_color": hit_contact_color
 	}
-

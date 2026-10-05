@@ -242,6 +242,9 @@ func check_unlock_on_drag_ended(piece: Node2D) -> void:
 			t.tween_callback(func():
 				link.state = ConnectorRuntime.State.DETACHED
 				check_unlock_for_piece(piece)
+				var parent_p = PuzzleRulesScript.get_piece_by_id(link.def.from_piece_id, active_pieces)
+				if is_instance_valid(parent_p):
+					check_unlock_for_piece(parent_p)
 			)
 		
 		if audio_service and audio_service.has_method("play_rotation_tick"):
