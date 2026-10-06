@@ -102,6 +102,9 @@ func setup(audio: Node, haptic: Node) -> void:
 	hint_controller.setup(audio)
 
 func load_level(def) -> void:
+	if def == null:
+		push_warning("PuzzleController.load_level received null and did not substitute Level 1.")
+		return
 	current_level_def = def
 	move_count = 0
 	used_hint = false
@@ -123,6 +126,7 @@ func load_level(def) -> void:
 	for p_def in def.pieces:
 		var p_node = RingPiece2DScript.new()
 		p_node.setup(p_def)
+		p_node.z_index = int(p_def.z_index)
 		# Start above screen
 		p_node.position = p_def.position + Vector2(0, -1200)
 		p_node.modulate.a = 0.0
@@ -229,10 +233,6 @@ func _on_collision_occurred(pos: Vector2, color: Color) -> void:
 	add_child(sparks)
 	sparks.setup(pos, color)
 
-func _update_link_dist(val: float, link) -> void:
-	link.current_stem_dist = val
-	_redraw_connectors()
-
 func check_unlock_on_drag_ended(piece: Node2D) -> void:
 	if not is_instance_valid(piece): return
 	if piece.state == RingPiece2DScript.State.RELEASED or piece.state == RingPiece2DScript.State.RELEASING:
@@ -240,26 +240,24 @@ func check_unlock_on_drag_ended(piece: Node2D) -> void:
 
 	var snap := PuzzleRulesScript.snap_assist_delta(piece, active_pieces, active_links)
 	if absf(snap) > 0.05:
-		piece.rotation_degrees += snap
-		piece.current_angle_deg = fposmod(piece.rotation_degrees, 360.0)
-		piece.queue_redraw()
+		var clamped: Dictionary = PuzzleRulesScript.clamp_rotation_step(piece, snap, active_pieces, active_links)
+		var allowed := float(clamped.allowed_delta)
+		if absf(allowed) > 0.05:
+			piece.rotation_degrees += allowed
+			piece.current_angle_deg = fposmod(piece.rotation_degrees, 360.0)
+			piece.queue_redraw()
 
 	var newly_clearing = PuzzleRulesScript.evaluate_clearance(piece, active_pieces, active_links)
 	if newly_clearing.size() > 0:
+		# Opening already fits on the settled pose. Shatter now; the parent cuff stays extended.
 		for link in newly_clearing:
-			var pull := PuzzleRulesScript.retraction_distance(piece.thickness)
-			var target_dist := maxf(0.0, link.current_stem_dist - pull)
-			var t = create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-			t.tween_method(_update_link_dist.bind(link), link.current_stem_dist, target_dist, 0.18)
-			t.tween_callback(func():
-				PuzzleRulesScript.complete_clearance(link)
-				var child_p = PuzzleRulesScript.get_piece_by_id(link.def.to_piece_id, active_pieces)
-				var parent_p = PuzzleRulesScript.get_piece_by_id(link.def.from_piece_id, active_pieces)
-				if is_instance_valid(child_p):
-					_release_if_legal.call_deferred(child_p)
-				if is_instance_valid(parent_p):
-					_release_if_legal.call_deferred(parent_p)
-			)
+			PuzzleRulesScript.complete_clearance(link)
+			var child_p = PuzzleRulesScript.get_piece_by_id(link.def.to_piece_id, active_pieces)
+			var parent_p = PuzzleRulesScript.get_piece_by_id(link.def.from_piece_id, active_pieces)
+			if is_instance_valid(child_p):
+				_release_if_legal.call_deferred(child_p)
+			if is_instance_valid(parent_p):
+				_release_if_legal.call_deferred(parent_p)
 		if audio_service and audio_service.has_method("play_rotation_tick"):
 			audio_service.play_rotation_tick(1.6)
 		_redraw_connectors()
@@ -377,6 +375,8 @@ func _on_stems_layer_draw(ci: CanvasItem) -> void:
 		if not is_instance_valid(from_p): continue
 		if from_p.state == RingPiece2DScript.State.RELEASED or from_p.state == RingPiece2DScript.State.RELEASING:
 			continue
+		if float(link.current_stem_dist) <= 1.0:
+			continue
 
 		var world_angle_rad := deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
 		var dir := Vector2.from_angle(world_angle_rad)
@@ -393,7 +393,7 @@ func _on_stems_layer_draw(ci: CanvasItem) -> void:
 		var c_main = collar_color.lightened(0.02)
 		var c_light = collar_color.lightened(0.25)
 		c_light.a = 0.85
-		var stem_thickness := 16.0
+		var stem_thickness := ConnectorRuntime.STEM_RADIUS * 2.0
 
 		# 1. Soft drop shadow cast strictly downwards
 		ci.draw_line(pos_stem_start + Vector2(0, 6.0), pos_cuff + Vector2(0, 6.0), Color(0.20, 0.14, 0.10, 0.12), stem_thickness + 2.0, true)
@@ -418,6 +418,8 @@ func _on_cuffs_layer_draw(ci: CanvasItem) -> void:
 		if not is_instance_valid(from_p): continue
 		if from_p.state == RingPiece2DScript.State.RELEASED or from_p.state == RingPiece2DScript.State.RELEASING:
 			continue
+		if float(link.current_stem_dist) <= 1.0:
+			continue
 
 		var world_angle_rad := deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
 		var dir := Vector2.from_angle(world_angle_rad)
@@ -431,11 +433,11 @@ func _on_cuffs_layer_draw(ci: CanvasItem) -> void:
 		var c_light = collar_color.lightened(0.25)
 		c_light.a = 0.85
 
-		var sleeve_tangent_span := 38.0
-		var sleeve_radial_depth := 32.0
+		var sleeve_tangent_span := ConnectorRuntime.TANGENTIAL_WIDTH
+		var sleeve_radial_depth := ConnectorRuntime.RADIAL_DEPTH
 		var half_st := sleeve_tangent_span * 0.5
 		var half_rd := sleeve_radial_depth * 0.5
-		var cuff_corner_r := 8.0
+		var cuff_corner_r := 5.0
 
 		ci.draw_set_transform(pos_cuff, tangent.angle(), Vector2.ONE)
 

@@ -37,3 +37,6 @@ func _ready() -> void:
 		audio_service,
 		haptic_service
 	)
+	var splash := preload("res://scenes/splash/SplashScreen.tscn").instantiate()
+	add_child(splash)
+	splash.begin(audio_service, haptic_service)

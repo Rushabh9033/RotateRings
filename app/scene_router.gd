@@ -1,6 +1,8 @@
 extends Node
 class_name SceneRouter
 
+const LevelDatabaseScript = preload("res://data/level_database.gd")
+
 enum Screen {
 	HOME,
 	LEVEL_SELECT,
@@ -64,11 +66,31 @@ func show_level_select() -> void:
 	gameplay_screen.hide()
 
 func show_gameplay(level_id: int) -> void:
+	if not LevelDatabaseScript.is_level_playable(level_id):
+		push_warning("SceneRouter rejected level %d. It was not replaced with Level 1." % level_id)
+		show_level_select()
+		return
 	current_screen = Screen.GAMEPLAY
 	home_screen.hide()
 	level_select_screen.hide()
 	gameplay_screen.show()
-	gameplay_screen.load_level_by_id(level_id)
+	if not gameplay_screen.load_level_by_id(level_id):
+		show_level_select()
+
+func show_debug_gameplay(level_id: int) -> void:
+	if not OS.is_debug_build():
+		push_warning("Debug level %d was ignored outside a debug build." % level_id)
+		return
+	if not LevelDatabaseScript.is_level_defined(level_id):
+		push_warning("SceneRouter rejected undefined debug level %d." % level_id)
+		show_level_select()
+		return
+	current_screen = Screen.GAMEPLAY
+	home_screen.hide()
+	level_select_screen.hide()
+	gameplay_screen.show()
+	if not gameplay_screen.load_debug_level(level_id):
+		show_level_select()
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.keycode == KEY_ESCAPE and event.pressed):

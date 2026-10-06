@@ -61,7 +61,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.964706, 0.933333, 0.854902, 1)
+color = Color(0.0627451, 0.0784314, 0.0941176, 1)
 
 [node name="PuzzleArea" type="Control" parent="."]
 layout_mode = 1
@@ -83,58 +83,68 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/margin_left = 28
-theme_override_constants/margin_top = 44
-theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 36
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
 
 [node name="TopHUD" type="HBoxContainer" parent="SafeArea"]
 layout_mode = 2
 size_flags_vertical = 0
 mouse_filter = 2
-alignment = 1
+theme_override_constants/separation = 12
+
+[node name="BackBtn" type="Button" parent="SafeArea/TopHUD"]
+visible = false
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_vertical = 4
+text = "‹"
 
 [node name="LevelBox" type="VBoxContainer" parent="SafeArea/TopHUD"]
-custom_minimum_size = Vector2(70, 52)
+custom_minimum_size = Vector2(80, 52)
 layout_mode = 2
-size_flags_horizontal = 2
+size_flags_horizontal = 0
 alignment = 1
+theme_override_constants/separation = -2
 
 [node name="LevelPrefix" type="Label" parent="SafeArea/TopHUD/LevelBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.552941, 0.431373, 0.388235, 1)
-theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.62, 0.45, 0.35, 1)
+theme_override_font_sizes/font_size = 14
 text = "Level"
 
 [node name="LevelNum" type="Label" parent="SafeArea/TopHUD/LevelBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.364706, 0.25098, 0.215686, 1)
-theme_override_font_sizes/font_size = 28
-text = "5"
+theme_override_colors/font_color = Color(0.3, 0.2, 0.15, 1)
+theme_override_font_sizes/font_size = 24
+text = "3"
 
-[node name="ScorePill" type="PanelContainer" parent="SafeArea/TopHUD"]
+[node name="CenterHUD" type="VBoxContainer" parent="SafeArea/TopHUD"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="ScorePill" type="PanelContainer" parent="SafeArea/TopHUD/CenterHUD"]
 custom_minimum_size = Vector2(180, 44)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("StyleBoxFlat_score_pill")
 
-[node name="ScoreLbl" type="Label" parent="SafeArea/TopHUD/ScorePill"]
+[node name="ScoreLbl" type="Label" parent="SafeArea/TopHUD/CenterHUD/ScorePill"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.364706, 0.25098, 0.215686, 1)
-theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.35, 0.22, 0.12, 1)
+theme_override_font_sizes/font_size = 22
 text = "0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="PauseBtn" type="Button" parent="SafeArea/TopHUD"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(52, 52)
 layout_mode = 2
-size_flags_horizontal = 10
+size_flags_horizontal = 8
 size_flags_vertical = 4
-theme_override_colors/font_color = Color(0.552941, 0.431373, 0.388235, 1)
-theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("StyleBoxFlat_card_btn")
 text = "⚙"
 
 [node name="BottomHUD" type="HBoxContainer" parent="SafeArea"]
@@ -142,20 +152,21 @@ layout_mode = 2
 size_flags_vertical = 8
 mouse_filter = 2
 alignment = 1
-theme_override_constants/separation = 40
+theme_override_constants/separation = 16
 
 [node name="RocketCard" type="PanelContainer" parent="SafeArea/BottomHUD"]
-custom_minimum_size = Vector2(80, 80)
+custom_minimum_size = Vector2(112, 118)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card_btn")
 
 [node name="RocketBtn" type="Button" parent="SafeArea/BottomHUD/RocketCard"]
 layout_mode = 2
 flat = true
-theme_override_font_sizes/font_size = 36
-text = "🚀"
+theme_override_font_sizes/font_size = 18
+text = "Hint"
 
 [node name="Badge" type="PanelContainer" parent="SafeArea/BottomHUD/RocketCard"]
+visible = false
 custom_minimum_size = Vector2(24, 24)
 layout_mode = 2
 size_flags_horizontal = 8
@@ -171,17 +182,18 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="HammerCard" type="PanelContainer" parent="SafeArea/BottomHUD"]
-custom_minimum_size = Vector2(80, 80)
+custom_minimum_size = Vector2(112, 118)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card_btn")
 
 [node name="HammerBtn" type="Button" parent="SafeArea/BottomHUD/HammerCard"]
 layout_mode = 2
 flat = true
-theme_override_font_sizes/font_size = 36
-text = "🔨"
+theme_override_font_sizes/font_size = 18
+text = "Hammer"
 
 [node name="Badge" type="PanelContainer" parent="SafeArea/BottomHUD/HammerCard"]
+visible = false
 custom_minimum_size = Vector2(24, 24)
 layout_mode = 2
 size_flags_horizontal = 8
@@ -192,7 +204,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_badge_gray")
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 12
-text = "🔒"
+text = "Locked"
 horizontal_alignment = 1
 vertical_alignment = 1
 

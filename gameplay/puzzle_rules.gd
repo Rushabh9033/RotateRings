@@ -347,6 +347,18 @@ static func clamp_rotation_step(piece: Node2D, step_delta_deg: float, all_pieces
 		"contact_color": contact_color,
 	}
 
+static func _is_linked_pair(a, b, links: Array) -> bool:
+	var a_id: StringName = a.piece_id if ("piece_id" in a and a.piece_id != null) else (a.id if "id" in a else &"")
+	var b_id: StringName = b.piece_id if ("piece_id" in b and b.piece_id != null) else (b.id if "id" in b else &"")
+	for link in links:
+		if int(link.state if "state" in link else 0) == 2: # DETACHED
+			continue
+		var from_id: StringName = link.def.from_piece_id if ("def" in link and link.def != null) else StringName(link.from_piece_id)
+		var to_id: StringName = link.def.to_piece_id if ("def" in link and link.def != null) else StringName(link.to_piece_id)
+		if (from_id == a_id and to_id == b_id) or (from_id == b_id and to_id == a_id):
+			return true
+	return false
+
 ## True when the piece's current rotation puts a solid body through another solid body.
 static func pose_blocked(piece, pieces: Array, links: Array) -> bool:
 	return bool(_overlap_contact(piece, pieces, links).blocking)
@@ -359,12 +371,14 @@ static func _overlap_contact(piece, pieces: Array, links: Array) -> Dictionary:
 	for other in pieces:
 		if other == piece or _is_gone(other):
 			continue
-		if _tubes_overlap(piece, other, margin):
-			return { "blocking": true, "point": (piece.position + other.position) * 0.5, "color": other.ring_color }
+		if _is_linked_pair(piece, other, links):
+			continue
+		if _tubes_overlap(piece, other, 0.0):
+			return { "blocking": true, "point": (piece.position + other.position) * 0.5, "color": other.ring_color if "ring_color" in other else Color.WHITE }
 	for link in links:
 		if not _link_drawn(link, pieces):
 			continue
-		var moves: bool = link.def.from_piece_id == piece.piece_id or link.def.to_piece_id == piece.piece_id
+		var moves: bool = (link.def.from_piece_id == piece.piece_id)
 		if not moves:
 			if link.def.to_piece_id == piece.piece_id:
 				continue
@@ -374,6 +388,8 @@ static func _overlap_contact(piece, pieces: Array, links: Array) -> Dictionary:
 		for other_link in links:
 			if other_link == link or not _link_drawn(other_link, pieces):
 				continue
+			if other_link.def.from_piece_id == link.def.from_piece_id:
+				continue # Connectors on the same parent ring rotate in rigid lockstep and never collide with each other!
 			if _cuffs_overlap(link, other_link, pieces, margin) or _stem_hits_cuff(link, other_link, pieces, margin):
 				return _hit_from_link(other_link, pieces)
 		for other in pieces:
@@ -531,13 +547,16 @@ static func apply_settled_rotation(piece, target_rotation_deg: float, pieces: Ar
 		return result
 	var delta := wrapf(target_rotation_deg - piece.rotation_degrees, -180.0, 180.0)
 	var clamped: Dictionary = clamp_rotation_step(piece, delta, pieces, links)
-	if bool(clamped["hit_stopper"]):
-		return result
-	if absf(float(clamped["allowed_delta"]) - delta) > 0.5:
-		return result
-	piece.rotation_degrees += float(clamped["allowed_delta"])
+	var allowed: float = float(clamped.get("allowed_delta", 0.0))
+	if bool(clamped.get("hit_stopper", false)) and absf(allowed - delta) > 0.5:
+		var near_align := is_piece_near_alignment(piece, pieces, links, target_rotation_deg)
+		if not near_align:
+			return result
+		allowed = delta
+			
+	piece.rotation_degrees = fposmod(piece.rotation_degrees + allowed, 360.0)
 	if "current_angle_deg" in piece:
-		piece.current_angle_deg = fposmod(piece.rotation_degrees, 360.0)
+		piece.current_angle_deg = piece.rotation_degrees
 	result["applied"] = true
 	var clearing: Array = evaluate_clearance(piece, pieces, links)
 	for link in clearing:
@@ -547,18 +566,26 @@ static func apply_settled_rotation(piece, target_rotation_deg: float, pieces: Ar
 	result["won"] = is_puzzle_won(pieces, links)
 	return result
 
-static func is_piece_near_alignment(piece, all_pieces: Array, links: Array) -> bool:
+static func is_piece_near_alignment(piece, all_pieces: Array, links: Array, override_rot_deg: float = NAN) -> bool:
 	if _is_gone(piece):
 		return false
-	var p_id: StringName = piece.piece_id
+	var p_id: StringName = piece.piece_id if ("piece_id" in piece and piece.piece_id != null) else (piece.id if "id" in piece else &"")
 	for link in links:
-		if link.def.to_piece_id != p_id or link.state != ConnectorRuntimeScript.State.ENGAGED:
+		var from_id: StringName = link.def.from_piece_id if ("def" in link and link.def != null) else StringName(link.from_piece_id)
+		var to_id: StringName = link.def.to_piece_id if ("def" in link and link.def != null) else StringName(link.to_piece_id)
+		var l_state: int = int(link.state) if "state" in link else (2 if ("is_detached" in link and link.is_detached) else 0)
+		if to_id != p_id or l_state != ConnectorRuntimeScript.State.ENGAGED:
 			continue
 		var contact := cuff_world_angle_deg(piece, link, all_pieces)
-		var local_deg := fposmod(contact - piece.rotation_degrees, 360.0)
-		for gap in piece.gaps:
-			var dist := absf(wrapf(local_deg - float(gap.center_angle_deg), -180.0, 180.0))
-			if dist <= float(gap.width_deg) * 0.5:
+		var rot_deg: float = override_rot_deg if not is_nan(override_rot_deg) else (float(piece.rotation_degrees) if "rotation_degrees" in piece else float(piece.rotation_deg))
+		var local_deg := fposmod(contact - rot_deg, 360.0)
+		var gaps: Array = piece.gaps if "gaps" in piece and piece.gaps != null else []
+		for gap in gaps:
+			if gap == null: continue
+			var center_deg: float = float(gap.get("center_angle_deg", 0.0)) if gap is Dictionary else float(gap.center_angle_deg)
+			var width_deg: float = float(gap.get("width_deg", 0.0)) if gap is Dictionary else float(gap.width_deg)
+			var dist := absf(wrapf(local_deg - center_deg, -180.0, 180.0))
+			if dist <= width_deg * 0.5 + 5.0:
 				return true
 	return false
 

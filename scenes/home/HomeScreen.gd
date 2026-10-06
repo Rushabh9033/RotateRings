@@ -1,7 +1,7 @@
 extends Control
 class_name HomeScreen
 
-const LevelDatabaseScript = preload("res://data/level_database.gd")
+const UiTheme = preload("res://app/ui_theme.gd")
 
 signal continue_pressed(level_id: int)
 signal levels_pressed
@@ -21,6 +21,25 @@ func setup(save_svc: Node, audio_svc: Node) -> void:
 	update_continue_info()
 
 func _ready() -> void:
+	UiTheme.mount_backdrop(self)
+	var hero: Control = preload("res://app/home_hero.gd").new()
+	hero.name = "Hero"
+	$SafeArea/VBox.add_child(hero)
+	$SafeArea/VBox.move_child(hero, 0)
+	UiTheme.paint_button(continue_btn, "primary", UiTheme.FONT_HEAD)
+	UiTheme.paint_button(levels_btn, "secondary", UiTheme.FONT_BODY)
+	UiTheme.paint_button(settings_btn, "secondary", UiTheme.FONT_BODY)
+	UiTheme.paint_label($SafeArea/VBox/Header/Logo, UiTheme.FONT_DISPLAY)
+	UiTheme.paint_label($SafeArea/VBox/Header/Tagline, 18, true)
+	UiTheme.paint_label(continue_subtitle, UiTheme.FONT_CAPTION, true)
+	var rule := get_node_or_null("SafeArea/VBox/Header/Rule") as ColorRect
+	if rule:
+		rule.color = UiTheme.ACCENT
+		rule.custom_minimum_size = Vector2(88, 8)
+	UiTheme.apply_font(self)
+	modulate.a = 0.0
+	var intro := create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	intro.tween_property(self, "modulate:a", 1.0, 0.28)
 	continue_btn.pressed.connect(func():
 		if audio_service: audio_service.play_ui_tap()
 		var target := get_continue_level()
@@ -36,9 +55,9 @@ func _ready() -> void:
 	)
 
 func get_continue_level() -> int:
-	if not save_service: return 1
-	var highest: int = int(save_service.get_setting("highest_unlocked_level", 1))
-	return clampi(highest, 1, LevelDatabaseScript.get_total_levels())
+	if save_service and save_service.has_method("get_continue_level"):
+		return int(save_service.get_continue_level())
+	return 1
 
 func update_continue_info() -> void:
 	var lvl := get_continue_level()

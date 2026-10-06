@@ -8,9 +8,12 @@ static func get_solid_arcs(gaps: Array) -> Array:
 	
 	var normalized_gaps: Array = []
 	for gap in gaps:
-		if gap.width_deg <= 0.0: continue
-		var c = deg_to_rad(fposmod(gap.center_angle_deg, 360.0))
-		var hw = deg_to_rad(gap.width_deg * 0.5)
+		if gap == null: continue
+		var center_val: float = float(gap.get("center_angle_deg", 0.0)) if gap is Dictionary else float(gap.center_angle_deg)
+		var width_val: float = float(gap.get("width_deg", 0.0)) if gap is Dictionary else float(gap.width_deg)
+		if width_val <= 0.0: continue
+		var c = deg_to_rad(fposmod(center_val, 360.0))
+		var hw = deg_to_rad(width_val * 0.5)
 		normalized_gaps.append({ "center": c, "hw": hw })
 	
 	if normalized_gaps.is_empty():
@@ -38,4 +41,3 @@ static func get_solid_arcs(gaps: Array) -> Array:
 			solid_arcs.append({ "start": start_arc, "length": arc_len, "end": start_arc + arc_len })
 		
 	return solid_arcs
-

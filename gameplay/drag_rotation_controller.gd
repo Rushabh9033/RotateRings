@@ -11,6 +11,7 @@ const RingPiece2DScript = preload("res://gameplay/ring_piece_2d.gd")
 const PuzzleRulesScript = preload("res://gameplay/puzzle_rules.gd")
 
 var selected_piece: Node2D = null
+var held_piece: Node2D = null
 var is_dragging: bool = false
 
 var last_pointer_angle_deg: float = 0.0
@@ -34,6 +35,7 @@ func handle_input(event: InputEvent, active_pieces: Array, active_links: Array =
 			if event.pressed:
 				var hit_piece = resolve_hit(event.global_position, active_pieces)
 				if hit_piece:
+					_set_held(hit_piece)
 					if not PuzzleRulesScript.is_piece_rotatable(hit_piece, active_pieces, active_links):
 						current_active_pieces = active_pieces
 						current_active_links = active_links
@@ -42,14 +44,17 @@ func handle_input(event: InputEvent, active_pieces: Array, active_links: Array =
 					start_drag(hit_piece, event.global_position, active_pieces, active_links)
 					return true
 			else:
-				if is_dragging:
+				var was_dragging := is_dragging
+				if was_dragging:
 					end_drag()
-					return true
+				_clear_held()
+				return was_dragging
 
 	elif event is InputEventScreenTouch:
 		if event.pressed:
 			var hit_piece = resolve_hit(event.position, active_pieces)
 			if hit_piece:
+				_set_held(hit_piece)
 				if not PuzzleRulesScript.is_piece_rotatable(hit_piece, active_pieces, active_links):
 					current_active_pieces = active_pieces
 					current_active_links = active_links
@@ -58,9 +63,11 @@ func handle_input(event: InputEvent, active_pieces: Array, active_links: Array =
 				start_drag(hit_piece, event.position, active_pieces, active_links)
 				return true
 		else:
-			if is_dragging:
+			var was_dragging := is_dragging
+			if was_dragging:
 				end_drag()
-				return true
+			_clear_held()
+			return was_dragging
 
 	elif (event is InputEventMouseMotion or event is InputEventScreenDrag) and is_dragging:
 		var pos: Vector2 = event.position if event is InputEventScreenDrag else event.global_position
@@ -145,9 +152,25 @@ func resolve_hit(global_pt: Vector2, pieces: Array):
 
 	return best_piece
 
+func _set_held(piece: Node2D) -> void:
+	if held_piece == piece:
+		if is_instance_valid(piece) and piece.has_method("set_hold_rim"):
+			piece.set_hold_rim(true)
+		return
+	_clear_held()
+	held_piece = piece
+	if is_instance_valid(piece) and piece.has_method("set_hold_rim"):
+		piece.set_hold_rim(true)
+
+func _clear_held() -> void:
+	if is_instance_valid(held_piece) and held_piece.has_method("set_hold_rim"):
+		held_piece.set_hold_rim(false)
+	held_piece = null
+
 func start_drag(piece: Node2D, global_pt: Vector2, active_pieces: Array = [], active_links: Array = []) -> void:
 	selected_piece = piece
 	is_dragging = true
+	_set_held(piece)
 	current_active_pieces = active_pieces
 	current_active_links = active_links
 	piece.state = RingPiece2DScript.State.SELECTED
@@ -183,6 +206,29 @@ func update_drag(global_pt: Vector2) -> void:
 	var current_pointer_angle_deg := rad_to_deg(offset.angle())
 	var step_delta_deg := wrapf(current_pointer_angle_deg - last_pointer_angle_deg, -180.0, 180.0)
 	last_pointer_angle_deg = current_pointer_angle_deg
+
+	var is_square_bracket: bool = (piece.def != null and int(piece.def.shape_type) == PieceGeometry.ShapeType.ROUNDED_SQUARE)
+	
+	if is_square_bracket:
+		# Sharp square bracket is swipeable — snaps in 90-degree increments when swiped
+		if absf(step_delta_deg) >= 10.0:
+			var snap_delta := signf(step_delta_deg) * 90.0
+			var clamp_res = PuzzleRulesScript.clamp_rotation_step(
+				piece,
+				snap_delta,
+				current_active_pieces,
+				current_active_links
+			)
+			var allowed := float(clamp_res["allowed_delta"])
+			if absf(allowed) > 0.1:
+				piece.state = RingPiece2DScript.State.ROTATING
+				piece.rotation_degrees += allowed
+				piece.current_angle_deg = fposmod(piece.rotation_degrees, 360.0)
+				accumulated_drag_deg += absf(allowed)
+				if audio_service and audio_service.has_method("play_rotation_tick"):
+					audio_service.play_rotation_tick(1.0)
+				piece.rotation_changed.emit(piece, piece.current_angle_deg)
+		return
 
 	# Check physical connector collision
 	var clamp_res = PuzzleRulesScript.clamp_rotation_step(
@@ -238,6 +284,7 @@ func _trigger_collision_feedback(contact_pos: Vector2 = Vector2.ZERO, color: Col
 func cancel_drag() -> void:
 	is_dragging = false
 	selected_piece = null
+	_clear_held()
 
 func end_drag() -> void:
 	if not selected_piece or not is_instance_valid(selected_piece):
@@ -257,4 +304,5 @@ func end_drag() -> void:
 	if piece.state != RingPiece2DScript.State.RELEASED and piece.state != RingPiece2DScript.State.RELEASING:
 		piece.state = RingPiece2DScript.State.IDLE
 	piece.queue_redraw()
+	_clear_held()
 	piece_drag_ended.emit(piece)

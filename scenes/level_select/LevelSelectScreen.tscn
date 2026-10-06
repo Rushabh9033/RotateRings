@@ -18,7 +18,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.980392, 0.960784, 0.92549, 1)
+color = Color(0.0705882, 0.0862745, 0.109804, 1)
 
 [node name="SafeArea" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -27,40 +27,69 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 48
-theme_override_constants/margin_right = 32
-theme_override_constants/margin_bottom = 48
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
 
 [node name="VBox" type="VBoxContainer" parent="SafeArea"]
 layout_mode = 2
+theme_override_constants/separation = 16
 
 [node name="Header" type="VBoxContainer" parent="SafeArea/VBox"]
 layout_mode = 2
 size_flags_vertical = 0
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 
 [node name="TopRow" type="HBoxContainer" parent="SafeArea/VBox/Header"]
 layout_mode = 2
 
 [node name="BackBtn" type="Button" parent="SafeArea/VBox/Header/TopRow"]
-custom_minimum_size = Vector2(80, 48)
+custom_minimum_size = Vector2(112, 56)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "← BACK"
+text = "Back"
 
 [node name="ChapterTitle" type="Label" parent="SafeArea/VBox/Header"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.247059, 0.2, 0.160784, 1)
+theme_override_colors/font_color = Color(0.909804, 0.894118, 0.854902, 1)
 theme_override_font_sizes/font_size = 28
-text = "CHAPTER 1: LEARN THE LOOP"
+text = "Levels"
 horizontal_alignment = 1
 
 [node name="ProgressLbl" type="Label" parent="SafeArea/VBox/Header"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.537255, 0.435294, 0.329412, 1)
-theme_override_font_sizes/font_size = 16
-text = "0 / 12 Cleared"
+theme_override_colors/font_color = Color(0.552941, 0.592157, 0.643137, 1)
+theme_override_font_sizes/font_size = 14
+text = "0 / 50 Cleared"
+horizontal_alignment = 1
+
+[node name="Legend" type="HBoxContainer" parent="SafeArea/VBox/Header"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="OpenKey" type="Label" parent="SafeArea/VBox/Header/Legend"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Open"
+horizontal_alignment = 1
+
+[node name="ClearedKey" type="Label" parent="SafeArea/VBox/Header/Legend"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Cleared"
+horizontal_alignment = 1
+
+[node name="PerfectKey" type="Label" parent="SafeArea/VBox/Header/Legend"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Perfect"
+horizontal_alignment = 1
+
+[node name="LockedKey" type="Label" parent="SafeArea/VBox/Header/Legend"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Locked"
 horizontal_alignment = 1
 
 [node name="Scroll" type="ScrollContainer" parent="SafeArea/VBox"]

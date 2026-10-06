@@ -1,28 +1,41 @@
 extends Button
 
+const UiTheme = preload("res://app/ui_theme.gd")
+
 @export var is_unlocked: bool = false
 @export var is_cleared: bool = false
 @export var is_perfect: bool = false
+@export var is_current: bool = false
 
 var base_color: Color = Color(0.3, 0.7, 1.0, 1.0)
 var thickness: float = 24.0
 
 func _ready() -> void:
 	flat = true
-	# We don't use modulate for the whole button because it tints everything including text and shadows.
-	# We manually select base_color.
-	
 	if not is_unlocked:
-		base_color = Color(0.4, 0.45, 0.55, 1.0)
+		base_color = UiTheme.LOCKED
 	elif is_perfect:
-		base_color = Color(1.0, 0.85, 0.2, 1.0)
+		base_color = UiTheme.PERFECT
+		add_theme_color_override("font_color", UiTheme.TEXT)
+		add_theme_color_override("font_pressed_color", UiTheme.TEXT)
 	elif is_cleared:
-		base_color = Color(0.2, 0.9, 0.5, 1.0)
+		base_color = UiTheme.CLEARED
+		add_theme_color_override("font_color", UiTheme.ACCENT_TEXT)
+		add_theme_color_override("font_pressed_color", UiTheme.ACCENT_TEXT)
+	elif is_current:
+		base_color = UiTheme.ACCENT
+		add_theme_color_override("font_color", UiTheme.ACCENT_TEXT)
+		add_theme_color_override("font_pressed_color", UiTheme.ACCENT_TEXT)
 	else:
-		base_color = Color(0.3, 0.7, 1.0, 1.0)
+		base_color = UiTheme.VIOLET
+		add_theme_color_override("font_color", UiTheme.ACCENT_TEXT)
+		add_theme_color_override("font_pressed_color", UiTheme.ACCENT_TEXT)
+	button_down.connect(queue_redraw)
+	button_up.connect(queue_redraw)
 
-func _process(delta: float) -> void:
-	queue_redraw()
+func _process(_delta: float) -> void:
+	if is_current:
+		queue_redraw()
 
 func _draw() -> void:
 	var center = size * 0.5
@@ -34,19 +47,18 @@ func _draw() -> void:
 	var shadow_mult: float = 1.0
 	var light_mult: float = 1.0
 	
-	# Current level breathes
-	if is_unlocked and not is_cleared:
+	if is_current:
 		var time = float(Time.get_ticks_msec()) / 1000.0
 		z_offset = sin(time * 3.0) * 2.0
 		shadow_mult = 1.0 + (z_offset * 0.1)
+		draw_arc(center, r + 16.0, 0, TAU, 64, UiTheme.PERFECT, 6.0, true)
 	
 	if is_pressed_visual:
 		z_offset = -4.0
 		shadow_mult = 0.5
 		light_mult = 0.8
 		
-	# Draw Shadow
-	var shadow_c1 := Color(0.20, 0.14, 0.10, 0.15)
+	var shadow_c1 := Color(0.0, 0.0, 0.0, 0.35)
 	var shadow_off1: Vector2 = Vector2(0, 8.0 - z_offset) * shadow_mult
 	draw_arc(center + shadow_off1, r, 0, TAU, segs, shadow_c1, thickness + 2.0, true)
 	
@@ -72,9 +84,10 @@ func _draw() -> void:
 	c_inner.a = 0.5
 	draw_arc(center + off_main + Vector2(0, -1.0), r - (thickness * 0.5) + 1.5, 0, TAU, segs, c_inner, 1.5, true)
 	
-	# Draw lock if needed
+	if is_perfect:
+		draw_circle(center + off_main + Vector2(0, r - 2.0), 4.0, UiTheme.ACCENT)
+
 	if not is_unlocked:
-		var lock_c = Color(0.2, 0.2, 0.25, 0.8)
-		# Draw a small padlock shape in the center
+		var lock_c = Color("C5CBD3")
 		draw_rect(Rect2(center.x - 8, center.y - 4 - z_offset, 16, 12), lock_c)
 		draw_arc(center + Vector2(0, -4 - z_offset), 6.0, PI, TAU, 32, lock_c, 3.0, true)

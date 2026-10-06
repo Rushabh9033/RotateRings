@@ -1,46 +1,6 @@
-[gd_scene load_steps=6 format=3 uid="uid://victory_modal_loopshift_scene"]
+[gd_scene load_steps=2 format=3 uid="uid://victory_modal_loopshift_scene"]
 
 [ext_resource type="Script" path="res://scenes/components/VictoryModal.gd" id="1_victory_script"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
-bg_color = Color(0.992157, 0.984314, 0.968627, 0.98)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.917647, 0.854902, 0.745098, 1)
-corner_radius_top_left = 28
-corner_radius_top_right = 28
-corner_radius_bottom_right = 28
-corner_radius_bottom_left = 28
-shadow_color = Color(0.2, 0.15, 0.1, 0.35)
-shadow_size = 28
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ribbon"]
-bg_color = Color(0.917647, 0.301961, 0.239216, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_green_btn"]
-bg_color = Color(0.337255, 0.74902, 0.254902, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 4
-border_color = Color(0.235294, 0.588235, 0.168627, 1)
-corner_radius_top_left = 24
-corner_radius_top_right = 24
-corner_radius_bottom_right = 24
-corner_radius_bottom_left = 24
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_bg"]
-bg_color = Color(0.898039, 0.835294, 0.733333, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
 
 [node name="VictoryModal" type="Control"]
 z_index = 100
@@ -60,98 +20,70 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.18, 0.14, 0.1, 0.6)
+color = Color(0.03, 0.04, 0.06, 0.78)
 
 [node name="Panel" type="Panel" parent="."]
-custom_minimum_size = Vector2(500, 560)
+custom_minimum_size = Vector2(520, 420)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -250.0
-offset_top = -280.0
-offset_right = 250.0
-offset_bottom = 280.0
+offset_left = -260.0
+offset_top = -230.0
+offset_right = 260.0
+offset_bottom = 230.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 32.0
-offset_top = 28.0
-offset_right = -32.0
-offset_bottom = -28.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 16
 alignment = 1
 
-[node name="MascotIcon" type="Label" parent="Panel/VBox"]
+[node name="Title" type="Label" parent="Panel/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 64
-text = "🐿️"
-horizontal_alignment = 1
-
-[node name="RibbonPanel" type="PanelContainer" parent="Panel/VBox"]
-custom_minimum_size = Vector2(280, 50)
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_ribbon")
-
-[node name="Title" type="Label" parent="Panel/VBox/RibbonPanel"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 24
-text = "Well Played!"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="ScoreHeader" type="Label" parent="Panel/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.537255, 0.435294, 0.329412, 1)
-theme_override_font_sizes/font_size = 14
-text = "SCORE"
+theme_override_colors/font_color = Color(0.909804, 0.894118, 0.854902, 1)
+theme_override_font_sizes/font_size = 28
+text = "You did it"
 horizontal_alignment = 1
 
 [node name="ScoreLbl" type="Label" parent="Panel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.247059, 0.2, 0.160784, 1)
-theme_override_font_sizes/font_size = 36
-text = "1900"
+theme_override_colors/font_color = Color(0.909804, 0.894118, 0.854902, 1)
+theme_override_font_sizes/font_size = 20
+text = "Moves: 0 / Par: 0"
 horizontal_alignment = 1
 
 [node name="Subtitle" type="Label" parent="Panel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.486275, 0.407843, 0.329412, 1)
-theme_override_font_sizes/font_size = 15
-text = "Fantastic, you played this level perfectly!"
+theme_override_colors/font_color = Color(0.552941, 0.592157, 0.643137, 1)
+theme_override_font_sizes/font_size = 16
+text = "The ring is free."
 horizontal_alignment = 1
 autowrap_mode = 2
 
 [node name="NextBtn" type="Button" parent="Panel/VBox"]
-custom_minimum_size = Vector2(0, 60)
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 22
-theme_override_styles/normal = SubResource("StyleBoxFlat_green_btn")
 text = "Level 2"
 
-[node name="ProgressBar" type="ProgressBar" parent="Panel/VBox"]
-custom_minimum_size = Vector2(0, 16)
+[node name="ReplayBtn" type="Button" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-theme_override_styles/background = SubResource("StyleBoxFlat_progress_bg")
-value = 75.0
-show_percentage = false
+text = "Replay"
 
-[node name="RewardText" type="Label" parent="Panel/VBox"]
+[node name="LevelsBtn" type="Button" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.537255, 0.435294, 0.329412, 1)
-theme_override_font_sizes/font_size = 13
-text = "Reward Unlocked! 🎁"
-horizontal_alignment = 1
+text = "Level map"

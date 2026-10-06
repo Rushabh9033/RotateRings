@@ -1,109 +1,72 @@
 extends Node2D
 class_name TutorialHand
 
-var time_passed: float = 0.0
-var is_active: bool = false
-var start_pos: Vector2 = Vector2.ZERO
-var end_pos: Vector2 = Vector2.ZERO
+## A short plastic arrow that rides the outside of a ring. Same soft shading as the rings.
 
-var hand_scale: float = 0.0
-var swipe_progress: float = 0.0
-var is_pressing: bool = false
+const INK := Color("FF6A45")
+const INK_DARK := Color("D24428")
+const SHADOW := Color(0.29, 0.16, 0.1, 0.30)
+
+var is_active: bool = false
+var _center := Vector2.ZERO
+var _orbit := 90.0
+var _from := 0.0
+var _sweep := 1.0
+var _along := 0.0
+
 
 func _ready() -> void:
 	z_index = 200
 	modulate.a = 0.0
-	
-	if not get_node_or_null("HandSprite"):
-		var hand_sprite = Sprite2D.new()
-		hand_sprite.name = "HandSprite"
-		hand_sprite.z_index = 100
-		add_child(hand_sprite)
 
-func _process(delta: float) -> void:
+
+func _process(_delta: float) -> void:
 	if not is_active:
 		return
-	
-	# Sync sprite scale if the user adds a texture later
-	var hand_sprite = get_node_or_null("HandSprite")
-	if hand_sprite:
-		hand_sprite.scale = Vector2(hand_scale, hand_scale)
-		if is_pressing:
-			hand_sprite.scale *= 0.9
-			
+	var ang := _from + _sweep * _along
+	position = _center + Vector2.from_angle(ang) * _orbit
+	var turn := 1.0 if _sweep >= 0.0 else -1.0
+	rotation = ang + PI * 0.5 * turn
 	queue_redraw()
 
-func play_swipe(from: Vector2, to: Vector2) -> void:
-	start_pos = from
-	end_pos = to
+
+func play_orbit(center: Vector2, orbit: float, from_ang: float, sweep: float) -> void:
+	top_level = true
 	is_active = true
-	position = from
-	
-	var tween = create_tween().set_loops()
-	
-	# Fade in and scale up
-	tween.tween_property(self, "modulate:a", 1.0, 0.3)
-	tween.parallel().tween_property(self, "hand_scale", 1.0, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	
-	# Press down (shrink slightly)
-	tween.tween_property(self, "is_pressing", true, 0.0)
-	tween.tween_property(self, "hand_scale", 0.85, 0.15)
-	
-	# Swipe
-	tween.tween_property(self, "position", to, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	
-	# Release (scale back up)
-	tween.tween_property(self, "is_pressing", false, 0.0)
-	tween.tween_property(self, "hand_scale", 1.0, 0.15)
-	
-	# Fade out
-	tween.tween_property(self, "modulate:a", 0.0, 0.3)
-	
-	# Reset position for loop
-	tween.tween_property(self, "position", from, 0.0).set_delay(0.2)
+	_center = center
+	_orbit = orbit
+	_from = from_ang
+	_sweep = sweep
+	_along = 0.0
+	var tween := create_tween().set_loops()
+	tween.tween_property(self, "modulate:a", 1.0, 0.16)
+	tween.parallel().tween_method(_set_along, 0.0, 1.0, 0.85).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_interval(0.1)
+	tween.tween_property(self, "modulate:a", 0.0, 0.16)
+	tween.tween_interval(0.2)
+	tween.tween_callback(func() -> void: _along = 0.0)
+
+
+func _set_along(value: float) -> void:
+	_along = value
+
 
 func stop() -> void:
 	is_active = false
-	var tween = create_tween()
-	tween.tween_property(self, "modulate:a", 0.0, 0.2)
+	var tween := create_tween()
+	tween.tween_property(self, "modulate:a", 0.0, 0.14)
 	tween.tween_callback(queue_free)
 
+
 func _draw() -> void:
-	# Fallback procedural drawing so the animation is visible until final art is added!
-	var hand_sprite = get_node_or_null("HandSprite")
-	if hand_sprite and hand_sprite.texture != null:
-		return # Hide procedural drawing if real art is loaded
-		
-	draw_set_transform(Vector2.ZERO, deg_to_rad(-15.0), Vector2(hand_scale, hand_scale))
-	
-	var skin_color = Color.WHITE
-	var outline_color = Color(0.2, 0.2, 0.25)
-	var shadow_color = Color(0.0, 0.0, 0.0, 0.2)
-	
-	var offset = Vector2(10, 20) if not is_pressing else Vector2(5, 10)
-	
-	# Shadow
-	draw_circle(offset, 25.0, shadow_color)
-	draw_circle(Vector2(-10, -25) + offset, 12.0, shadow_color)
-	
-	# Outline / Border
-	var ow = 4.0
-	draw_circle(Vector2.ZERO, 25.0 + ow, outline_color)
-	# Index finger
-	draw_circle(Vector2(-10, -25), 12.0 + ow, outline_color)
-	draw_rect(Rect2(-22 - ow, -25, 24 + ow*2, 25), outline_color)
-	
-	# Fill
-	draw_circle(Vector2.ZERO, 25.0, skin_color)
-	# Palm detail
-	draw_circle(Vector2(0, 5), 18.0, Color(0.9, 0.9, 0.95))
-	
-	# Index finger fill
-	draw_circle(Vector2(-10, -25), 12.0, skin_color)
-	draw_rect(Rect2(-22, -25, 24, 25), skin_color)
-	
-	# Pressed ripple effect
-	if is_pressing:
-		draw_circle(Vector2(-10, -25), 6.0, Color(0.5, 0.8, 1.0, 0.5))
-	
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	_chevron(Vector2(0, 5), SHADOW, 18.0)
+	_chevron(Vector2(0, 1.6), INK_DARK, 16.0)
+	_chevron(Vector2.ZERO, INK, 16.0)
+
+
+func _chevron(off: Vector2, color: Color, thick: float) -> void:
+	var nose := off + Vector2(22, 0)
+	var upper := off + Vector2(-16, -20)
+	var lower := off + Vector2(-16, 20)
+	draw_line(upper, nose, color, thick, true)
+	draw_line(lower, nose, color, thick, true)

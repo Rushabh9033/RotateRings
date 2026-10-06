@@ -94,7 +94,7 @@ func test_c_narrow_gap_false_positive() -> bool:
 # ------------------------------------------------------------------------------
 func test_d_tunneling_and_path_equivalence() -> bool:
 	print("Test D (Rotational Tunneling & Path Equivalence):")
-	var def = Board.build(2)
+	var def = Board.build(1)
 	var built1 = Board._spawn(def)
 	var built2 = Board._spawn(def)
 	

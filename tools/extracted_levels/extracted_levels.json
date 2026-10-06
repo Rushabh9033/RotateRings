@@ -1,0 +1,992 @@
+{
+  "2": {
+    "level_id": 2,
+    "title": "Level 2",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.51 PM.jpeg"
+  },
+  "3": {
+    "level_id": 3,
+    "title": "Level 3",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.55 PM (1).jpeg"
+  },
+  "4": {
+    "level_id": 4,
+    "title": "Level 4",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.55 PM (2).jpeg"
+  },
+  "5": {
+    "level_id": 5,
+    "title": "Level 5",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.55 PM (3).jpeg"
+  },
+  "6": {
+    "level_id": 6,
+    "title": "Level 6",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.55 PM (4).jpeg"
+  },
+  "7": {
+    "level_id": 7,
+    "title": "Level 7",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.55 PM (5).jpeg"
+  },
+  "8": {
+    "level_id": 8,
+    "title": "Level 8",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.55 PM.jpeg"
+  },
+  "9": {
+    "level_id": 9,
+    "title": "Level 9",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.56 PM (1).jpeg"
+  },
+  "10": {
+    "level_id": 10,
+    "title": "Level 10",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.56 PM (2).jpeg"
+  },
+  "11": {
+    "level_id": 11,
+    "title": "Level 11",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.56 PM (3).jpeg"
+  },
+  "12": {
+    "level_id": 12,
+    "title": "Level 12",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.56 PM.jpeg"
+  },
+  "13": {
+    "level_id": 13,
+    "title": "Level 13",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM (1).jpeg"
+  },
+  "14": {
+    "level_id": 14,
+    "title": "Level 14",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM (10).jpeg"
+  },
+  "15": {
+    "level_id": 15,
+    "title": "Level 15",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM (11).jpeg"
+  },
+  "16": {
+    "level_id": 16,
+    "title": "Level 16",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM (12).jpeg"
+  },
+  "17": {
+    "level_id": 17,
+    "title": "Level 17",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM (13).jpeg"
+  },
+  "18": {
+    "level_id": 18,
+    "title": "Level 18",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM (14).jpeg"
+  },
+  "19": {
+    "level_id": 19,
+    "title": "Level 19",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM (15).jpeg"
+  },
+  "20": {
+    "level_id": 20,
+    "title": "Level 20",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM (16).jpeg"
+  },
+  "21": {
+    "level_id": 21,
+    "title": "Level 21",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM (17).jpeg"
+  },
+  "22": {
+    "level_id": 22,
+    "title": "Level 22",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM (18).jpeg"
+  },
+  "23": {
+    "level_id": 23,
+    "title": "Level 23",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM (19).jpeg"
+  },
+  "24": {
+    "level_id": 24,
+    "title": "Level 24",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM (2).jpeg"
+  },
+  "25": {
+    "level_id": 25,
+    "title": "Level 25",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM (3).jpeg"
+  },
+  "26": {
+    "level_id": 26,
+    "title": "Level 26",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM (4).jpeg"
+  },
+  "27": {
+    "level_id": 27,
+    "title": "Level 27",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM (5).jpeg"
+  },
+  "28": {
+    "level_id": 28,
+    "title": "Level 28",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM (6).jpeg"
+  },
+  "29": {
+    "level_id": 29,
+    "title": "Level 29",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM (7).jpeg"
+  },
+  "30": {
+    "level_id": 30,
+    "title": "Level 30",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM (8).jpeg"
+  },
+  "31": {
+    "level_id": 31,
+    "title": "Level 31",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM (9).jpeg"
+  },
+  "32": {
+    "level_id": 32,
+    "title": "Level 32",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.58 PM.jpeg"
+  },
+  "33": {
+    "level_id": 33,
+    "title": "Level 33",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.59 PM (1).jpeg"
+  },
+  "34": {
+    "level_id": 34,
+    "title": "Level 34",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.59 PM (2).jpeg"
+  },
+  "35": {
+    "level_id": 35,
+    "title": "Level 35",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.59 PM (3).jpeg"
+  },
+  "36": {
+    "level_id": 36,
+    "title": "Level 36",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.59 PM (4).jpeg"
+  },
+  "37": {
+    "level_id": 37,
+    "title": "Level 37",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.59 PM (5).jpeg"
+  },
+  "38": {
+    "level_id": 38,
+    "title": "Level 38",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.59 PM (6).jpeg"
+  },
+  "39": {
+    "level_id": 39,
+    "title": "Level 39",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.59 PM (7).jpeg"
+  },
+  "40": {
+    "level_id": 40,
+    "title": "Level 40",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.59 PM (8).jpeg"
+  },
+  "41": {
+    "level_id": 41,
+    "title": "Level 41",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.46.59 PM.jpeg"
+  },
+  "42": {
+    "level_id": 42,
+    "title": "Level 42",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (1).jpeg"
+  },
+  "43": {
+    "level_id": 43,
+    "title": "Level 43",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (10).jpeg"
+  },
+  "44": {
+    "level_id": 44,
+    "title": "Level 44",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (11).jpeg"
+  },
+  "45": {
+    "level_id": 45,
+    "title": "Level 45",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (12).jpeg"
+  },
+  "46": {
+    "level_id": 46,
+    "title": "Level 46",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (13).jpeg"
+  },
+  "47": {
+    "level_id": 47,
+    "title": "Level 47",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (14).jpeg"
+  },
+  "48": {
+    "level_id": 48,
+    "title": "Level 48",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (15).jpeg"
+  },
+  "49": {
+    "level_id": 49,
+    "title": "Level 49",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (16).jpeg"
+  },
+  "50": {
+    "level_id": 50,
+    "title": "Level 50",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (17).jpeg"
+  },
+  "51": {
+    "level_id": 51,
+    "title": "Level 51",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (18).jpeg"
+  },
+  "52": {
+    "level_id": 52,
+    "title": "Level 52",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (19).jpeg"
+  },
+  "53": {
+    "level_id": 53,
+    "title": "Level 53",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (2).jpeg"
+  },
+  "54": {
+    "level_id": 54,
+    "title": "Level 54",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (20).jpeg"
+  },
+  "55": {
+    "level_id": 55,
+    "title": "Level 55",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (21).jpeg"
+  },
+  "56": {
+    "level_id": 56,
+    "title": "Level 56",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (22).jpeg"
+  },
+  "57": {
+    "level_id": 57,
+    "title": "Level 57",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (23).jpeg"
+  },
+  "58": {
+    "level_id": 58,
+    "title": "Level 58",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (24).jpeg"
+  },
+  "59": {
+    "level_id": 59,
+    "title": "Level 59",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (25).jpeg"
+  },
+  "60": {
+    "level_id": 60,
+    "title": "Level 60",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (26).jpeg"
+  },
+  "61": {
+    "level_id": 61,
+    "title": "Level 61",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (27).jpeg"
+  },
+  "62": {
+    "level_id": 62,
+    "title": "Level 62",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (28).jpeg"
+  },
+  "63": {
+    "level_id": 63,
+    "title": "Level 63",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (29).jpeg"
+  },
+  "64": {
+    "level_id": 64,
+    "title": "Level 64",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (3).jpeg"
+  },
+  "65": {
+    "level_id": 65,
+    "title": "Level 65",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (30).jpeg"
+  },
+  "66": {
+    "level_id": 66,
+    "title": "Level 66",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (31).jpeg"
+  },
+  "67": {
+    "level_id": 67,
+    "title": "Level 67",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (32).jpeg"
+  },
+  "68": {
+    "level_id": 68,
+    "title": "Level 68",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (33).jpeg"
+  },
+  "69": {
+    "level_id": 69,
+    "title": "Level 69",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (34).jpeg"
+  },
+  "70": {
+    "level_id": 70,
+    "title": "Level 70",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (35).jpeg"
+  },
+  "71": {
+    "level_id": 71,
+    "title": "Level 71",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (36).jpeg"
+  },
+  "72": {
+    "level_id": 72,
+    "title": "Level 72",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (37).jpeg"
+  },
+  "73": {
+    "level_id": 73,
+    "title": "Level 73",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (38).jpeg"
+  },
+  "74": {
+    "level_id": 74,
+    "title": "Level 74",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (39).jpeg"
+  },
+  "75": {
+    "level_id": 75,
+    "title": "Level 75",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (4).jpeg"
+  },
+  "76": {
+    "level_id": 76,
+    "title": "Level 76",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (40).jpeg"
+  },
+  "77": {
+    "level_id": 77,
+    "title": "Level 77",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (41).jpeg"
+  },
+  "78": {
+    "level_id": 78,
+    "title": "Level 78",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (42).jpeg"
+  },
+  "79": {
+    "level_id": 79,
+    "title": "Level 79",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (43).jpeg"
+  },
+  "80": {
+    "level_id": 80,
+    "title": "Level 80",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (44).jpeg"
+  },
+  "81": {
+    "level_id": 81,
+    "title": "Level 81",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (45).jpeg"
+  },
+  "82": {
+    "level_id": 82,
+    "title": "Level 82",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (46).jpeg"
+  },
+  "83": {
+    "level_id": 83,
+    "title": "Level 83",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (47).jpeg"
+  },
+  "84": {
+    "level_id": 84,
+    "title": "Level 84",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (5).jpeg"
+  },
+  "85": {
+    "level_id": 85,
+    "title": "Level 85",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (6).jpeg"
+  },
+  "86": {
+    "level_id": 86,
+    "title": "Level 86",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (7).jpeg"
+  },
+  "87": {
+    "level_id": 87,
+    "title": "Level 87",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (8).jpeg"
+  },
+  "88": {
+    "level_id": 88,
+    "title": "Level 88",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM (9).jpeg"
+  },
+  "89": {
+    "level_id": 89,
+    "title": "Level 89",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.00 PM.jpeg"
+  },
+  "90": {
+    "level_id": 90,
+    "title": "Level 90",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.01 PM (1).jpeg"
+  },
+  "91": {
+    "level_id": 91,
+    "title": "Level 91",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.01 PM (10).jpeg"
+  },
+  "92": {
+    "level_id": 92,
+    "title": "Level 92",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.01 PM (2).jpeg"
+  },
+  "93": {
+    "level_id": 93,
+    "title": "Level 93",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.01 PM (3).jpeg"
+  },
+  "94": {
+    "level_id": 94,
+    "title": "Level 94",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.01 PM (4).jpeg"
+  },
+  "95": {
+    "level_id": 95,
+    "title": "Level 95",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.01 PM (5).jpeg"
+  },
+  "96": {
+    "level_id": 96,
+    "title": "Level 96",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.01 PM (6).jpeg"
+  },
+  "97": {
+    "level_id": 97,
+    "title": "Level 97",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.01 PM (7).jpeg"
+  },
+  "98": {
+    "level_id": 98,
+    "title": "Level 98",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.01 PM (8).jpeg"
+  },
+  "99": {
+    "level_id": 99,
+    "title": "Level 99",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.01 PM (9).jpeg"
+  },
+  "100": {
+    "level_id": 100,
+    "title": "Level 100",
+    "instruction": "Clear all rings to complete the level.",
+    "root_id": 0,
+    "rings": [],
+    "connections": [],
+    "locks": [],
+    "screenshot_file": "WhatsApp Image 2026-10-06 at 6.47.01 PM.jpeg"
+  }
+}

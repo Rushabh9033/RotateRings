@@ -2,7 +2,7 @@ extends Resource
 class_name LinkDefinition
 
 @export var id: StringName = &"link_0"
-@export var from_piece_id: StringName = &"ring_0" # Parent piece owning the stem
+@export var from_piece_id: StringName = &"ring_0" # Parent ring that owns this connector. Clearance keys off this id, not joint_color.
 @export var to_piece_id: StringName = &"ring_1"   # Child piece held inside the cuff
 @export var collar_angle_deg: float = -999.0      # Local angle on from_piece where stem connects
 @export var stem_dist: float = 0.0                # Distance from from_piece center to cuff center

@@ -2,6 +2,7 @@ extends Node
 class_name SaveService
 
 const SAVE_PATH := "user://loopshift_save.json"
+const LevelDatabaseScript = preload("res://data/level_database.gd")
 
 var save_data: Dictionary = {
 	"version": 1,
@@ -38,6 +39,7 @@ func load_data() -> void:
 				"haptics": true,
 				"reduced_motion": false
 			})
+			_sanitize_progression()
 
 func save_data_to_disk() -> void:
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
@@ -46,8 +48,31 @@ func save_data_to_disk() -> void:
 		file.store_string(json_str)
 		file.close()
 
+func resolve_unlocked_level(stored: int) -> int:
+	if LevelDatabaseScript.is_level_playable(stored):
+		return stored
+	var resolved: int = LevelDatabaseScript.get_max_playable_level()
+	push_warning("Save highest_unlocked_level %d is not playable. Resolved to %d, not Level 1." % [stored, resolved])
+	return resolved
+
+func get_highest_unlocked_level() -> int:
+	return resolve_unlocked_level(int(save_data.get("highest_unlocked_level", 1)))
+
+func get_continue_level() -> int:
+	return get_highest_unlocked_level()
+
+func _sanitize_progression() -> void:
+	var stored := int(save_data.get("highest_unlocked_level", 1))
+	var resolved := resolve_unlocked_level(stored)
+	if resolved == stored:
+		return
+	save_data["highest_unlocked_level"] = resolved
+	save_data_to_disk()
+
 func is_level_unlocked(lvl_num: int) -> bool:
-	return lvl_num <= int(save_data.get("highest_unlocked_level", 1))
+	if not LevelDatabaseScript.is_level_playable(lvl_num):
+		return false
+	return lvl_num <= get_highest_unlocked_level()
 
 func is_level_cleared(lvl_num: int) -> bool:
 	var levels: Dictionary = save_data.get("levels", {})
@@ -83,12 +108,16 @@ func record_level_completion(lvl_num: int, moves: int, par_moves: int, used_hint
 	}
 	save_data["levels"] = levels
 	
-	# Unlock next level, clamped to total levels
-	var current_highest: int = int(save_data.get("highest_unlocked_level", 1))
-	if lvl_num >= current_highest:
-		var LevelDatabaseScript = load("res://data/level_database.gd")
-		var total_levels: int = LevelDatabaseScript.get_total_levels() if LevelDatabaseScript else 12
-		save_data["highest_unlocked_level"] = mini(lvl_num + 1, total_levels)
+	# Unlock only the next production level. Experimental ids do not advance the map.
+	if LevelDatabaseScript.is_level_playable(lvl_num):
+		var current_highest := get_highest_unlocked_level()
+		var nxt := LevelDatabaseScript.get_next_playable_level(lvl_num)
+		if nxt > current_highest:
+			save_data["highest_unlocked_level"] = nxt
+		elif lvl_num > current_highest:
+			save_data["highest_unlocked_level"] = lvl_num
+	else:
+		push_warning("Completion of non-playable level %d did not change progression." % lvl_num)
 		
 	save_data_to_disk()
 	
