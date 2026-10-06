@@ -1,6 +1,7 @@
 class_name PieceGeometry
 
 const ShapeType = preload("res://data/piece_definition.gd").ShapeType
+const RingGeometry = preload("res://gameplay/ring_geometry.gd")
 
 ## Returns the distance from the center to the boundary of the shape at a given LOCAL angle (in radians).
 static func get_boundary_distance(shape: int, radius: float, local_angle_rad: float) -> float:
@@ -8,13 +9,12 @@ static func get_boundary_distance(shape: int, radius: float, local_angle_rad: fl
 		ShapeType.CIRCLE:
 			return radius
 		ShapeType.ROUNDED_SQUARE:
-			# A rounded square can be approximated by a superellipse or by taking the min of 1/cos and 1/sin.
-			# For a square of half-size R, the distance is R / max(|cos(a)|, |sin(a)|).
-			# To make it "rounded", we can use a p-norm (e.g. p=4).
-			# r(theta) = R * ( |cos(theta)|^4 + |sin(theta)|^4 )^(-1/4)
-			var c = abs(cos(local_angle_rad))
-			var s = abs(sin(local_angle_rad))
-			return radius * pow(pow(c, 4.0) + pow(s, 4.0), -0.25)
+			var c := absf(cos(local_angle_rad))
+			var s := absf(sin(local_angle_rad))
+			var max_cs := maxf(c, s)
+			if max_cs < 0.001:
+				return radius
+			return radius / max_cs
 		ShapeType.ROUNDED_TRIANGLE:
 			var a = local_angle_rad
 			var c1 = cos(a)
@@ -84,8 +84,22 @@ static func gap_interval_s(center_angle_deg: float, width_deg: float) -> Vector2
 	var center_s := angle_to_s(center_angle_deg)
 	return Vector2(fposmod(center_s - half, 1.0), fposmod(center_s + half, 1.0))
 
+## Opening the cuff can actually pass through. Round end caps sit on the geometric gap edges and fill thickness/2 of arc on each side.
+static func usable_gap_interval_s(shape: int, radius: float, thickness: float, center_angle_deg: float, width_deg: float) -> Vector2:
+	var contour := contour_length(shape, radius)
+	var cap_s := 0.0
+	if contour > 0.001:
+		cap_s = (maxf(thickness, 0.0) * 0.5) / contour
+	var half := maxf(width_deg, 0.0) / 360.0 * 0.5
+	var usable_half := maxf(half - cap_s, 0.0)
+	var center_s := angle_to_s(center_angle_deg)
+	return Vector2(fposmod(center_s - usable_half, 1.0), fposmod(center_s + usable_half, 1.0))
+
 static func opening_length(shape: int, radius: float, width_deg: float) -> float:
 	return contour_length(shape, radius) * (maxf(width_deg, 0.0) / 360.0)
+
+static func usable_opening_length(shape: int, radius: float, width_deg: float, thickness: float) -> float:
+	return maxf(0.0, opening_length(shape, radius, width_deg) - maxf(thickness, 0.0))
 
 static func opening_accepts_cuff(opening_len: float, cuff_width: float, margin: float) -> bool:
 	return opening_len + 0.001 >= cuff_width + margin * 2.0
@@ -108,3 +122,59 @@ static func cuff_span_inside(start_s: float, end_s: float, contact_s: float, cuf
 	var a := fposmod(contact_s - half, 1.0)
 	var b := fposmod(contact_s + half, 1.0)
 	return s_inside_gap(contact_s, start_s, end_s) and s_inside_gap(a, start_s, end_s) and s_inside_gap(b, start_s, end_s)
+
+## Oriented boxes overlap when they are closer than margin along every separating axis.
+static func obb_overlaps(center_a: Vector2, axis_x_a: Vector2, axis_y_a: Vector2, half_x_a: float, half_y_a: float, center_b: Vector2, axis_x_b: Vector2, axis_y_b: Vector2, half_x_b: float, half_y_b: float, margin: float) -> bool:
+	var axes: Array[Vector2] = [axis_x_a, axis_y_a, axis_x_b, axis_y_b]
+	var delta := center_b - center_a
+	for axis in axes:
+		if axis.length_squared() < 0.0000001:
+			continue
+		var n := axis.normalized()
+		var reach := half_x_a * absf(axis_x_a.dot(n)) + half_y_a * absf(axis_y_a.dot(n))
+		reach += half_x_b * absf(axis_x_b.dot(n)) + half_y_b * absf(axis_y_b.dot(n))
+		if absf(delta.dot(n)) > reach + margin:
+			return false
+	return true
+
+static func point_in_obb(point: Vector2, center: Vector2, axis_x: Vector2, axis_y: Vector2, half_x: float, half_y: float, margin: float) -> bool:
+	var rel := point - center
+	return absf(rel.dot(axis_x)) <= half_x + margin and absf(rel.dot(axis_y)) <= half_y + margin
+
+## True when a world point sits in the drawn tube, including the round end caps that close the opening.
+static func point_hits_tube(shape: int, radius: float, thickness: float, rotation_rad: float, gaps: Array, origin: Vector2, point: Vector2, margin: float) -> bool:
+	var rel := point - origin
+	var dist := rel.length()
+	var half_thick := maxf(thickness, 0.0) * 0.5
+	if dist > radius + half_thick + margin + 4.0:
+		return false
+	var local := wrapf(rel.angle() - rotation_rad, -PI, PI)
+	var boundary := get_boundary_distance(shape, radius, local)
+	var in_opening := _local_in_geometric_gap(local, gaps)
+	if absf(dist - boundary) <= half_thick + margin and not in_opening:
+		return true
+	if gaps.is_empty():
+		return false
+	var arcs: Array = RingGeometry.get_solid_arcs(gaps)
+	for arc in arcs:
+		if _point_in_cap(shape, radius, half_thick, rotation_rad, origin, point, float(arc.start), margin):
+			return true
+		if _point_in_cap(shape, radius, half_thick, rotation_rad, origin, point, float(arc.end), margin):
+			return true
+	return false
+
+static func _local_in_geometric_gap(local_rad: float, gaps: Array) -> bool:
+	for gap in gaps:
+		var width := float(gap.width_deg) if gap.get("width_deg") != null else 0.0
+		if width <= 0.0:
+			continue
+		var center := deg_to_rad(float(gap.center_angle_deg))
+		var half := deg_to_rad(width * 0.5)
+		if absf(wrapf(local_rad - center, -PI, PI)) < half - 0.001:
+			return true
+	return false
+
+static func _point_in_cap(shape: int, radius: float, half_thick: float, rotation_rad: float, origin: Vector2, point: Vector2, local_rad: float, margin: float) -> bool:
+	var boundary := get_boundary_distance(shape, radius, local_rad)
+	var cap_center := origin + Vector2.from_angle(rotation_rad + local_rad) * boundary
+	return point.distance_squared_to(cap_center) <= pow(half_thick + margin, 2.0)

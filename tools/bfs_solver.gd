@@ -1,132 +1,232 @@
 extends RefCounted
-const DEBUG = false
+class_name BFSSolver
 
 const PuzzleRulesScript = preload("res://gameplay/puzzle_rules.gd")
-const RingPiece2DScript = preload("res://gameplay/ring_piece_2d.gd")
-const LinkDefinitionScript = preload("res://data/link_definition.gd")
-const ConnectorRuntime = preload("res://gameplay/connector_runtime.gd")
+const PieceGeometry = preload("res://gameplay/piece_geometry.gd")
 const PuzzleStateScript = preload("res://gameplay/puzzle_state.gd")
+const PuzzleActionScript = preload("res://gameplay/puzzle_action.gd")
 
-static func _get_state_id(pieces: Array, links: Array) -> String:
-	var s = ""
-	var p_list: Array = pieces.filter(func(p): return p.state != RingPiece2DScript.State.RELEASED)
-	p_list.sort_custom(func(a, b): return a.piece_id < b.piece_id)
-	for p in p_list:
-		s += p.piece_id + ":" + str(snappedf(fposmod(p.rotation_degrees, 360.0), 1.0)) + "|"
-	var l_list: Array = links.filter(func(l): return l.state != ConnectorRuntime.State.DETACHED)
-	l_list.sort_custom(func(a, b): return a.def.id < b.def.id)
-	for l in l_list:
-		s += l.def.id + "|"
-	return s
-
-static func _clone_state(pieces: Array, links: Array) -> Dictionary:
-	var new_p: Array = []
-	for p in pieces:
-		var n = RingPiece2DScript.new()
-		n.piece_id = p.piece_id
-		n.radius = p.radius
-		n.thickness = p.thickness
-		n.position = p.position
-		n.rotation_degrees = p.rotation_degrees
-		n.state = p.state
-		n.gaps = p.gaps.duplicate(true)
-		n.shape_type = p.shape_type
-		n.thickness = p.thickness
-		n.role = p.role
-		n.def = p.def
-		if "target_exit_angle_deg" in p:
-			n.set("target_exit_angle_deg", p.get("target_exit_angle_deg"))
-		if p.has_meta("release_reason"):
-			n.set_meta("release_reason", p.get_meta("release_reason"))
-		new_p.append(n)
-	
-	var new_l: Array = []
-	for l in links:
-		var def_clone = LinkDefinitionScript.new(l.def.id, l.def.from_piece_id, l.def.to_piece_id, l.def.joint_color)
-		def_clone.collar_angle_deg = l.def.collar_angle_deg
-		def_clone.stem_dist = l.def.stem_dist
-		var nl = ConnectorRuntime.new(def_clone)
-		nl.state = l.state
-		nl.current_stem_dist = l.current_stem_dist
-		new_l.append(nl)
-	
-	var board := PuzzleStateScript.new(new_p, new_l)
-	return { "pieces": board.pieces, "links": board.links, "board": board }
-
-static func _get_moves(pieces: Array, links: Array) -> Array:
-	var moves: Array = []
-	for p in pieces:
-		if p.state == RingPiece2DScript.State.RELEASED: continue
-		if not PuzzleRulesScript.is_piece_rotatable(p, pieces, links): continue
+static func _to_pure_state(input_pieces, input_links = null) -> PuzzleStateScript:
+	if input_pieces is PuzzleStateScript:
+		return input_pieces.clone()
 		
-		var incoming: Array = []
-		for l in links:
-			if l.def.to_piece_id == p.piece_id and l.state != ConnectorRuntime.State.DETACHED:
-				incoming.append(l)
-				
-		for link in incoming:
-			var parent_p = PuzzleRulesScript.get_piece_by_id(link.def.from_piece_id, pieces)
-			if not parent_p or parent_p.state == RingPiece2DScript.State.RELEASED: continue
-			for gap in p.gaps:
-				var target_rot: float = PuzzleRulesScript.alignment_rotation_deg(p, link, pieces, gap)
-				if not PuzzleRulesScript.connector_fits(p, target_rot, link, pieces):
-					continue
-				var delta := wrapf(target_rot - p.rotation_degrees, -180.0, 180.0)
-				var clamped: Dictionary = PuzzleRulesScript.clamp_rotation_step(p, delta, pieces, links)
-				if bool(clamped.get("hit_stopper", false)):
-					continue
-				if absf(float(clamped["allowed_delta"]) - delta) > 0.5:
-					continue
-				moves.append({
-					"piece_id": p.piece_id,
-					"target_rot": target_rot,
-				})
-	return moves
-
-static func _apply_move(state: Dictionary, move: Dictionary) -> int:
-	var p = PuzzleRulesScript.get_piece_by_id(move.piece_id, state.pieces)
-	var result: Dictionary = PuzzleRulesScript.apply_settled_rotation(p, move.target_rot, state.pieces, state.links)
-	if not bool(result["applied"]):
-		return 0
-	return int(result["released"].size())
-
-static func solve_bfs(start_pieces: Array, start_links: Array) -> Dictionary:
-	var initial_releases = PuzzleRulesScript.resolve_releases(start_pieces, start_links).size()
-	var start_id = _get_state_id(start_pieces, start_links)
-	if start_pieces.filter(func(p): return p.state != RingPiece2DScript.State.RELEASED).is_empty():
-		return { "solved": true, "moves": 0, "direct_releases": 0, "cascade_releases": initial_releases, "max_cascade": initial_releases }
-		
-	var start_board := PuzzleStateScript.new(start_pieces, start_links)
-	var queue = [{ "pieces": start_board.pieces, "links": start_board.links, "board": start_board, "moves": 0, "direct_releases": 0, "cascade_releases": initial_releases, "max_cascade": initial_releases }]
-	var visited = { start_id: true }
+	var state = PuzzleStateScript.new()
 	
-	while queue.size() > 0:
-		var curr = queue.pop_front()
-		if PuzzleRulesScript.is_puzzle_won(curr.pieces, curr.links):
-			return { "solved": true, "moves": curr.moves, "direct_releases": curr.direct_releases, "cascade_releases": curr.cascade_releases, "max_cascade": curr.max_cascade }
-			
-		var moves = _get_moves(curr.pieces, curr.links)
-		for m in moves:
-			var next_state = _clone_state(curr.pieces, curr.links)
-			var released_now = _apply_move(next_state, m)
-			
-			var direct = 0
-			var cascade = 0
-			if released_now > 0:
-				direct = 1
-				cascade = released_now - 1
-			
-			var new_max_cascade = curr.max_cascade
-			if cascade > new_max_cascade:
-				new_max_cascade = cascade
+	if input_pieces is Dictionary:
+		for k in input_pieces.keys():
+			var item = input_pieces[k]
+			if item is Dictionary:
+				state.pieces[k] = item.duplicate(true)
+		if input_links is Dictionary:
+			for k in input_links.keys():
+				var item = input_links[k]
+				if item is Dictionary:
+					state.connectors[k] = item.duplicate(true)
+		return state
+		
+	if input_pieces is Array:
+		for p in input_pieces:
+			if p == null or not is_instance_valid(p): continue
+			var pid: StringName = p.piece_id if "piece_id" in p else StringName(p.id)
+			var gaps_data: Array = []
+			if p.gaps != null:
+				for g in p.gaps:
+					if g is Dictionary:
+						gaps_data.append(g.duplicate(true))
+					else:
+						gaps_data.append({
+							"center_angle_deg": float(g.center_angle_deg),
+							"width_deg": float(g.width_deg),
+							"depth": float(g.depth) if "depth" in g else 6.0
+						})
+			var rot_val := 0.0
+			if "rotation_degrees" in p:
+				rot_val = float(p.rotation_degrees)
+			elif "rotation_deg" in p:
+				rot_val = float(p.rotation_deg)
+			elif "start_angle_deg" in p:
+				rot_val = float(p.start_angle_deg)
 				
-			var n_id = _get_state_id(next_state.pieces, next_state.links)
-			if not visited.has(n_id):
-				visited[n_id] = true
-				next_state["moves"] = curr.moves + 1
-				next_state["direct_releases"] = curr.direct_releases + direct
-				next_state["cascade_releases"] = curr.cascade_releases + cascade
-				next_state["max_cascade"] = new_max_cascade
-				queue.append(next_state)
+			var st_val := 0
+			if "state" in p:
+				st_val = int(p.state)
+
+			var pos_val := Vector2.ZERO
+			if "position" in p:
+				pos_val = p.position
+
+			state.pieces[pid] = {
+				"id": pid,
+				"piece_id": pid,
+				"position": pos_val,
+				"radius": float(p.radius),
+				"thickness": float(p.thickness) if "thickness" in p else 24.0,
+				"rotation_deg": rot_val,
+				"state": st_val,
+				"gaps": gaps_data,
+				"shape_type": int(p.shape_type) if "shape_type" in p else 0,
+				"role": int(p.role) if "role" in p else PuzzleRulesScript.piece_role(p)
+			}
+			
+	if input_links is Array:
+		for l in input_links:
+			if l == null: continue
+			var lid: StringName = l.def.id if ("def" in l and l.def != null) else StringName(l.id)
+			var from_id: StringName = l.def.from_piece_id if ("def" in l and l.def != null) else StringName(l.from_piece_id)
+			var to_id: StringName = l.def.to_piece_id if ("def" in l and l.def != null) else StringName(l.to_piece_id)
+			var collar: float = float(l.def.collar_angle_deg if ("def" in l and l.def != null) else l.collar_angle_deg)
+			var dist: float = float(l.def.stem_dist if ("def" in l and l.def != null) else l.stem_dist)
+			var link_st := 0
+			if "state" in l:
+				link_st = int(l.state)
+			elif "is_detached" in l and bool(l.is_detached):
+				link_st = 2
+			state.connectors[lid] = {
+				"id": lid,
+				"from_piece_id": from_id,
+				"to_piece_id": to_id,
+				"collar_angle_deg": collar,
+				"stem_dist": dist,
+				"state": link_st
+			}
+	return state
+
+static func _calc_incoming_target_rot(piece: Dictionary, parent: Dictionary, conn: Dictionary, gap: Dictionary) -> float:
+	var shape: int = int(piece.get("shape_type", 0))
+	var radius: float = float(piece.get("radius", 68.0))
+	var start_rot: float = float(piece.get("rotation_deg", 0.0))
+	var parent_rot: float = float(parent.get("rotation_deg", 0.0))
+	var collar_deg: float = float(conn.get("collar_angle_deg", 0.0))
+	var stem_dist: float = float(conn.get("stem_dist", 0.0))
+	var world_rad: float = deg_to_rad(parent_rot + collar_deg)
+	var dir := Vector2.from_angle(world_rad)
+	var parent_pos: Vector2 = parent.get("position", Vector2.ZERO)
+	var child_pos: Vector2 = piece.get("position", Vector2.ZERO)
+	var center_deg: float = float(gap.get("center_angle_deg", 0.0))
+	
+	var rot_guess: float = start_rot
+	for iter in range(3):
+		var child_r: float = PieceGeometry.get_world_boundary_distance(shape, radius, deg_to_rad(rot_guess), dir.angle() + PI)
+		var pos_cuff: Vector2 = parent_pos + dir * (stem_dist - child_r)
+		var rel: Vector2 = pos_cuff - child_pos
+		if rel.length_squared() < 0.0001:
+			break
+		var contact_world := fposmod(rad_to_deg(rel.angle()), 360.0)
+		rot_guess = fposmod(contact_world - center_deg, 360.0)
+	return rot_guess
+
+static func solve_bfs(input_pieces, input_links = null) -> Dictionary:
+	var start_state := _to_pure_state(input_pieces, input_links)
+	
+	# Initial auto-clearance and release on initial state setup
+	var initial_state = start_state.clone()
+	PuzzleRulesScript.resolve_pure_releases(initial_state)
+	
+	if PuzzleRulesScript.is_pure_state_won(initial_state):
+		return {
+			"solved": true,
+			"moves": 0,
+			"path": [],
+			"visited_states": 1
+		}
+		
+	var start_hash := initial_state.get_hash()
+	var queue: Array = [{
+		"state": initial_state,
+		"path": []
+	}]
+	
+	var visited: Dictionary = { start_hash: true }
+	var max_steps := 50000
+	var step_count := 0
+	
+	while queue.size() > 0 and step_count < max_steps:
+		step_count += 1
+		var curr: Dictionary = queue.pop_front()
+		var curr_state: PuzzleStateScript = curr["state"]
+		var curr_path: Array = curr["path"]
+		
+		# Check win
+		if PuzzleRulesScript.is_pure_state_won(curr_state):
+			return {
+				"solved": true,
+				"moves": curr_state.move_count,
+				"path": curr_path,
+				"visited_states": visited.size()
+			}
+			
+		# Generate legal candidate moves strictly via pure state
+		for pid in curr_state.pieces.keys():
+			var piece: Dictionary = curr_state.pieces[pid]
+			if int(piece.get("state", 0)) == 6: continue # RELEASED
+			if not PuzzleRulesScript.is_pure_piece_rotatable(curr_state, pid): continue
+			
+			var start_rot: float = float(piece.get("rotation_deg", 0.0))
+			var gaps: Array = piece.get("gaps", [])
+			var targets: Array[float] = []
+			
+			# 1. Incoming connectors: target rotations that align piece's gaps with incoming parent cuffs
+			for cid in curr_state.connectors.keys():
+				var conn: Dictionary = curr_state.connectors[cid]
+				if StringName(conn.get("to_piece_id", &"")) == pid and int(conn.get("state", 0)) == 0:
+					var parent_id: StringName = StringName(conn.get("from_piece_id", &""))
+					var parent: Dictionary = curr_state.pieces.get(parent_id, {})
+					if not parent.is_empty() and int(parent.get("state", 0)) != 6:
+						for gap in gaps:
+							var target_rot := _calc_incoming_target_rot(piece, parent, conn, gap)
+							targets.append(target_rot)
+
+			# 2. Outgoing connectors: target rotations that align piece's gaps with outgoing child cuffs
+			for cid in curr_state.connectors.keys():
+				var conn: Dictionary = curr_state.connectors[cid]
+				if StringName(conn.get("from_piece_id", &"")) == pid and int(conn.get("state", 0)) == 0:
+					var child_id: StringName = StringName(conn.get("to_piece_id", &""))
+					var child: Dictionary = curr_state.pieces.get(child_id, {})
+					if not child.is_empty() and int(child.get("state", 0)) != 6:
+						var collar_deg: float = float(conn.get("collar_angle_deg", 0.0))
+						var world_rad: float = deg_to_rad(start_rot + collar_deg)
+						for gap in gaps:
+							var target_rot := fposmod(rad_to_deg(world_rad) - float(gap.get("center_angle_deg", 0.0)), 360.0)
+							targets.append(target_rot)
+
+			# 3. Fallback snap angles if no alignment targets exist
+			if targets.is_empty():
+				for snap_deg in [0.0, 90.0, 180.0, 270.0]:
+					targets.append(snap_deg)
 				
-	return { "solved": false, "moves": 0 }
+			# Test each unique target rotation
+			var tested_targets: Dictionary = {}
+			for target_rot in targets:
+				var t_clean := fposmod(target_rot, 360.0)
+				if tested_targets.has(t_clean): continue
+				tested_targets[t_clean] = true
+				
+				var delta := wrapf(t_clean - start_rot, -180.0, 180.0)
+				if absf(delta) < 0.1: continue
+				
+				var act := PuzzleActionScript.new(pid, start_rot, t_clean, 1 if delta >= 0 else -1)
+				var res := PuzzleRulesScript.apply_action(curr_state, act)
+				if bool(res.applied) and res.next_state != null:
+					var next_st: PuzzleStateScript = res.next_state
+					var next_hash: String = next_st.get_hash()
+					if not visited.has(next_hash):
+						visited[next_hash] = true
+						var next_path = curr_path.duplicate()
+						next_path.append({
+							"piece_id": pid,
+							"start_orientation": start_rot,
+							"target_orientation": t_clean,
+							"target_rot": t_clean,
+							"direction": act.direction
+						})
+						queue.append({
+							"state": next_st,
+							"path": next_path
+						})
+
+	return {
+		"solved": false,
+		"moves": 0,
+		"path": [],
+		"visited_states": visited.size()
+	}

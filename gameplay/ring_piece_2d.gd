@@ -38,6 +38,7 @@ var state: State = State.IDLE:
 			state = value
 			_on_state_changed(old_state, value)
 var is_interactive: bool = true
+var show_hold_rim: bool = false
 
 # For 3D animation
 var shadow_offset_mult: float = 1.0
@@ -50,13 +51,13 @@ var _c_light := Color.WHITE
 var _c_inner_dark := Color.WHITE
 
 func _precompute_colors() -> void:
-	_c_shadow = Color(0.20, 0.14, 0.10, 0.12)
-	_c_dark = ring_color.darkened(0.22)
-	_c_main = ring_color.lightened(0.02)
-	_c_light = ring_color.lightened(0.25)
-	_c_light.a = 0.85
-	_c_inner_dark = ring_color.darkened(0.1)
-	_c_inner_dark.a = 0.5
+	_c_shadow = Color(0.42, 0.26, 0.16, 0.2)
+	_c_dark = ring_color.darkened(0.28)
+	_c_main = ring_color.lightened(0.04)
+	_c_light = ring_color.lightened(0.34)
+	_c_light.a = 0.75
+	_c_inner_dark = ring_color.darkened(0.22)
+	_c_inner_dark.a = 0.7
 
 func _on_state_changed(old: State, new: State) -> void:
 	if new == State.RELEASED or new == State.RELEASING:
@@ -94,6 +95,12 @@ func _process(_delta: float) -> void:
 	if absf(shadow_offset_mult - 1.0) > 0.001:
 		queue_redraw()
 
+func set_hold_rim(enabled: bool) -> void:
+	if show_hold_rim == enabled:
+		return
+	show_hold_rim = enabled
+	queue_redraw()
+
 func setup(p_def) -> void:
 	def = p_def
 	piece_id = p_def.id
@@ -117,31 +124,37 @@ func _draw() -> void:
 	var cap_r: float = thickness * 0.5
 	var is_closed: bool = gaps.is_empty() or (gaps.size() == 1 and float(gaps[0].get("width_deg")) <= 0.0)
 
-	if is_closed:
-		_draw_ring_arc(Vector2.ZERO, radius, 0.0, TAU, seg_count, cap_r, is_closed, shape_type)
-		return
-
-	var arcs: Array = RingGeometry.get_solid_arcs(gaps)
+	var arcs: Array = [ {"start": 0.0, "end": TAU} ] if is_closed else RingGeometry.get_solid_arcs(gaps)
+	var holding := show_hold_rim or state == State.SELECTED or state == State.ROTATING
 
 	for arc in arcs:
 		var arc_start: float = arc.start
 		var arc_end: float = arc.end
-		
-		# Ensure arc_end is greater than arc_start for Godot's draw_arc
+
 		if arc_end < arc_start:
 			arc_end += TAU
 
-		# State-based outer glow
-		if state == State.SELECTED or state == State.ROTATING:
-			var glow_c := Color(ring_color.r, ring_color.g, ring_color.b, 0.30)
-			_draw_poly_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, glow_c, thickness + 12.0, shape_type)
+		if holding:
+			_draw_hold_rim(arc_start, arc_end, seg_count, cap_r, is_closed)
 		elif state == State.NEAR_VALID:
 			_draw_poly_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, Color(1.0, 1.0, 0.6, 0.55), thickness + 9.0, shape_type)
 		elif state == State.RELEASABLE:
 			_draw_poly_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, Color(0.4, 1.0, 0.4, 0.60), thickness + 9.0, shape_type)
 
-		_draw_ring_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, cap_r, false, shape_type)
+		_draw_ring_arc(Vector2.ZERO, radius, arc_start, arc_end, seg_count, cap_r, is_closed, shape_type)
 
+
+func _draw_hold_rim(a_start: float, a_end: float, segs: int, cap_r: float, is_closed: bool) -> void:
+	var rim := ring_color.lightened(0.38)
+	rim.a = 1.0
+	_draw_poly_arc(Vector2.ZERO, radius, a_start, a_end, segs, rim, thickness + 14.0, shape_type)
+	if is_closed:
+		return
+	var cap_color := rim
+	var p_start := Vector2.from_angle(a_start) * PieceGeometry.get_boundary_distance(shape_type, radius, a_start)
+	var p_end := Vector2.from_angle(a_end) * PieceGeometry.get_boundary_distance(shape_type, radius, a_end)
+	draw_circle(p_start, cap_r + 7.0, cap_color)
+	draw_circle(p_end, cap_r + 7.0, cap_color)
 
 func _draw_ring_arc(center: Vector2, r: float, a_start: float, a_end: float, segs: int, cap_r: float, is_closed: bool, shape_type: int) -> void:
 	# PERFORMANCE: fixed 72 segs for shapes
@@ -174,6 +187,9 @@ func _draw_ring_arc(center: Vector2, r: float, a_start: float, a_end: float, seg
 	var off_hl := Vector2(-1.5, -2.5)
 	var hl_w = thickness * 0.4
 	_draw_poly_arc(center + off_hl, r, a_start, a_end, segs, _c_light, hl_w, shape_type)
+	var hole_edge := ring_color.darkened(0.35)
+	hole_edge.a = 0.55
+	_draw_poly_arc(center, r - thickness * 0.28, a_start, a_end, segs, hole_edge, 3.0, shape_type)
 
 func _draw_poly_arc(center: Vector2, r: float, a_start: float, a_end: float, segs: int, color: Color, line_width: float, shape_type: int) -> void:
 	var pts = PackedVector2Array()

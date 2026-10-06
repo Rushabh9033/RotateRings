@@ -4,7 +4,8 @@ extends RefCounted
 
 # ENGAGED: cuff still holds the child tube.
 # CLEARING: opening accepted the cuff; it is retracting out of the tube.
-# DETACHED: cuff is outside the tube. Permanent. Does not block rotation, collision, solver, or hints.
+# DETACHED: cuff is outside the tube. Permanent. It no longer grips, so it does not lock rotation, the solver, or hints.
+# The drawn cuff and stem are still solid: they must not pass through another cuff or another ring.
 enum State {
 	ENGAGED,
 	CLEARING,
@@ -12,10 +13,13 @@ enum State {
 }
 
 # Matches the cuff drawn in PuzzleController (sleeve span / radial depth).
-const TANGENTIAL_WIDTH := 38.0
-const RADIAL_DEPTH := 32.0
+const TANGENTIAL_WIDTH := 22.0
+const RADIAL_DEPTH := 14.0
+const STEM_RADIUS := 5.0
 const SAFETY_MARGIN := 2.0
 const CLEARANCE_MARGIN := 2.0
+# Extra space required between solid bodies (ring tubes, cuffs, stems).
+const BODY_MARGIN := 2.0
 
 var def: LinkDefinition
 var state: State = State.ENGAGED
