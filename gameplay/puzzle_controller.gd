@@ -162,7 +162,9 @@ func load_level(def) -> void:
 				to_p.role = 1 if to_p.gaps.is_empty() else 0
 			# Use definition positions. The drop tween has not reached them yet.
 			PuzzleRulesScript.bind_connector(link, from_def.position, from_def.start_angle_deg, to_def.position)
-		active_links.append(ConnectorRuntime.new(link))
+		var runtime = ConnectorRuntime.new(link)
+		runtime.current_stem_dist = link.stem_dist
+		active_links.append(runtime)
 
 	board.pieces = active_pieces
 	board.links = active_links
