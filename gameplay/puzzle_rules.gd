@@ -52,10 +52,15 @@ static func _is_gone(piece) -> bool:
 		return st == _RELEASED or st == _RELEASING
 	return false
 
-static func bind_connector(link_def, from_pos: Vector2, from_rot_deg: float, to_pos: Vector2) -> void:
+static func bind_connector(link_def, from_pos: Vector2, from_rot_deg: float, to_pos: Vector2, from_radius: float = 0.0) -> void:
 	var diff: Vector2 = to_pos - from_pos
-	link_def.stem_dist = diff.length()
-	link_def.collar_angle_deg = fposmod(rad_to_deg(diff.angle()) - from_rot_deg, 360.0)
+	var d := diff.length()
+	if d < 1.0:
+		link_def.stem_dist = from_radius if from_radius > 0.0 else 88.0
+		link_def.collar_angle_deg = fposmod(0.0 - from_rot_deg, 360.0)
+	else:
+		link_def.stem_dist = d
+		link_def.collar_angle_deg = fposmod(rad_to_deg(diff.angle()) - from_rot_deg, 360.0)
 
 static func is_piece_rotatable(piece, _all_pieces: Array, links: Array) -> bool:
 	if _is_gone(piece):

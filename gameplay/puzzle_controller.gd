@@ -161,13 +161,11 @@ func load_level(def) -> void:
 				from_p.role = 1 if from_p.gaps.is_empty() else 0
 				to_p.role = 1 if to_p.gaps.is_empty() else 0
 			# Use definition positions. The drop tween has not reached them yet.
-			PuzzleRulesScript.bind_connector(link, from_def.position, from_def.start_angle_deg, to_def.position)
+			PuzzleRulesScript.bind_connector(link, from_def.position, from_def.start_angle_deg, to_def.position, from_def.radius)
 		var runtime = ConnectorRuntime.new(link)
 		runtime.current_stem_dist = link.stem_dist
 		active_links.append(runtime)
 
-	board.pieces = active_pieces
-	board.links = active_links
 
 	# Keep connectors dirty for the full drop animation duration so falling rings stay connected
 	var total_drop_time: float = drop_delay + 1.2
@@ -176,11 +174,16 @@ func load_level(def) -> void:
 	_intro_token += 1
 	var expected_token = _intro_token
 	_is_intro_done = false
-	get_tree().create_timer(total_drop_time).timeout.connect(func():
-		if _intro_token == expected_token:
-			_is_intro_done = true
-			is_active = true
-	)
+	if get_tree():
+		get_tree().create_timer(total_drop_time).timeout.connect(func():
+			if _intro_token == expected_token:
+				_is_intro_done = true
+				is_active = true
+		)
+	else:
+		_is_intro_done = true
+		is_active = true
+
 
 	hint_controller.set_level(def, active_pieces, active_links)
 	_redraw_connectors()
@@ -302,7 +305,7 @@ func _on_piece_release_completed(piece: Node2D) -> void:
 		if link.def.from_piece_id != piece.piece_id:
 			links_to_keep.append(link)
 	active_links = links_to_keep
-	board.links = active_links
+
 	
 	piece_count_updated.emit(active_pieces.size())
 	_redraw_connectors()
