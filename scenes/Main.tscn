@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://loopshift_main_scene"]
+[gd_scene load_steps=11 format=3 uid="uid://loopshift_main_scene"]
 
 [ext_resource type="Script" path="res://app/app.gd" id="1_app_script"]
 [ext_resource type="Script" path="res://app/save_service.gd" id="2_save_script"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://level_select_screen_scene" path="res://scenes/level_select/LevelSelectScreen.tscn" id="7_ls_scene"]
 [ext_resource type="PackedScene" uid="uid://gameplay_screen_scene" path="res://scenes/gameplay/GameplayScreen.tscn" id="8_gp_scene"]
 [ext_resource type="PackedScene" uid="uid://settings_modal_scene" path="res://scenes/components/SettingsModal.tscn" id="9_settings_scene"]
+[ext_resource type="PackedScene" path="res://scenes/level_editor/LevelEditor.tscn" id="10_le_scene"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -55,5 +56,9 @@ visible = false
 layout_mode = 1
 
 [node name="SettingsModal" parent="Screens" instance=ExtResource("9_settings_scene")]
+visible = false
+layout_mode = 1
+
+[node name="LevelEditor" parent="Screens" instance=ExtResource("10_le_scene")]
 visible = false
 layout_mode = 1

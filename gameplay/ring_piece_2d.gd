@@ -43,6 +43,11 @@ var show_hold_rim: bool = false
 # For 3D animation
 var shadow_offset_mult: float = 1.0
 
+# Active state-change tween (killed before reassignment to avoid overlapping tweens).
+var _state_tween: Tween = null
+# Original z_index from def — restored on IDLE so author-set layering survives state cycles.
+var _default_z_index: int = 0
+
 # --- PERFORMANCE: precomputed colors (avoids Color math every draw call) ---
 var _c_shadow := Color(0.20, 0.14, 0.10, 0.12)
 var _c_dark := Color.WHITE
@@ -60,21 +65,37 @@ func _precompute_colors() -> void:
 	_c_inner_dark.a = 0.7
 
 func _on_state_changed(old: State, new: State) -> void:
-	if new == State.RELEASED or new == State.RELEASING:
+	# Cancel any in-flight state tween so rapid state cycles don't stack.
+	if is_instance_valid(_state_tween):
+		_state_tween.kill()
+	_state_tween = null
+
+	# Brief squash on release entry — recovers the visual lift-down before queue_free.
+	if new == State.RELEASING:
+		_state_tween = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+		_state_tween.tween_property(self, "scale", Vector2(0.85, 0.85), 0.16)
+		_state_tween.parallel().tween_property(self, "shadow_offset_mult", 0.5, 0.16)
+		_state_tween.tween_property(self, "modulate:a", 0.0, 0.32)
+		queue_redraw()
 		return
 
-	var tween = create_tween().set_trans(Tween.TRANS_SPRING).set_ease(Tween.EASE_OUT)
+	if new == State.RELEASED:
+		# Handed out is terminal — keep _draw early-return behavior.
+		queue_redraw()
+		return
+
+	_state_tween = create_tween().set_trans(Tween.TRANS_SPRING).set_ease(Tween.EASE_OUT)
 
 	if new == State.SELECTED or new == State.ROTATING:
 		# Lift up
-		tween.tween_property(self, "scale", Vector2(1.05, 1.05), 0.18)
-		tween.parallel().tween_property(self, "shadow_offset_mult", 2.0, 0.18)
+		_state_tween.tween_property(self, "scale", Vector2(1.05, 1.05), 0.18)
+		_state_tween.parallel().tween_property(self, "shadow_offset_mult", 2.0, 0.18)
 		z_index = 10
 	elif new == State.IDLE or new == State.NEAR_VALID or new == State.RELEASABLE:
-		# Drop down
-		tween.tween_property(self, "scale", Vector2.ONE, 0.25)
-		tween.parallel().tween_property(self, "shadow_offset_mult", 1.0, 0.25)
-		z_index = 0
+		# Drop down — restore the author-set z_index, not 0.
+		_state_tween.tween_property(self, "scale", Vector2.ONE, 0.25)
+		_state_tween.parallel().tween_property(self, "shadow_offset_mult", 1.0, 0.25)
+		z_index = _default_z_index
 
 	# Quick magnetic snap effect when approaching valid — simplified for performance
 	if new == State.NEAR_VALID and old == State.ROTATING:
@@ -113,6 +134,8 @@ func setup(p_def) -> void:
 	rotation_degrees = current_angle_deg
 	gaps = p_def.gaps.duplicate()
 	role = 1 if gaps.is_empty() else 0
+	_default_z_index = int(p_def.z_index) if p_def.get("z_index") != null else 0
+	z_index = _default_z_index
 	_precompute_colors()
 	queue_redraw()
 
@@ -124,7 +147,7 @@ func _draw() -> void:
 	var cap_r: float = thickness * 0.5
 	var is_closed: bool = gaps.is_empty() or (gaps.size() == 1 and float(gaps[0].get("width_deg")) <= 0.0)
 
-	var arcs: Array = [ {"start": 0.0, "end": TAU} ] if is_closed else RingGeometry.get_solid_arcs(gaps)
+	var arcs: Array = [ {"start": 0.0, "end": TAU} ] if is_closed else PieceGeometry.get_solid_arcs(gaps)
 	var holding := show_hold_rim or state == State.SELECTED or state == State.ROTATING
 
 	for arc in arcs:
@@ -159,31 +182,55 @@ func _draw_hold_rim(a_start: float, a_end: float, segs: int, cap_r: float, is_cl
 func _draw_ring_arc(center: Vector2, r: float, a_start: float, a_end: float, segs: int, cap_r: float, is_closed: bool, shape_type: int) -> void:
 	# PERFORMANCE: fixed 72 segs for shapes
 	segs = 72
-	
+
+	# For a CLOSED piece (no gap) we fill the full contour with a soft drop shadow
+	# and the main color, so things like the central cuff render as solid rounded
+	# squares / circles — matching the Game Rush reference's chunky cuff.
+	if is_closed:
+		# Drop shadow as a slightly larger filled shape, offset down
+		var shadow_pts := PackedVector2Array()
+		for i in range(segs + 1):
+			var theta: float = TAU * float(i) / float(segs)
+			shadow_pts.append(center + Vector2(0, 3.0) + Vector2(cos(theta), sin(theta)) * PieceGeometry.get_boundary_distance(shape_type, r + 1.5, theta))
+		draw_colored_polygon(shadow_pts, Color(0.16, 0.13, 0.11, 0.20))
+		# Filled body
+		var body_pts := PackedVector2Array()
+		for i in range(segs + 1):
+			var theta: float = TAU * float(i) / float(segs)
+			body_pts.append(center + Vector2(cos(theta), sin(theta)) * PieceGeometry.get_boundary_distance(shape_type, r, theta))
+		draw_colored_polygon(body_pts, _c_main)
+		# Top highlight: offset slightly up + lighter color
+		var hl_pts := PackedVector2Array()
+		for i in range(segs + 1):
+			var theta: float = TAU * float(i) / float(segs)
+			hl_pts.append(center + Vector2(0, -1.0) + Vector2(cos(theta), sin(theta)) * PieceGeometry.get_boundary_distance(shape_type, r * 0.85, theta))
+		draw_colored_polygon(hl_pts, _c_light)
+		return
+
 	var shadow_off1 := Vector2(0, 6.0) * shadow_offset_mult
 	var off_dark := Vector2(0, 2.5)
-	
+
 	_draw_poly_arc(center + shadow_off1, r, a_start, a_end, segs, _c_shadow, thickness + 2.0, shape_type)
 	if not is_closed:
 		var p_start = center + shadow_off1 + Vector2.from_angle(a_start) * PieceGeometry.get_boundary_distance(shape_type, r, a_start)
 		var p_end = center + shadow_off1 + Vector2.from_angle(a_end) * PieceGeometry.get_boundary_distance(shape_type, r, a_end)
 		draw_circle(p_start, cap_r + 1.0, _c_shadow)
 		draw_circle(p_end, cap_r + 1.0, _c_shadow)
-		
+
 	_draw_poly_arc(center + off_dark, r, a_start, a_end, segs, _c_dark, thickness, shape_type)
 	if not is_closed:
 		var p_start = center + off_dark + Vector2.from_angle(a_start) * PieceGeometry.get_boundary_distance(shape_type, r, a_start)
 		var p_end = center + off_dark + Vector2.from_angle(a_end) * PieceGeometry.get_boundary_distance(shape_type, r, a_end)
 		draw_circle(p_start, cap_r, _c_dark)
 		draw_circle(p_end, cap_r, _c_dark)
-		
+
 	_draw_poly_arc(center, r, a_start, a_end, segs, _c_main, thickness, shape_type)
 	if not is_closed:
 		var p_start = center + Vector2.from_angle(a_start) * PieceGeometry.get_boundary_distance(shape_type, r, a_start)
 		var p_end = center + Vector2.from_angle(a_end) * PieceGeometry.get_boundary_distance(shape_type, r, a_end)
 		draw_circle(p_start, cap_r, _c_main)
 		draw_circle(p_end, cap_r, _c_main)
-		
+
 	var off_hl := Vector2(-1.5, -2.5)
 	var hl_w = thickness * 0.4
 	_draw_poly_arc(center + off_hl, r, a_start, a_end, segs, _c_light, hl_w, shape_type)
@@ -192,15 +239,23 @@ func _draw_ring_arc(center: Vector2, r: float, a_start: float, a_end: float, seg
 	_draw_poly_arc(center, r - thickness * 0.28, a_start, a_end, segs, hole_edge, 3.0, shape_type)
 
 func _draw_poly_arc(center: Vector2, r: float, a_start: float, a_end: float, segs: int, color: Color, line_width: float, shape_type: int) -> void:
+	# Build a closed filled band: outer edge (r + half_t) and inner edge (r - half_t)
+	# as a single polygon. This gives the tube a 3D filled look, not a hollow stroke.
+	var half_t: float = line_width * 0.5
 	var pts = PackedVector2Array()
-	var step = (a_end - a_start) / float(segs)
+	var step: float = (a_end - a_start) / float(segs)
+	# Outer edge from a_start to a_end
 	for i in range(segs + 1):
-		var theta = a_start + step * i
-		var dist = PieceGeometry.get_boundary_distance(shape_type, r, theta)
+		var theta: float = a_start + step * i
+		var dist: float = PieceGeometry.get_boundary_distance(shape_type, r, theta) + half_t
 		pts.append(center + Vector2(cos(theta), sin(theta)) * dist)
-	
-	if pts.size() >= 2:
-		draw_polyline(pts, color, line_width, true)
+	# Inner edge from a_end to a_start (reverse)
+	for i in range(segs, -1, -1):
+		var theta2: float = a_start + step * i
+		var dist2: float = maxf(0.0, PieceGeometry.get_boundary_distance(shape_type, r, theta2) - half_t)
+		pts.append(center + Vector2(cos(theta2), sin(theta2)) * dist2)
+	if pts.size() >= 3:
+		draw_colored_polygon(pts, color)
 
 func get_distance_to_ring(global_pt: Vector2) -> float:
 	var local_pos := to_local(global_pt)

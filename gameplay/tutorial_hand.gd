@@ -59,14 +59,13 @@ func stop() -> void:
 
 
 func _draw() -> void:
-	_chevron(Vector2(0, 5), SHADOW, 18.0)
-	_chevron(Vector2(0, 1.6), INK_DARK, 16.0)
-	_chevron(Vector2.ZERO, INK, 16.0)
-
-
-func _chevron(off: Vector2, color: Color, thick: float) -> void:
-	var nose := off + Vector2(22, 0)
-	var upper := off + Vector2(-16, -20)
-	var lower := off + Vector2(-16, 20)
-	draw_line(upper, nose, color, thick, true)
-	draw_line(lower, nose, color, thick, true)
+	var base_color := Color("FFFFFF")
+	var shadow := Color(0, 0, 0, 0.3)
+	
+	# Draw the hand
+	# Shadow
+	draw_circle(Vector2(2, 22), 16, shadow)
+	draw_line(Vector2(2, 22), Vector2(2, -10), shadow, 14, true)
+	# Main hand
+	draw_circle(Vector2(0, 20), 16, base_color)
+	draw_line(Vector2(0, 20), Vector2(0, -12), base_color, 14, true)

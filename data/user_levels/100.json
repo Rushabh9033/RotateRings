@@ -1,0 +1,243 @@
+{
+  "id": 100,
+  "links": [
+    {
+      "cuff_color_hex": "#06B6D4",
+      "cuff_color_name": "cyan",
+      "from_id": "r1",
+      "to_id": "r2"
+    },
+    {
+      "cuff_color_hex": "#06B6D4",
+      "cuff_color_name": "cyan",
+      "from_id": "r1",
+      "to_id": "r3"
+    },
+    {
+      "cuff_color_hex": "#06B6D4",
+      "cuff_color_name": "cyan",
+      "from_id": "r1",
+      "to_id": "r4"
+    },
+    {
+      "cuff_color_hex": "#06B6D4",
+      "cuff_color_name": "cyan",
+      "from_id": "r1",
+      "to_id": "r5"
+    },
+    {
+      "cuff_color_hex": "#06B6D4",
+      "cuff_color_name": "cyan",
+      "from_id": "r1",
+      "to_id": "r6"
+    },
+    {
+      "cuff_color_hex": "#06B6D4",
+      "cuff_color_name": "cyan",
+      "from_id": "r1",
+      "to_id": "r7"
+    },
+    {
+      "cuff_color_hex": "#22C55E",
+      "cuff_color_name": "green",
+      "from_id": "r3",
+      "to_id": "r4"
+    },
+    {
+      "cuff_color_hex": "#FF3B30",
+      "cuff_color_name": "red",
+      "from_id": "r4",
+      "to_id": "r5"
+    },
+    {
+      "cuff_color_hex": "#F97316",
+      "cuff_color_name": "orange",
+      "from_id": "r5",
+      "to_id": "r6"
+    },
+    {
+      "cuff_color_hex": "#8B5CF6",
+      "cuff_color_name": "purple",
+      "from_id": "r6",
+      "to_id": "r7"
+    },
+    {
+      "cuff_color_hex": "#FF3B30",
+      "cuff_color_name": "red",
+      "from_id": "r8",
+      "to_id": "r2"
+    },
+    {
+      "cuff_color_hex": "#22C55E",
+      "cuff_color_name": "green",
+      "from_id": "r9",
+      "to_id": "r10"
+    },
+    {
+      "cuff_color_hex": "#3B82F6",
+      "cuff_color_name": "cyan",
+      "from_id": "r10",
+      "to_id": "r2"
+    },
+    {
+      "cuff_color_hex": "#3B82F6",
+      "cuff_color_name": "cyan",
+      "from_id": "r10",
+      "to_id": "r11"
+    },
+    {
+      "cuff_color_hex": "#8B5CF6",
+      "cuff_color_name": "purple",
+      "from_id": "r12",
+      "to_id": "r2"
+    }
+  ],
+  "pieces": [
+    {
+      "closed": false,
+      "color_hex": "#F97316",
+      "color_name": "orange",
+      "gap_deg": 0.0,
+      "id": "r2",
+      "radius": 70.0,
+      "shape": "CIRCLE",
+      "thickness": 20.0,
+      "x": 343.0,
+      "y": 577.0
+    },
+    {
+      "closed": false,
+      "color_hex": "#22C55E",
+      "color_name": "green",
+      "gap_deg": 0.0,
+      "id": "r3",
+      "radius": 70.0,
+      "shape": "CIRCLE",
+      "thickness": 20.0,
+      "x": 215.0,
+      "y": 367.0
+    },
+    {
+      "closed": false,
+      "color_hex": "#FF3B30",
+      "color_name": "red",
+      "gap_deg": 0.0,
+      "id": "r4",
+      "radius": 70.0,
+      "shape": "CIRCLE",
+      "thickness": 20.0,
+      "x": 344.0,
+      "y": 319.0
+    },
+    {
+      "closed": false,
+      "color_hex": "#F97316",
+      "color_name": "orange",
+      "gap_deg": 0.0,
+      "id": "r5",
+      "radius": 70.0,
+      "shape": "CIRCLE",
+      "thickness": 20.0,
+      "x": 487.0,
+      "y": 279.0
+    },
+    {
+      "closed": false,
+      "color_hex": "#8B5CF6",
+      "color_name": "purple",
+      "gap_deg": 0.0,
+      "id": "r6",
+      "radius": 70.0,
+      "shape": "CIRCLE",
+      "thickness": 20.0,
+      "x": 631.0,
+      "y": 321.0
+    },
+    {
+      "closed": false,
+      "color_hex": "#3B82F6",
+      "color_name": "cyan",
+      "gap_deg": 0.0,
+      "id": "r7",
+      "radius": 70.0,
+      "shape": "CIRCLE",
+      "thickness": 20.0,
+      "x": 580.430847167969,
+      "y": 525.1630859375
+    },
+    {
+      "closed": false,
+      "color_hex": "#FF3B30",
+      "color_name": "red",
+      "gap_deg": 0.0,
+      "id": "r8",
+      "radius": 56.0,
+      "shape": "CIRCLE",
+      "thickness": 20.0,
+      "x": 222.0,
+      "y": 559.0
+    },
+    {
+      "closed": false,
+      "color_hex": "#22C55E",
+      "color_name": "green",
+      "gap_deg": 0.0,
+      "id": "r9",
+      "radius": 56.0,
+      "shape": "CIRCLE",
+      "thickness": 20.0,
+      "x": 488.0,
+      "y": 588.0
+    },
+    {
+      "closed": false,
+      "color_hex": "#3B82F6",
+      "color_name": "cyan",
+      "gap_deg": 0.0,
+      "id": "r10",
+      "radius": 70.0,
+      "shape": "CIRCLE",
+      "thickness": 20.0,
+      "x": 483.0,
+      "y": 638.0
+    },
+    {
+      "closed": false,
+      "color_hex": "#22C55E",
+      "color_name": "green",
+      "gap_deg": 0.0,
+      "id": "r11",
+      "radius": 56.0,
+      "shape": "CIRCLE",
+      "thickness": 20.0,
+      "x": 669.0,
+      "y": 566.0
+    },
+    {
+      "closed": false,
+      "color_hex": "#8B5CF6",
+      "color_name": "purple",
+      "gap_deg": 0.0,
+      "id": "r12",
+      "radius": 56.0,
+      "shape": "CIRCLE",
+      "thickness": 20.0,
+      "x": 491.0,
+      "y": 692.0
+    },
+    {
+      "closed": false,
+      "color_hex": "#06B6D4",
+      "color_name": "cyan",
+      "gap_deg": 0.0,
+      "id": "r1",
+      "radius": 110.0,
+      "shape": "CIRCLE",
+      "thickness": 22.0,
+      "x": 358.0,
+      "y": 461.0
+    }
+  ],
+  "source": "in-game-edit-overlay",
+  "title": "Level 100"
+}

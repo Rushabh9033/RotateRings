@@ -1,5 +1,6 @@
 extends Node2D
 class_name PuzzleController
+const ConnectorRuntime = preload("res://gameplay/connector_runtime.gd")
 const PieceGeometry = preload("res://gameplay/piece_geometry.gd")
 
 const RingPiece2DScript = preload("res://gameplay/ring_piece_2d.gd")
@@ -18,9 +19,9 @@ signal moves_updated(moves: int, par_moves: int)
 signal level_completed(moves: int, par_moves: int, used_hint: bool)
 signal piece_count_updated(remaining: int)
 
-var board = PuzzleStateScript.new()
 var active_pieces: Array[Node2D] = []
 var active_links: Array = []
+var _drag_start_rot: float = 0.0
 var current_level_def = null
 
 var move_count: int = 0
@@ -34,6 +35,10 @@ var release_animator: Node
 var hint_controller: Node
 var audio_service: Node
 var haptic_service: Node
+var save_service: Node = null
+
+# Track in-flight drop + flare tweens so restart can kill them safely.
+var _active_drop_tweens: Array = []
 
 class ConnectorLayer extends Node2D:
 	var draw_callback: Callable
@@ -74,7 +79,13 @@ func _ready() -> void:
 	drag_controller = DragRotationControllerScript.new()
 	add_child(drag_controller)
 	drag_controller.move_counted.connect(_on_move_counted)
-	drag_controller.piece_selected.connect(func(_p): if hint_controller and hint_controller.current_hand: hint_controller.current_hand.stop())
+	drag_controller.piece_selected.connect(func(_p):
+		_drag_start_rot = _p.rotation_degrees
+		if hint_controller and hint_controller.current_hand:
+			hint_controller.current_hand.stop()
+			if save_service:
+				save_service.mark_tutorial_seen()
+	)
 	drag_controller.piece_drag_ended.connect(_on_piece_drag_ended)
 	drag_controller.collision_occurred.connect(_on_collision_occurred)
 
@@ -94,9 +105,10 @@ func _process(_delta: float) -> void:
 		if is_instance_valid(stems_layer): stems_layer.queue_redraw()
 		if is_instance_valid(cuffs_layer): cuffs_layer.queue_redraw()
 
-func setup(audio: Node, haptic: Node) -> void:
+func setup(audio: Node, haptic: Node, save_svc: Node = null) -> void:
 	audio_service = audio
 	haptic_service = haptic
+	save_service = save_svc
 	drag_controller.setup(audio, haptic)
 	release_animator.setup(audio, haptic)
 	hint_controller.setup(audio)
@@ -104,6 +116,10 @@ func setup(audio: Node, haptic: Node) -> void:
 func load_level(def) -> void:
 	if def == null:
 		push_warning("PuzzleController.load_level received null and did not substitute Level 1.")
+		return
+	if def == current_level_def and not active_pieces.is_empty():
+		# Idempotent: already mid-load or loaded — guard against rapid double-fire
+		# (restart button double-tap, victory → next_level race).
 		return
 	current_level_def = def
 	move_count = 0
@@ -123,23 +139,33 @@ func load_level(def) -> void:
 	var piece_map := {}
 	var drop_delay: float = 0.0
 	
+	# Kill any tweens left over from a previous load so freed-piece warnings stop.
+	for t in _active_drop_tweens:
+		if is_instance_valid(t):
+			t.kill()
+	_active_drop_tweens.clear()
+
 	for p_def in def.pieces:
 		var p_node = RingPiece2DScript.new()
 		p_node.setup(p_def)
-		p_node.z_index = int(p_def.z_index)
+		var z = int(p_def.z_index) if p_def.get("z_index") != null else 0
+		p_node.z_index = z + 2
 		# Start above screen
 		p_node.position = p_def.position + Vector2(0, -1200)
 		p_node.modulate.a = 0.0
-		
+
 		var drop_tween = create_tween().set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 		drop_tween.tween_property(p_node, "position", p_def.position, 0.8).set_delay(drop_delay)
 		drop_tween.parallel().tween_property(p_node, "modulate:a", 1.0, 0.3).set_delay(drop_delay)
-		
+
 		# Small shadow flare on impact
 		var flare_tween = create_tween().set_trans(Tween.TRANS_SPRING)
 		flare_tween.tween_property(p_node, "shadow_offset_mult", 2.0, 0.1).set_delay(drop_delay + 0.7)
 		flare_tween.tween_property(p_node, "shadow_offset_mult", 1.0, 0.3)
-		
+
+		_active_drop_tweens.append(drop_tween)
+		_active_drop_tweens.append(flare_tween)
+
 		drop_delay += 0.08
 		
 		p_node.rotation_changed.connect(_on_piece_rotated)
@@ -185,6 +211,11 @@ func load_level(def) -> void:
 		is_active = true
 
 
+	var initial_releases = PuzzleRulesScript.initialize_puzzle_state(active_pieces, active_links)
+	for p in initial_releases:
+		active_pieces.erase(p)
+		p.queue_free()
+	
 	hint_controller.set_level(def, active_pieces, active_links)
 	_redraw_connectors()
 	piece_count_updated.emit(active_pieces.size())
@@ -207,10 +238,16 @@ func get_puzzle_bounds() -> Rect2:
 		
 	return Rect2(min_pos, max_pos - min_pos)
 
-func _input(event: InputEvent) -> void:
+func _unhandled_input(event: InputEvent) -> void:
+	# Use _unhandled_input so modal occluders (mouse_filter = STOP) actually absorb input first.
 	if not is_active: return
 	if drag_controller.handle_input(event, active_pieces, active_links):
 		get_viewport().set_input_as_handled()
+
+func pause_input() -> void:
+	# Cancel any in-flight drag so releasing the finger on the modal can't fire piece_drag_ended.
+	if drag_controller and drag_controller.has_method("cancel_drag"):
+		drag_controller.cancel_drag()
 
 func _on_piece_rotated(piece: Node2D, _angle: float) -> void:
 	_redraw_connectors()
@@ -252,9 +289,14 @@ func check_unlock_on_drag_ended(piece: Node2D) -> void:
 			piece.current_angle_deg = fposmod(piece.rotation_degrees, 360.0)
 			piece.queue_redraw()
 
+	var rot_diff = absf(wrapf(piece.rotation_degrees - _drag_start_rot, -180.0, 180.0))
 	var newly_clearing = PuzzleRulesScript.evaluate_clearance(piece, active_pieces, active_links)
+	var will_release = PuzzleRulesScript.is_piece_releasable(piece, active_pieces, active_links)
+	
+	if rot_diff > 2.0 or newly_clearing.size() > 0 or will_release:
+		_increment_move_count()
+
 	if newly_clearing.size() > 0:
-		# Opening already fits on the settled pose. Shatter now; the parent cuff stays extended.
 		for link in newly_clearing:
 			PuzzleRulesScript.complete_clearance(link)
 			var child_p = PuzzleRulesScript.get_piece_by_id(link.def.to_piece_id, active_pieces)
@@ -269,6 +311,7 @@ func check_unlock_on_drag_ended(piece: Node2D) -> void:
 		return
 
 	_release_if_legal(piece)
+
 
 func check_unlock_for_piece(piece: Node2D) -> void:
 	check_unlock_on_drag_ended(piece)
@@ -286,6 +329,19 @@ func _release_if_legal(piece: Node2D) -> void:
 func unlock_and_release_piece(piece: Node2D, is_direct: bool = false) -> void:
 	if not is_instance_valid(piece): return
 	if piece.state == RingPiece2DScript.State.RELEASING or piece.state == RingPiece2DScript.State.RELEASED:
+		return
+	# Defensive double-check: never release a piece with any connector still engaged.
+	# This is the single most important rule in the engine — keep this guard.
+	if not PuzzleRulesScript.is_piece_releasable(piece, active_pieces, active_links):
+		var unresolved := 0
+		for link in active_links:
+			if link == null: continue
+			if (link.def.from_piece_id if ("def" in link and link.def != null) else StringName(link.from_piece_id)) != piece.piece_id and \
+			   (link.def.to_piece_id if ("def" in link and link.def != null) else StringName(link.to_piece_id)) != piece.piece_id:
+				continue
+			if int(link.state) if "state" in link else (2 if ("is_detached" in link and link.is_detached) else 0) != 2:
+				unresolved += 1
+		push_warning("LOOPSHIFT: refused to release %s — %d unresolved connector(s); the user asked for strict 2-connector rule." % [str(piece.piece_id), unresolved])
 		return
 	piece.set_meta("release_reason", PuzzleRulesScript.release_reason(piece, active_pieces, active_links))
 	PuzzleRulesScript.on_piece_released(piece, active_links)
@@ -348,8 +404,9 @@ func resume_game() -> void:
 		is_active = true
 
 func request_hint() -> void:
-	used_hint = true
-	hint_controller.trigger_hint()
+	var shown = hint_controller.trigger_hint()
+	if shown != null:
+		used_hint = true
 
 func restart_level() -> void:
 	if current_level_def:
@@ -470,3 +527,8 @@ func _draw_rounded_rect(ci: CanvasItem, rect: Rect2, color: Color, radius: float
 	sb.corner_radius_bottom_right = int(r)
 	sb.anti_aliasing = true
 	sb.draw(ci.get_canvas_item(), rect)
+
+func _increment_move_count() -> void:
+	move_count += 1
+	var par: int = current_level_def.par_moves if current_level_def else 1
+	moves_updated.emit(move_count, par)

@@ -13,6 +13,7 @@ const PuzzleRulesScript = preload("res://gameplay/puzzle_rules.gd")
 var selected_piece: Node2D = null
 var held_piece: Node2D = null
 var is_dragging: bool = false
+var last_pointer_pos: Vector2 = Vector2.ZERO
 
 var last_pointer_angle_deg: float = 0.0
 var accumulated_drag_deg: float = 0.0
@@ -175,6 +176,41 @@ func start_drag(piece: Node2D, global_pt: Vector2, active_pieces: Array = [], ac
 	current_active_links = active_links
 	piece.state = RingPiece2DScript.State.SELECTED
 
+	var is_sliding = false
+	if "def" in piece and "motion_model" in piece.def:
+		is_sliding = (piece.def.motion_model == 1) # SLIDE_AXIS
+
+	if is_sliding:
+		# Calculate projection onto motion_axis
+		var axis = piece.def.motion_axis.normalized()
+		var global_axis = piece.get_parent().global_transform.basis_xform(axis).normalized()
+		var offset = global_pt - last_pointer_pos if "last_pointer_pos" in self else Vector2.ZERO
+		self.set_meta("last_pointer_pos", global_pt) # store
+		if offset.length_squared() < 0.001:
+			return
+			
+		var step_delta_dist = offset.dot(global_axis)
+		# Check physical connector collision
+		var clamp_res = PuzzleRulesScript.clamp_slide_step(
+			piece,
+			axis * step_delta_dist,
+			current_active_pieces,
+			current_active_links
+		)
+		
+		var allowed_delta: Vector2 = clamp_res["allowed_delta"]
+		if clamp_res["hit_stopper"]:
+			var pt = clamp_res["contact_point"]
+			var col = clamp_res["contact_color"]
+			_trigger_collision_feedback(pt, col)
+		
+		piece.state = RingPiece2DScript.State.ROTATING
+		piece.position += allowed_delta
+		# Trigger audio
+		piece.queue_redraw()
+		return
+	
+	# Fallback to rotation logic
 	var offset: Vector2 = global_pt - piece.global_position
 	last_pointer_angle_deg = rad_to_deg(offset.angle())
 	accumulated_drag_deg = 0.0
@@ -199,6 +235,41 @@ func update_drag(global_pt: Vector2) -> void:
 		cancel_drag()
 		return
 
+	var is_sliding = false
+	if "def" in piece and "motion_model" in piece.def:
+		is_sliding = (piece.def.motion_model == 1) # SLIDE_AXIS
+
+	if is_sliding:
+		# Calculate projection onto motion_axis
+		var axis = piece.def.motion_axis.normalized()
+		var global_axis = piece.get_parent().global_transform.basis_xform(axis).normalized()
+		var offset = global_pt - last_pointer_pos if "last_pointer_pos" in self else Vector2.ZERO
+		self.set_meta("last_pointer_pos", global_pt) # store
+		if offset.length_squared() < 0.001:
+			return
+			
+		var step_delta_dist = offset.dot(global_axis)
+		# Check physical connector collision
+		var clamp_res = PuzzleRulesScript.clamp_slide_step(
+			piece,
+			axis * step_delta_dist,
+			current_active_pieces,
+			current_active_links
+		)
+		
+		var allowed_delta: Vector2 = clamp_res["allowed_delta"]
+		if clamp_res["hit_stopper"]:
+			var pt = clamp_res["contact_point"]
+			var col = clamp_res["contact_color"]
+			_trigger_collision_feedback(pt, col)
+		
+		piece.state = RingPiece2DScript.State.ROTATING
+		piece.position += allowed_delta
+		# Trigger audio
+		piece.queue_redraw()
+		return
+	
+	# Fallback to rotation logic
 	var offset: Vector2 = global_pt - piece.global_position
 	if offset.length_squared() < 9.0:
 		return
@@ -295,8 +366,7 @@ func end_drag() -> void:
 	var piece := selected_piece
 	selected_piece = null
 
-	if accumulated_drag_deg >= 5.0:
-		move_counted.emit(piece)
+	
 
 	# Settle the raw gesture. Snap and clearance happen in the rule engine on drag end,
 	# and only when the cuff already fits. A fast swipe that merely passes a gap does not detach.

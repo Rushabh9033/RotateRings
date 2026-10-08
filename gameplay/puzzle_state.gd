@@ -1,5 +1,5 @@
 extends RefCounted
-class_name PuzzleState
+class_name PuzzleStateScript
 
 ## Pure logical puzzle state model (independent of SceneTree / Node2D)
 ## Contains zero visual objects (no Node, Node2D, Tween, SceneTree, RingPiece2D).
@@ -20,8 +20,8 @@ func _init(p_pieces: Dictionary = {}, p_connectors: Dictionary = {}, p_locks: Di
 	released_piece_count = 0
 	status = &"IN_PROGRESS"
 
-func clone() -> PuzzleState:
-	var c := PuzzleState.new()
+func clone():
+	var c = get_script().new()
 	c.move_count = move_count
 	c.released_piece_count = released_piece_count
 	c.status = status
@@ -62,7 +62,7 @@ func get_hash() -> String:
 		
 	return ",".join(parts)
 
-static func is_equal(a: PuzzleState, b: PuzzleState) -> bool:
+static func is_equal(a: PuzzleStateScript, b: PuzzleStateScript) -> bool:
 	if a == null or b == null:
 		return a == b
 	return a.get_hash() == b.get_hash()

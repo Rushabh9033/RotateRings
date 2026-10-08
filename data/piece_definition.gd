@@ -3,13 +3,39 @@ class_name PieceDefinition
 
 
 enum ShapeType {
-	CIRCLE,
-	ROUNDED_SQUARE,
-	ROUNDED_TRIANGLE,
-	OVAL
+	CIRCLE = 0,
+	ROUNDED_SQUARE = 1,
+	ROUNDED_TRIANGLE = 2,
+	OVAL = 3,
+	STRAIGHT = 4,
+	L_SHAPE = 5
 }
 
 @export var shape_type: ShapeType = ShapeType.CIRCLE
+
+enum MotionModel {
+	ROTATE = 0,
+	SLIDE_AXIS = 1,
+	SLIDE_PATH = 2,
+	FIXED = 3
+}
+
+@export var motion_model: MotionModel = MotionModel.ROTATE
+@export var motion_axis: Vector2 = Vector2.RIGHT
+@export var slide_min: float = -1000.0
+@export var slide_max: float = 1000.0
+
+
+enum PieceRole {
+	NORMAL,
+	ROOT_ANCHOR,
+	HUB,
+	EXIT,
+	SPECIAL
+}
+
+@export var role: PieceRole = PieceRole.NORMAL
+
 enum PieceType {
 	CLOSED_CIRCLE,
 	OPEN_CIRCLE,

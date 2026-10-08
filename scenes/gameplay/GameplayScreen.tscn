@@ -1,9 +1,10 @@
-[gd_scene load_steps=9 format=3 uid="uid://gameplay_screen_scene"]
+[gd_scene load_steps=10 format=3 uid="uid://gameplay_screen_scene"]
 
 [ext_resource type="Script" path="res://scenes/gameplay/GameplayScreen.gd" id="1_gp_script"]
 [ext_resource type="Script" path="res://gameplay/puzzle_controller.gd" id="2_pc_script"]
 [ext_resource type="PackedScene" uid="uid://pause_modal_scene" path="res://scenes/components/PauseModal.tscn" id="3_pause_scene"]
 [ext_resource type="PackedScene" uid="uid://victory_modal_loopshift_scene" path="res://scenes/components/VictoryModal.tscn" id="4_vic_scene"]
+[ext_resource type="Script" path="res://gameplay/piece_edit_overlay.gd" id="5_peo_script"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_score_pill"]
 bg_color = Color(1.0, 0.96, 0.90, 1)
@@ -74,6 +75,16 @@ mouse_filter = 2
 
 [node name="PuzzleController" type="Node2D" parent="PuzzleArea"]
 script = ExtResource("2_pc_script")
+
+[node name="PieceEditOverlay" type="Control" parent="PuzzleArea"]
+script = ExtResource("5_peo_script")
+mouse_filter = 0
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="SafeArea" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -146,6 +157,13 @@ layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 4
 text = "⚙"
+
+[node name="EditBtn" type="Button" parent="SafeArea/TopHUD"]
+custom_minimum_size = Vector2(72, 52)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+text = "Edit"
 
 [node name="BottomHUD" type="HBoxContainer" parent="SafeArea"]
 layout_mode = 2

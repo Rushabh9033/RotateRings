@@ -5,6 +5,8 @@ const PuzzleRulesScript = preload("res://gameplay/puzzle_rules.gd")
 const PieceGeometry = preload("res://gameplay/piece_geometry.gd")
 const PuzzleStateScript = preload("res://gameplay/puzzle_state.gd")
 const PuzzleActionScript = preload("res://gameplay/puzzle_action.gd")
+const RingPiece2DScript = preload("res://gameplay/ring_piece_2d.gd")
+const PieceDefinitionScript = preload("res://data/piece_definition.gd")
 
 static func _to_pure_state(input_pieces, input_links = null) -> PuzzleStateScript:
 	if input_pieces is PuzzleStateScript:
@@ -130,7 +132,7 @@ static func solve_bfs(input_pieces, input_links = null) -> Dictionary:
 			"visited_states": 1
 		}
 		
-	var start_hash := initial_state.get_hash()
+	var start_hash: String = initial_state.get_hash()
 	var queue: Array = [{
 		"state": initial_state,
 		"path": []
@@ -224,9 +226,87 @@ static func solve_bfs(input_pieces, input_links = null) -> Dictionary:
 							"path": next_path
 						})
 
+	# Either the BFS exhausted max_steps or the queue drained without finding a solution.
+	# Warn so hand-design can investigate — the level may have an illegal move or be unsolvable in
+	# the approximation the solver searches.
+	push_warning("BFS: level not solved after %d steps (visited=%d) — check for unreachable parity"
+			% [max_steps, visited.size()])
 	return {
 		"solved": false,
 		"moves": 0,
 		"path": [],
 		"visited_states": visited.size()
 	}
+
+# Hand-design helper: returns the list of legal rotation moves for the current state.
+# Each entry: { piece_id, from_rot, to_rot, delta_deg }. Used by tools/test_get_moves.gd etc.
+static func _get_moves(pieces: Array, links: Array = []) -> Array:
+	var initial: PuzzleStateScript = _to_pure_state(pieces, links)
+	if initial == null:
+		return []
+	var moves: Array = []
+	for pid in initial.pieces.keys():
+		var p: Dictionary = initial.pieces[pid]
+		if int(p.get("state", 0)) == 6: # RELEASED
+			continue
+		if not PuzzleRulesScript.is_pure_piece_rotatable(initial, pid):
+			continue
+		var start_rot: float = float(p.get("rotation_deg", 0.0))
+		var targets: Array = []
+		# Incoming connectors: align gaps with parent cuffs.
+		for cid in initial.connectors.keys():
+			var conn: Dictionary = initial.connectors[cid]
+			if StringName(conn.get("to_piece_id", &"")) == pid and int(conn.get("state", 0)) == 0:
+				var parent_id: StringName = StringName(conn.get("from_piece_id", &""))
+				var parent: Dictionary = initial.pieces.get(parent_id, {})
+				if not parent.is_empty() and int(parent.get("state", 0)) != 6:
+					for gap in p.get("gaps", []):
+						targets.append(_calc_incoming_target_rot(p, parent, conn, gap))
+		# Outgoing connectors: align gaps with outgoing child cuffs.
+		for cid in initial.connectors.keys():
+			var conn: Dictionary = initial.connectors[cid]
+			if StringName(conn.get("from_piece_id", &"")) == pid and int(conn.get("state", 0)) == 0:
+				var child_id: StringName = StringName(conn.get("to_piece_id", &""))
+				if not initial.pieces.has(child_id):
+					continue
+				if int(initial.pieces[child_id].get("state", 0)) == 6:
+					continue
+				var collar_deg: float = float(conn.get("collar_angle_deg", 0.0))
+				var world_rad: float = deg_to_rad(start_rot + collar_deg)
+				for gap in p.get("gaps", []):
+					targets.append(fposmod(rad_to_deg(world_rad) - float(gap.get("center_angle_deg", 0.0)), 360.0))
+		# Fallback snap angles.
+		if targets.is_empty():
+			for snap_deg in [0.0, 90.0, 180.0, 270.0]:
+				targets.append(snap_deg)
+		var seen: Dictionary = {}
+		for t in targets:
+			var cleaned: float = fposmod(float(t), 360.0)
+			if seen.has(cleaned):
+				continue
+			seen[cleaned] = true
+			var delta := wrapf(cleaned - start_rot, -180.0, 180.0)
+			if absf(delta) < 0.1:
+				continue
+			moves.append({
+				"piece_id": pid,
+				"from_rot": start_rot,
+				"to_rot": cleaned,
+				"delta_deg": delta,
+			})
+	return moves
+
+# Hand-design helper: returns a list of RingPiece2D nodes — converts PieceDefinition
+# entries to runtime pieces on demand. Used by debug_level13.gd.
+static func _normalize_pieces(pieces: Array) -> Array:
+	var out: Array = []
+	for p in pieces:
+		if p is RingPiece2DScript:
+			out.append(p)
+		elif p is PieceDefinitionScript:
+			var node: RingPiece2DScript = RingPiece2DScript.new()
+			node.setup(p)
+			out.append(node)
+		else:
+			out.append(p)
+	return out

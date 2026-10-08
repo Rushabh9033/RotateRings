@@ -6,8 +6,10 @@ const UiTheme = preload("res://app/ui_theme.gd")
 
 signal level_selected(level_id: int)
 signal back_pressed
+signal editor_pressed
 
 @onready var back_btn: Button = $SafeArea/VBox/Header/TopRow/BackBtn
+@onready var edit_btn: Button = $SafeArea/VBox/Header/TopRow/EditBtn
 @onready var chapter_title: Label = $SafeArea/VBox/Header/ChapterTitle
 @onready var progress_lbl: Label = $SafeArea/VBox/Header/ProgressLbl
 @onready var map_container: Control = $SafeArea/VBox/Scroll/MapContainer
@@ -23,6 +25,7 @@ func setup(save_svc: Node, audio_svc: Node) -> void:
 func _ready() -> void:
 	UiTheme.mount_backdrop(self)
 	UiTheme.paint_button(back_btn, "secondary", UiTheme.FONT_CAPTION)
+	UiTheme.paint_button(edit_btn, "secondary", UiTheme.FONT_CAPTION)
 	UiTheme.paint_label(chapter_title, UiTheme.FONT_TITLE)
 	UiTheme.paint_label(progress_lbl, UiTheme.FONT_CAPTION, true)
 	_paint_key("SafeArea/VBox/Header/Legend/OpenKey", UiTheme.ACCENT)
@@ -38,13 +41,18 @@ func _ready() -> void:
 			audio_service.play_ui_tap()
 		back_pressed.emit()
 	)
+	edit_btn.pressed.connect(func():
+		if audio_service and audio_service.has_method("play_ui_tap"):
+			audio_service.play_ui_tap()
+		editor_pressed.emit()
+	)
 
 func build_grid() -> void:
 	if not is_instance_valid(map_container): return
 	
 	for child in map_container.get_children():
 		map_container.remove_child(child)
-		child.free()
+		child.queue_free()
 		
 	var journey_map = map_container
 	

@@ -6,10 +6,12 @@ const UiTheme = preload("res://app/ui_theme.gd")
 signal continue_pressed(level_id: int)
 signal levels_pressed
 signal settings_pressed
+signal editor_pressed
 
 @onready var continue_btn: Button = $SafeArea/VBox/MenuBtns/ContinueBtn
 @onready var levels_btn: Button = $SafeArea/VBox/MenuBtns/LevelsBtn
 @onready var settings_btn: Button = $SafeArea/VBox/MenuBtns/SettingsBtn
+@onready var editor_btn: Button = $SafeArea/VBox/MenuBtns/EditorBtn
 @onready var continue_subtitle: Label = $SafeArea/VBox/MenuBtns/ContinueSubtitle
 
 var save_service: Node = null
@@ -28,6 +30,12 @@ func _ready() -> void:
 	$SafeArea/VBox.move_child(hero, 0)
 	UiTheme.paint_button(continue_btn, "primary", UiTheme.FONT_HEAD)
 	UiTheme.paint_button(levels_btn, "secondary", UiTheme.FONT_BODY)
+	UiTheme.paint_button(editor_btn, "secondary", UiTheme.FONT_BODY)
+	editor_btn.pressed.connect(func():
+		if audio_service and audio_service.has_method("play_ui_tap"):
+			audio_service.play_ui_tap()
+		editor_pressed.emit()
+	)
 	UiTheme.paint_button(settings_btn, "secondary", UiTheme.FONT_BODY)
 	UiTheme.paint_label($SafeArea/VBox/Header/Logo, UiTheme.FONT_DISPLAY)
 	UiTheme.paint_label($SafeArea/VBox/Header/Tagline, 18, true)

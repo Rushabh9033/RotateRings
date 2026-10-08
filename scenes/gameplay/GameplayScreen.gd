@@ -8,9 +8,12 @@ const UiTheme = preload("res://app/ui_theme.gd")
 
 signal back_to_levels_requested
 signal back_to_home_requested
+signal edit_level_requested(level_id: int)
 
 @onready var puzzle_controller = $PuzzleArea/PuzzleController
+@onready var edit_overlay = $PuzzleArea/PieceEditOverlay
 @onready var pause_btn: Button = $SafeArea/TopHUD/PauseBtn
+@onready var edit_btn: Button = $SafeArea/TopHUD/EditBtn
 @onready var back_btn: Button = $SafeArea/TopHUD/BackBtn
 @onready var level_prefix: Label = $SafeArea/TopHUD/LevelBox/LevelPrefix
 @onready var level_num_lbl: Label = $SafeArea/TopHUD/LevelBox/LevelNum
@@ -34,9 +37,12 @@ func setup(save_svc: Node, audio_svc: Node, haptic_svc: Node) -> void:
 	save_service = save_svc
 	audio_service = audio_svc
 	haptic_service = haptic_svc
-	
-	puzzle_controller.setup(audio_service, haptic_service)
+
+	puzzle_controller.setup(audio_service, haptic_service, save_service)
 	pause_modal.setup(save_service)
+	# Edit overlay is fully inert until toggle(true) is called. Wire the puzzle
+	# controller reference so the overlay can read/write piece data on drag-end.
+	edit_overlay.set_puzzle(puzzle_controller)
 
 func _ready() -> void:
 	pause_modal.z_index = 100
@@ -45,6 +51,7 @@ func _ready() -> void:
 	victory_modal.z_as_relative = false
 
 	pause_btn.pressed.connect(_on_pause_pressed)
+	edit_btn.pressed.connect(_on_edit_pressed)
 	back_btn.pressed.connect(_on_back_pressed)
 	_apply_chrome()
 	if rocket_btn: rocket_btn.pressed.connect(_on_hint_pressed)
@@ -108,10 +115,11 @@ func _load_definition(lvl_id: int, def) -> bool:
 	# Give it a frame to ensure all nodes are placed, then frame the puzzle
 	get_tree().process_frame.connect(_frame_puzzle, CONNECT_ONE_SHOT)
 	
-	# Auto-trigger tutorial on Level 1 (wait for Toy Drop to finish)
-	if lvl_id == 1:
+	# Auto-trigger tutorial on Level 1
+	if lvl_id == 1 and save_service and not save_service.has_seen_tutorial():
 		get_tree().create_timer(2.0).timeout.connect(func():
-			puzzle_controller.request_hint()
+			if not save_service.has_seen_tutorial():
+				puzzle_controller.hint_controller.trigger_hint()
 		)
 	return true
 
@@ -181,6 +189,17 @@ func _apply_chrome() -> void:
 	UiTheme.paint_label(score_lbl, UiTheme.FONT_CAPTION)
 	if rocket_btn:
 		_mount_tool(rocket_btn, null, "Hint", false)
+		# Hint count badge — created in code so no .tscn edit is required.
+		if not rocket_btn.has_node("HintBadge"):
+			var b := Label.new()
+			b.name = "HintBadge"
+			b.text = "3"
+			UiTheme.paint_label(b, UiTheme.FONT_CAPTION)
+			b.position = Vector2(rocket_btn.size.x - 14.0, -6.0)
+			b.pivot_offset = Vector2(10, 10)
+			b.modulate = Color(1, 1, 1, 1)
+			rocket_btn.add_child(b)
+		_refresh_hint_badge()
 	if hammer_btn:
 		_mount_tool(hammer_btn, preload("res://art/tools/hammer_tool.png"), "Hammer", true)
 	UiTheme.apply_font(self)
@@ -200,9 +219,9 @@ func _on_piece_count_updated(remaining: int) -> void:
 				mascot.set_state(MascotCompanionScript.State.WATCHING)
 		)
 
-func _on_moves_updated(moves: int, _par_moves: int) -> void:
-	score_lbl.text = str(moves)
-	
+func _on_moves_updated(moves: int, par_moves: int) -> void:
+	score_lbl.text = "%d / %d" % [moves, par_moves]
+
 	var pill = get_node_or_null("SafeArea/TopHUD/CenterHUD/ScorePill")
 	if pill and moves > 0:
 		var ptween = create_tween().set_trans(Tween.TRANS_SPRING).set_ease(Tween.EASE_OUT)
@@ -218,6 +237,9 @@ func _on_level_completed(moves: int, par_moves: int, used_hint: bool) -> void:
 		audio_service.play_level_clear(result.get("is_perfect", false))
 	if haptic_service:
 		haptic_service.trigger_level_complete()
+
+	# Refill happens inside record_level_completion — refresh the badge so the +1 is visible.
+	_refresh_hint_badge()
 		
 	# Trigger Mascot Portal Completion Sequence!
 	var viewport_center = get_viewport().get_visible_rect().size * 0.5
@@ -266,8 +288,22 @@ func _on_back_pressed() -> void:
 
 func _on_pause_pressed() -> void:
 	if audio_service: audio_service.play_ui_tap()
+	if puzzle_controller and puzzle_controller.has_method("pause_input"):
+		puzzle_controller.pause_input()
 	puzzle_controller.is_active = false
 	pause_modal.show_modal()
+
+func _on_edit_pressed() -> void:
+	if audio_service: audio_service.play_ui_tap()
+	# Toggle the in-built edit overlay. Puzzle keeps rendering; the overlay
+	# enables drag-to-move on each piece and saves on drag-end.
+	var new_state: bool = not edit_overlay.is_active()
+	edit_overlay.toggle(new_state)
+	edit_btn.text = "Edit ON" if new_state else "Edit"
+	# While edit is on, pause the puzzle input so gestures don't double-fire.
+	if puzzle_controller and puzzle_controller.has_method("pause_input"):
+		puzzle_controller.pause_input()
+	puzzle_controller.is_active = not new_state
 
 func _mount_tool(btn: Button, texture: Texture2D, caption: String, locked: bool) -> void:
 	btn.text = ""
@@ -345,7 +381,26 @@ func _mount_lock(btn: Button) -> void:
 
 
 func _on_hint_pressed() -> void:
+	if save_service and not save_service.consume_hint():
+		# Out of hints — flash the badge and bail.
+		_flash_hint_badge()
+		return
 	puzzle_controller.request_hint()
+	_refresh_hint_badge()
+
+func _refresh_hint_badge() -> void:
+	var badge = get_node_or_null("SafeArea/BottomHUD/RocketCard/RocketBtn/HintBadge")
+	if badge and badge is Label:
+		var remaining: int = save_service.get_hints_remaining() if save_service else 3
+		badge.text = str(remaining)
+		badge.visible = remaining > 0
+
+func _flash_hint_badge() -> void:
+	var badge = get_node_or_null("SafeArea/BottomHUD/RocketCard/RocketBtn/HintBadge")
+	if badge:
+		var t := create_tween().set_loops(2)
+		t.tween_property(badge, "modulate:a", 0.3, 0.1)
+		t.tween_property(badge, "modulate:a", 1.0, 0.1)
 
 func _fire_confetti(pos: Vector2) -> void:
 	var chunk_tex := _chunk_texture()

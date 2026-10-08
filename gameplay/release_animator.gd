@@ -3,6 +3,7 @@ class_name ReleaseAnimator
 
 const RingShardBurstScript = preload("res://gameplay/ring_shard_burst.gd")
 const FloatingTextScript = preload("res://gameplay/floating_text.gd")
+const RingPiece2DScript = preload("res://gameplay/ring_piece_2d.gd")
 
 var audio_service: Node = null
 var haptic_service: Node = null
@@ -79,7 +80,7 @@ func animate_release(
 	on_completed: Callable,
 	is_direct: bool = false
 ) -> void:
-	piece.state = 5 # RELEASING
+	piece.state = RingPiece2DScript.State.RELEASING
 	piece.is_interactive = false
 	combo_count += 1
 	
@@ -102,7 +103,7 @@ func animate_release(
 	_register_release_for_praise(pos, is_direct)
 	
 	# We immediately consider the piece released and free the old Kinematic visual
-	piece.state = 6 # RELEASED
+	piece.state = RingPiece2DScript.State.RELEASED
 	if on_completed.is_valid():
 		on_completed.call(piece)
 	piece.queue_free()

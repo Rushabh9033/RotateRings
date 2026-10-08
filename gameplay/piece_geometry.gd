@@ -15,6 +15,13 @@ static func get_boundary_distance(shape: int, radius: float, local_angle_rad: fl
 			if max_cs < 0.001:
 				return radius
 			return radius / max_cs
+		ShapeType.STRAIGHT:
+			var c := absf(cos(local_angle_rad))
+			var s := absf(sin(local_angle_rad))
+			var limit_x = radius / maxf(0.001, c)
+			var limit_y = 1.0 / maxf(0.001, s)
+			return minf(limit_x, limit_y)
+
 		ShapeType.ROUNDED_TRIANGLE:
 			var a = local_angle_rad
 			var c1 = cos(a)
@@ -155,13 +162,50 @@ static func point_hits_tube(shape: int, radius: float, thickness: float, rotatio
 		return true
 	if gaps.is_empty():
 		return false
-	var arcs: Array = RingGeometry.get_solid_arcs(gaps)
+	var arcs: Array = get_solid_arcs(gaps)
 	for arc in arcs:
 		if _point_in_cap(shape, radius, half_thick, rotation_rad, origin, point, float(arc.start), margin):
 			return true
 		if _point_in_cap(shape, radius, half_thick, rotation_rad, origin, point, float(arc.end), margin):
 			return true
 	return false
+
+
+static func get_solid_arcs(gaps: Array) -> Array:
+	if gaps.is_empty():
+		return [{ "start": 0.0, "end": TAU }]
+	
+	var normalized_gaps: Array = []
+	for gap in gaps:
+		if gap == null: continue
+		var center_val: float = float(gap.get("center_angle_deg", 0.0)) if gap is Dictionary else float(gap.center_angle_deg)
+		var width_val: float = float(gap.get("width_deg", 0.0)) if gap is Dictionary else float(gap.width_deg)
+		if width_val <= 0.0: continue
+		var c = deg_to_rad(fposmod(center_val, 360.0))
+		var hw = deg_to_rad(width_val * 0.5)
+		normalized_gaps.append({ "center": c, "hw": hw })
+	
+	if normalized_gaps.is_empty():
+		return [{ "start": 0.0, "end": TAU }]
+	
+	normalized_gaps.sort_custom(func(a, b): return a.center < b.center)
+	
+	var solid_arcs: Array = []
+	for i in range(normalized_gaps.size()):
+		var current_gap = normalized_gaps[i]
+		var next_gap = normalized_gaps[(i + 1) % normalized_gaps.size()]
+		
+		var start_arc = fposmod(current_gap.center + current_gap.hw, TAU)
+		var end_arc = fposmod(next_gap.center - next_gap.hw, TAU)
+		
+		if i == normalized_gaps.size() - 1 and start_arc > end_arc:
+			end_arc += TAU
+		elif start_arc > end_arc:
+			end_arc += TAU
+			
+		if end_arc > start_arc:
+			solid_arcs.append({ "start": start_arc, "end": end_arc })
+	return solid_arcs
 
 static func _local_in_geometric_gap(local_rad: float, gaps: Array) -> bool:
 	for gap in gaps:

@@ -2,7 +2,7 @@ extends RefCounted
 class_name PuzzleRuleEngine
 
 const PieceGeometry = preload("res://gameplay/piece_geometry.gd")
-const RingGeometry = preload("res://gameplay/ring_geometry.gd")
+
 const ConnectorRuntimeScript = preload("res://gameplay/connector_runtime.gd")
 
 enum PieceRole {
@@ -30,7 +30,7 @@ static func infer_role(gaps: Array) -> int:
 static func piece_role(piece) -> int:
 	if piece != null and "role" in piece:
 		return int(piece.role)
-	if piece != null and piece.get("gaps") != null and piece.gaps.is_empty():
+	if piece != null and piece.get("gaps") != null and piece.gaps.is_empty() and false:
 		return PieceRole.ROOT_ANCHOR
 	return PieceRole.NORMAL
 
@@ -64,6 +64,8 @@ static func bind_connector(link_def, from_pos: Vector2, from_rot_deg: float, to_
 
 static func is_piece_rotatable(piece, _all_pieces: Array, links: Array) -> bool:
 	if _is_gone(piece):
+		return false
+	if piece_role(piece) == PieceRole.ROOT_ANCHOR:
 		return false
 	var p_id: StringName = piece.piece_id
 	for link in links:
@@ -136,7 +138,8 @@ static func _accepting_gap(child, rotation_deg: float, link, pieces: Array):
 	var margin := ConnectorRuntimeScript.SAFETY_MARGIN
 	for gap in child.gaps:
 		var opening := PieceGeometry.usable_opening_length(shape, child.radius, float(gap.width_deg), thick)
-		if not PieceGeometry.opening_accepts_cuff(opening, cuff_w, margin):
+		# Add the safety margin to the opening check so the connector sleeve always clears.
+		if not PieceGeometry.opening_accepts_cuff(opening + margin, cuff_w, margin):
 			continue
 		var interval := PieceGeometry.usable_gap_interval_s(shape, child.radius, thick, float(gap.center_angle_deg), float(gap.width_deg))
 		if PieceGeometry.cuff_span_inside(interval.x, interval.y, contact_s, cuff_w, perim, margin):
@@ -185,34 +188,23 @@ static func complete_clearance(link) -> void:
 		var pull: float = ConnectorRuntimeScript.retraction_distance(16.0)
 		link.current_stem_dist = maxf(0.0, link.current_stem_dist - pull)
 
-static func retraction_distance(tube_thickness: float) -> float:
-	return ConnectorRuntimeScript.retraction_distance(tube_thickness)
-
 static func is_piece_releasable(piece, all_pieces: Array, links: Array) -> bool:
+	# Strict two-connector rule: a piece can release ONLY when EVERY link that touches
+	# it (incoming or outgoing) has reached DETACHED. Single-pass so the rule is
+	# impossible to skip by partial state changes.
 	if _is_gone(piece):
 		return false
 	var p_id: StringName = piece.piece_id if ("piece_id" in piece and piece.piece_id != null) else (piece.id if "id" in piece else &"")
-	
-	# 1. Outgoing child constraints: piece cannot release if any of its children are still attached
 	for link in links:
+		if link == null:
+			continue
 		var from_id: StringName = link.def.from_piece_id if ("def" in link and link.def != null) else StringName(link.from_piece_id)
 		var to_id: StringName = link.def.to_piece_id if ("def" in link and link.def != null) else StringName(link.to_piece_id)
-		var l_state: int = int(link.state) if "state" in link else (2 if ("is_detached" in link and link.is_detached) else 0)
-		
-		if from_id == p_id and l_state != ConnectorRuntimeScript.State.DETACHED:
-			var child = get_piece_by_id(to_id, all_pieces)
-			if not _is_gone(child):
-				return false
-
-	# 2. Incoming parent constraints: open rings require all incoming links to be DETACHED
-	if piece.gaps != null and not piece.gaps.is_empty():
-		for link in links:
-			var to_id: StringName = link.def.to_piece_id if ("def" in link and link.def != null) else StringName(link.to_piece_id)
-			var l_state: int = int(link.state) if "state" in link else (2 if ("is_detached" in link and link.is_detached) else 0)
-			
-			if to_id == p_id and l_state != ConnectorRuntimeScript.State.DETACHED:
-				return false
-
+		if from_id != p_id and to_id != p_id:
+			continue
+		var l_state: int = int(link.state) if "state" in link else (ConnectorRuntimeScript.State.DETACHED if ("is_detached" in link and link.is_detached) else ConnectorRuntimeScript.State.ENGAGED)
+		if l_state != ConnectorRuntimeScript.State.DETACHED:
+			return false
 	return true
 
 static func release_reason(piece, _all_pieces: Array, _links: Array) -> int:
@@ -235,6 +227,9 @@ static func on_piece_released(piece, links: Array) -> void:
 		# a freed ring still cannot turn that cuff into a neighbor.
 		if link.def.to_piece_id == p_id and float(link.def.stem_dist) > 300.0:
 			link.current_stem_dist = 0.0
+
+static func initialize_puzzle_state(pieces: Array, links: Array) -> Array:
+	return resolve_releases(pieces, links)
 
 static func resolve_releases(pieces: Array, links: Array) -> Array:
 	var released: Array = []
@@ -300,6 +295,49 @@ static func snap_assist_delta(piece, pieces: Array, links: Array) -> float:
 		return 0.0
 	return best
 
+static func clamp_slide_step(piece: Node2D, step_delta: Vector2, all_pieces: Array, links: Array) -> Dictionary:
+	if not is_instance_valid(piece):
+		return { "allowed_delta": Vector2.ZERO, "hit_stopper": false, "contact_point": Vector2.ZERO, "contact_color": Color.WHITE }
+	
+	var saved_pos := piece.position
+	var target_dist := step_delta.length()
+	if target_dist < 0.001:
+		return { "allowed_delta": Vector2.ZERO, "hit_stopper": false, "contact_point": Vector2.ZERO, "contact_color": Color.WHITE }
+		
+	var sign_vec := step_delta.normalized()
+	var safe := 0.0
+	var hit := false
+	var contact := Vector2.ZERO
+	var contact_color := Color.WHITE
+	var stride := 3.0
+	
+	while safe < target_dist - 0.001:
+		var nxt := minf(safe + stride, target_dist)
+		piece.position = saved_pos + sign_vec * nxt
+		var block: Dictionary = _overlap_contact(piece, all_pieces, links)
+		if bool(block.blocking):
+			var lo := safe
+			var hi := nxt
+			var hit_info := block
+			for _i in 8:
+				var mid := (lo + hi) * 0.5
+				piece.position = saved_pos + sign_vec * mid
+				var mid_block = _overlap_contact(piece, all_pieces, links)
+				if bool(mid_block.blocking):
+					hi = mid
+					hit_info = mid_block
+				else:
+					lo = mid
+			safe = lo
+			hit = true
+			contact = hit_info.point
+			contact_color = hit_info.color
+			break
+		safe = nxt
+	
+	piece.position = saved_pos
+	return { "allowed_delta": sign_vec * safe, "hit_stopper": hit, "contact_point": contact, "contact_color": contact_color }
+
 static func clamp_rotation_step(piece: Node2D, step_delta_deg: float, all_pieces: Array, links: Array) -> Dictionary:
 	if not is_instance_valid(piece):
 		return { "allowed_delta": 0.0, "hit_stopper": false, "contact_point": Vector2.ZERO, "contact_color": Color.WHITE }
@@ -356,7 +394,7 @@ static func _is_linked_pair(a, b, links: Array) -> bool:
 	var a_id: StringName = a.piece_id if ("piece_id" in a and a.piece_id != null) else (a.id if "id" in a else &"")
 	var b_id: StringName = b.piece_id if ("piece_id" in b and b.piece_id != null) else (b.id if "id" in b else &"")
 	for link in links:
-		if int(link.state if "state" in link else 0) == 2: # DETACHED
+		if int(link.state if "state" in link else 0) == ConnectorRuntimeScript.State.DETACHED:
 			continue
 		var from_id: StringName = link.def.from_piece_id if ("def" in link and link.def != null) else StringName(link.from_piece_id)
 		var to_id: StringName = link.def.to_piece_id if ("def" in link and link.def != null) else StringName(link.to_piece_id)
@@ -541,7 +579,7 @@ static func _ring_samples_hit_obb(ring, pose: Dictionary, margin: float) -> bool
 static func _point_on_tube(ring, point: Vector2, margin: float) -> bool:
 	return PieceGeometry.point_hits_tube(piece_shape(ring), ring.radius, piece_thickness(ring), ring.rotation, ring.gaps if ring.gaps != null else [], ring.position, point, margin)
 
-static func apply_settled_rotation(piece, target_rotation_deg: float, pieces: Array, links: Array) -> Dictionary:
+static func apply_settled_rotation(piece, target_rotation_deg: float, pieces: Array, links: Array, direction: int = 0) -> Dictionary:
 	var result := {
 		"applied": false,
 		"cleared": [],
@@ -551,13 +589,15 @@ static func apply_settled_rotation(piece, target_rotation_deg: float, pieces: Ar
 	if _is_gone(piece):
 		return result
 	var delta := wrapf(target_rotation_deg - piece.rotation_degrees, -180.0, 180.0)
+	if direction != 0:
+		if direction > 0 and delta < 0:
+			delta += 360.0
+		elif direction < 0 and delta > 0:
+			delta -= 360.0
 	var clamped: Dictionary = clamp_rotation_step(piece, delta, pieces, links)
 	var allowed: float = float(clamped.get("allowed_delta", 0.0))
 	if bool(clamped.get("hit_stopper", false)) and absf(allowed - delta) > 0.5:
-		var near_align := is_piece_near_alignment(piece, pieces, links, target_rotation_deg)
-		if not near_align:
-			return result
-		allowed = delta
+		return result
 			
 	piece.rotation_degrees = fposmod(piece.rotation_degrees + allowed, 360.0)
 	if "current_angle_deg" in piece:
@@ -578,7 +618,7 @@ static func is_piece_near_alignment(piece, all_pieces: Array, links: Array, over
 	for link in links:
 		var from_id: StringName = link.def.from_piece_id if ("def" in link and link.def != null) else StringName(link.from_piece_id)
 		var to_id: StringName = link.def.to_piece_id if ("def" in link and link.def != null) else StringName(link.to_piece_id)
-		var l_state: int = int(link.state) if "state" in link else (2 if ("is_detached" in link and link.is_detached) else 0)
+		var l_state: int = int(link.state) if "state" in link else (ConnectorRuntimeScript.State.DETACHED if ("is_detached" in link and link.is_detached) else ConnectorRuntimeScript.State.ENGAGED)
 		if to_id != p_id or l_state != ConnectorRuntimeScript.State.ENGAGED:
 			continue
 		var contact := cuff_world_angle_deg(piece, link, all_pieces)
@@ -664,7 +704,7 @@ static func apply_action(state, action) -> Dictionary:
 	result["next_state"] = next_state
 	return result
 
-static func is_pure_piece_rotatable(state: PuzzleState, pid: StringName) -> bool:
+static func is_pure_piece_rotatable(state, pid: StringName) -> bool:
 	if not state.pieces.has(pid):
 		return false
 	var p: Dictionary = state.pieces[pid]
@@ -686,7 +726,7 @@ static func is_pure_piece_rotatable(state: PuzzleState, pid: StringName) -> bool
 				return false
 	return true
 
-static func is_pure_piece_releasable(state: PuzzleState, pid: StringName) -> bool:
+static func is_pure_piece_releasable(state, pid: StringName) -> bool:
 	if not state.pieces.has(pid):
 		return false
 	var p: Dictionary = state.pieces[pid]
@@ -706,9 +746,7 @@ static func is_pure_piece_releasable(state: PuzzleState, pid: StringName) -> boo
 				return false
 
 	# 2. Incoming parent constraints: open rings require all incoming links to be DETACHED
-	var gaps: Array = p.get("gaps", [])
-	if not gaps.is_empty():
-		for cid in state.connectors.keys():
+	for cid in state.connectors.keys():
 			var conn: Dictionary = state.connectors[cid]
 			var to_id: StringName = StringName(conn.get("to_piece_id", &""))
 			var c_st: int = int(conn.get("state", 0))
@@ -718,7 +756,7 @@ static func is_pure_piece_releasable(state: PuzzleState, pid: StringName) -> boo
 
 	return true
 
-static func evaluate_pure_clearance(state: PuzzleState, pid: StringName) -> Array:
+static func evaluate_pure_clearance(state, pid: StringName) -> Array:
 	var cleared: Array = []
 	if not state.pieces.has(pid):
 		return cleared
@@ -769,7 +807,8 @@ static func evaluate_pure_clearance(state: PuzzleState, pid: StringName) -> Arra
 			var width_deg := float(gap.get("width_deg", 0.0))
 			var center_deg := float(gap.get("center_angle_deg", 0.0))
 			var opening := PieceGeometry.usable_opening_length(shape, radius, width_deg, thick)
-			if not PieceGeometry.opening_accepts_cuff(opening, cuff_w, margin):
+			# Margin-padded opening check so larger sleeves still fit comfortably.
+			if not PieceGeometry.opening_accepts_cuff(opening + margin, cuff_w, margin):
 				continue
 			var interval := PieceGeometry.usable_gap_interval_s(shape, radius, thick, center_deg, width_deg)
 			if PieceGeometry.cuff_span_inside(interval.x, interval.y, contact_s, cuff_w, perim, margin):
@@ -777,7 +816,7 @@ static func evaluate_pure_clearance(state: PuzzleState, pid: StringName) -> Arra
 				break
 	return cleared
 
-static func resolve_pure_releases(state: PuzzleState) -> Array:
+static func resolve_pure_releases(state) -> Array:
 	var released: Array = []
 	var changed := true
 	while changed:
@@ -803,7 +842,7 @@ static func resolve_pure_releases(state: PuzzleState) -> Array:
 			changed = true
 	return released
 
-static func is_pure_state_won(state: PuzzleState) -> bool:
+static func is_pure_state_won(state) -> bool:
 	if state == null or state.pieces.is_empty():
 		return false
 	for pid in state.pieces.keys():

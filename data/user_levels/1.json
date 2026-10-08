@@ -1,0 +1,42 @@
+{
+  "id": 1,
+  "links": [
+    {
+      "cuff_color_hex": "#32ADDA",
+      "cuff_color_name": "cyan",
+      "from_id": "ring_left",
+      "stem_dist": 200.0,
+      "to_id": "ring_right"
+    }
+  ],
+  "pieces": [
+    {
+      "closed": false,
+      "color_hex": "#32ADDA",
+      "color_name": "cyan",
+      "gap_deg": 180.0,
+      "id": "ring_left",
+      "locked": false,
+      "radius": 120.0,
+      "shape": "CIRCLE",
+      "thickness": 18.0,
+      "x": 200.0,
+      "y": 620.0
+    },
+    {
+      "closed": false,
+      "color_hex": "#EA7829",
+      "color_name": "orange",
+      "gap_deg": 0.0,
+      "id": "ring_right",
+      "locked": false,
+      "radius": 90.0,
+      "shape": "CIRCLE",
+      "thickness": 18.0,
+      "x": 460.0,
+      "y": 620.0
+    }
+  ],
+  "source": "in-game-edit-overlay",
+  "title": "Level 1"
+}

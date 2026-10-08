@@ -1,0 +1,55 @@
+{
+  "id": 2,
+  "title": "Three Cuffs",
+  "source": "seeded-from-gameplay",
+  "pieces": [
+    {
+      "id": "ring_orange",
+      "color_name": "orange",
+      "color_hex": "#EA7829",
+      "x": 260.0,
+      "y": 510.0,
+      "radius": 88,
+      "thickness": 22,
+      "gap_deg": 270.0,
+      "shape": "CIRCLE",
+      "closed": false
+    },
+    {
+      "id": "ring_cyan",
+      "color_name": "cyan",
+      "color_hex": "#32ADDA",
+      "x": 460.0,
+      "y": 510.0,
+      "radius": 88,
+      "thickness": 22,
+      "gap_deg": 90.0,
+      "shape": "CIRCLE",
+      "closed": false
+    },
+    {
+      "id": "ring_purple",
+      "color_name": "purple",
+      "color_hex": "#7B61FF",
+      "x": 360.0,
+      "y": 680.0,
+      "radius": 88,
+      "thickness": 22,
+      "gap_deg": 270.0,
+      "shape": "CIRCLE",
+      "closed": false
+    }
+  ],
+  "links": [
+    {
+      "from_id": "ring_orange",
+      "to_id": "ring_cyan",
+      "cuff_color_name": "orange"
+    },
+    {
+      "from_id": "ring_orange",
+      "to_id": "ring_purple",
+      "cuff_color_name": "purple"
+    }
+  ]
+}
