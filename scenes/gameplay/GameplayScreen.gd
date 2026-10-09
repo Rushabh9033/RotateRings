@@ -5,6 +5,8 @@ const LevelDatabaseScript = preload("res://data/level_database.gd")
 const MascotCompanionScript = preload("res://gameplay/mascot_companion.gd")
 const DroppedRing2DScript = preload("res://gameplay/dropped_ring_2d.gd")
 const UiTheme = preload("res://app/ui_theme.gd")
+const LevelDocumentScript = preload("res://data/level_document.gd")
+const EditorToolbarScript = preload("res://scenes/editor/EditorToolbar.gd")
 
 signal back_to_levels_requested
 signal back_to_home_requested
@@ -23,6 +25,14 @@ signal edit_level_requested(level_id: int)
 
 @onready var pause_modal = $PauseModal
 @onready var victory_modal = $VictoryModal
+
+# In-game editor toolbar (mounted at runtime by _ensure_editor_toolbar).
+var editor_toolbar: Control = null
+# The current editor document. Created on first Edit press from the
+# level's LevelDefinition. Survives save/load and TEST LEVEL round-trips.
+var editor_document: Resource = null
+# Saved LevelDefinition for "back to editor" on TEST LEVEL.
+var _editor_saved_def: Resource = null
 
 var save_service: Node = null
 var audio_service: Node = null
@@ -302,12 +312,82 @@ func _on_edit_pressed() -> void:
 	# Toggle the in-built edit overlay. Puzzle keeps rendering; the overlay
 	# enables drag-to-move on each piece and saves on drag-end.
 	var new_state: bool = not edit_overlay.is_active()
+	# First-time entry: build the editor document from the current level
+	# definition so the toolbar + level_document have something to bind to.
+	if new_state and editor_document == null:
+		_ensure_editor_document()
+	# Mount the toolbar if not yet present.
+	if new_state:
+		_ensure_editor_toolbar()
+		# Coming back from TEST LEVEL: re-show toolbar and re-load the
+		# editor document into the puzzle so the visible state matches.
+		if editor_toolbar != null:
+			editor_toolbar.visible = true
+		# Hide the standard top HUD while in edit mode.
+		if has_node("SafeArea/TopHUD"):
+			$SafeArea/TopHUD.visible = false
+	else:
+		# Toggling OFF: hide the toolbar + show the standard HUD.
+		if editor_toolbar != null:
+			editor_toolbar.visible = false
+		if has_node("SafeArea/TopHUD"):
+			$SafeArea/TopHUD.visible = true
 	edit_overlay.toggle(new_state)
 	edit_btn.text = "Edit ON" if new_state else "Edit"
 	# While edit is on, pause the puzzle input so gestures don't double-fire.
 	if puzzle_controller and puzzle_controller.has_method("pause_input"):
 		puzzle_controller.pause_input()
 	puzzle_controller.is_active = not new_state
+
+# Build the editor document from the current LevelDefinition on first entry.
+# Survives in memory across multiple Edit toggles and the TEST LEVEL button.
+func _ensure_editor_document() -> void:
+	if editor_document != null: return
+	var def = puzzle_controller.current_level_def
+	if def == null: return
+	editor_document = LevelDocumentScript.from_level_definition(def)
+
+# Lazy-mount the EditorToolbar above the puzzle area.
+func _ensure_editor_toolbar() -> void:
+	if editor_toolbar != null: return
+	editor_toolbar = EditorToolbarScript.new()
+	editor_toolbar.set_document(editor_document)
+	editor_toolbar.set_overlay(edit_overlay)
+	editor_toolbar.test_level_pressed.connect(_on_test_level_pressed)
+	# Mount just above the puzzle area (it covers the top edge with a
+	# semi-transparent strip).
+	editor_toolbar.anchor_top = 0
+	editor_toolbar.anchor_left = 0
+	editor_toolbar.anchor_right = 1
+	editor_toolbar.anchor_bottom = 0
+	editor_toolbar.custom_minimum_size = Vector2(0, 320)
+	add_child(editor_toolbar)
+	# Hide the standard top HUD while in edit mode so the toolbar has space.
+	if has_node("SafeArea/TopHUD"):
+		$SafeArea/TopHUD.visible = false
+
+# M22: TEST LEVEL button. Snapshot the current editor document into a
+# runtime LevelDefinition, swap the puzzle controller to use it, and
+# exit edit mode. The editor document stays in memory so Back returns
+# to the exact same state.
+func _on_test_level_pressed() -> void:
+	if editor_document == null: return
+	# Build a LevelDefinition from the editor document and hand it to the
+	# puzzle controller.
+	var def = editor_document.to_level_definition()
+	puzzle_controller.load_level(def)
+	# Exit edit mode (this does NOT clear the editor document).
+	edit_overlay.toggle(false)
+	edit_btn.text = "Edit"
+	puzzle_controller.is_active = true
+	if puzzle_controller and puzzle_controller.has_method("resume_input"):
+		puzzle_controller.resume_input()
+	# Hide the toolbar so the gameplay HUD is visible.
+	if editor_toolbar != null:
+		editor_toolbar.visible = false
+	# Keep the level number visible.
+	if has_node("SafeArea/TopHUD"):
+		$SafeArea/TopHUD.visible = true
 
 func _mount_tool(btn: Button, texture: Texture2D, caption: String, locked: bool) -> void:
 	btn.text = ""
