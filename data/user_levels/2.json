@@ -32,7 +32,7 @@
       "target_exit_angle_deg": 0.0,
       "gaps": [
         {
-          "center_angle_deg": 0.0,
+          "center_angle_deg": 30.0,
           "width_deg": 70.0,
           "tolerance_deg": 16.0
         }
@@ -67,7 +67,7 @@
       "target_exit_angle_deg": 0.0,
       "gaps": [
         {
-          "center_angle_deg": 180,
+          "center_angle_deg": 200.0,
           "width_deg": 70.0,
           "tolerance_deg": 16.0
         }
@@ -102,7 +102,7 @@
       "target_exit_angle_deg": 0.0,
       "gaps": [
         {
-          "center_angle_deg": 90.0,
+          "center_angle_deg": 270.0,
           "width_deg": 70.0,
           "tolerance_deg": 16.0
         }
