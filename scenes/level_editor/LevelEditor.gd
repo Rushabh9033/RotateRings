@@ -67,6 +67,8 @@ const COLOR_HEX := {
 @onready var pixel_label: Label = $RightPanel/VBox/LayoutSection/PixelLabel
 @onready var delete_btn: Button = $RightPanel/VBox/DeleteBtn
 @onready var panel_toggle_btn: Button = $PanelToggleBtn
+@onready var rotate_selected_btn: Button = $RightPanel/VBox/ActionRow/RotateSelectedBtn
+@onready var resize_selected_btn: Button = $RightPanel/VBox/ActionRow/ResizeSelectedBtn
 @onready var closed_toggle_btn: CheckButton = $RightPanel/VBox/ClosedToggleBtn
 @onready var right_panel: PanelContainer = $RightPanel
 @onready var back_btn: Button = $TopBar/BackBtn
@@ -118,6 +120,8 @@ func _ready() -> void:
 	level_input.value_changed.connect(_on_level_changed)
 	delete_btn.pressed.connect(_delete_selected)
 	panel_toggle_btn.pressed.connect(_on_panel_toggle)
+	rotate_selected_btn.pressed.connect(_on_rotate_selected_pressed)
+	resize_selected_btn.pressed.connect(_on_resize_selected_pressed)
 	right_panel.visible = true
 	_update_pixel_label()
 
@@ -235,6 +239,42 @@ func _snap_on_commit() -> bool:
 
 func _round_to_grid(v: float) -> float:
 	return round(v / grid_size) * grid_size
+
+func _on_rotate_selected_pressed() -> void:
+	# Rotate the selected piece's gap by 30 degrees.
+	if _selected_piece_idx < 0 or _selected_piece_idx >= _placed_pieces.size():
+		_set_status("Click a ring first to select it, then tap Rotate gap.")
+		return
+	var p: Dictionary = _placed_pieces[_selected_piece_idx]
+	p["gap_deg"] = fposmod(float(p.get("gap_deg", 0.0)) + 30.0, 360.0)
+	puzzle_preview.queue_redraw()
+	_update_pixel_label()
+	_set_status("Rotated %s gap to %.0f deg." % [p.get("id", "?"), float(p["gap_deg"])])
+
+func _on_resize_selected_pressed() -> void:
+	# Cycle the selected piece's radius through 3 sizes.
+	if _selected_piece_idx < 0 or _selected_piece_idx >= _placed_pieces.size():
+		_set_status("Click a ring first to select it, then tap Resize.")
+		return
+	var p: Dictionary = _placed_pieces[_selected_piece_idx]
+	var sizes: Array[float] = [40.0, 60.0, 90.0]
+	var current: float = float(p.get("radius", 60.0))
+	# Find the next size up (or cycle back to smallest)
+	var next_size: float = sizes[0]
+	var found: bool = false
+	for s2 in sizes:
+		if s2 > current + 0.5:
+			next_size = s2
+			found = true
+			break
+	if not found:
+		next_size = sizes[0]  # cycle back if at largest
+	p["radius"] = next_size
+	radius_slider.value = next_size
+	radius_label.text = "Radius: %d" % int(next_size)
+	puzzle_preview.queue_redraw()
+	_update_pixel_label()
+	_set_status("Resized %s to radius %.0f." % [p.get("id", "?"), next_size])
 
 func _update_pixel_label() -> void:
 	if _selected_piece_idx < 0 or _selected_piece_idx >= _placed_pieces.size():

@@ -130,6 +130,17 @@ layout_mode = 2
 toggle_mode = true
 text = "Link"
 
+[node name="ActionRow" type="HBoxContainer" parent="RightPanel/VBox"]
+layout_mode = 2
+
+[node name="RotateSelectedBtn" type="Button" parent="RightPanel/VBox/ActionRow"]
+layout_mode = 2
+text = "Rotate gap"
+
+[node name="ResizeSelectedBtn" type="Button" parent="RightPanel/VBox/ActionRow"]
+layout_mode = 2
+text = "Resize"
+
 [node name="ColorSection" type="VBoxContainer" parent="RightPanel/VBox"]
 layout_mode = 2
 
