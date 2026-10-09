@@ -1,5 +1,9 @@
 extends RefCounted
 
+# JSON loader for `data/user_levels/<n>.json` files. Round-trips losslessly with
+# PieceDefinition.to_dict() / apply_dict() and LinkDefinition.to_dict() /
+# from_dict(). Each JSON file is one level.
+
 const LevelDefinitionScript = preload("res://data/level_definition.gd")
 const PieceDefinitionScript = preload("res://data/piece_definition.gd")
 const GapDefinitionScript = preload("res://data/gap_definition.gd")
@@ -8,17 +12,19 @@ const LinkDefinitionScript = preload("res://data/link_definition.gd")
 const SHAPE_CIRCLE := 0
 const SHAPE_ROUNDED_SQUARE := 1
 
+# Color name → hex (kept for backwards compat with legacy JSON that didn't store
+# both name and hex. New writes store both; new reads prefer hex.)
 const COLOR_TABLE := {
-	"orange":   Color("#EA7829"),
-	"cyan":     Color("#32ADDA"),
-	"purple":   Color("#7B61FF"),
-	"red":      Color("#E63946"),
-	"green":    Color("#3EC6B0"),
-	"blue":     Color("#32ADDA"),
-	"cuff_blue": Color("#1F5A82"),
-	"yellow":   Color("#F4C95D"),
-	"pink":     Color("#F2A6B5"),
-    "transparent": Color("#00000000")
+	"orange":     Color("#EA7829"),
+	"cyan":       Color("#32ADDA"),
+	"purple":     Color("#7B61FF"),
+	"red":        Color("#E63946"),
+	"green":      Color("#3EC6B0"),
+	"blue":       Color("#32ADDA"),
+	"cuff_blue":  Color("#1F5A82"),
+	"yellow":     Color("#F4C95D"),
+	"pink":       Color("#F2A6B5"),
+	"transparent": Color(0.0, 0.0, 0.0, 0.0),
 }
 
 static func build(level_id: int):
@@ -53,52 +59,42 @@ static func build(level_id: int):
 	def.links = links
 	return def
 
+# Lossless piece build. Reads the full schema's keys; falls back to the
+# legacy 9-arg constructor only if the JSON predates the schema upgrade.
 static func _build_piece(d: Dictionary):
-	var col: Color = _resolve_color(d)
-	var rad := float(d.get("radius", 80))
-	var thick := float(d.get("thickness", 22))
-	var g0 := float(d.get("gap_deg", 270.0))
+	var p = PieceDefinitionScript.new()
+	if d.has("shape_type") or d.has("radius") or d.has("id"):
+		# Modern format → apply_dict round-trip.
+		(p as PieceDefinitionScript).apply_dict(d)
+		return p
+	# Legacy fallback (very old saved JSON).
 	var is_closed := bool(d.get("closed", false))
-	var shape_str := String(d.get("shape", "CIRCLE"))
-	var shape := SHAPE_CIRCLE if shape_str == "CIRCLE" else SHAPE_ROUNDED_SQUARE
-	var gaps: Array = []
-	if not is_closed:
-		gaps.append(GapDefinitionScript.new(0.0, 80.0, 16.0))
+	var g0 := float(d.get("gap_deg", 270.0))
+	var rad := float(d.get("radius", 80.0))
+	var thick := float(d.get("thickness", 22.0))
 	var pos := Vector2(float(d.get("x", 0)), float(d.get("y", 0)))
-	var p = PieceDefinitionScript.new(
+	var col: Color = _resolve_color(d)
+	var p2 = PieceDefinitionScript.new(
 		StringName(String(d.get("id", "piece"))),
-		pos,
-		rad, thick, col,
-		g0,
-		gaps,
-		0.0,
-		shape
+		pos, rad, thick, col, g0,
+		[] if is_closed else [GapDefinitionScript.new(0.0, 80.0, 16.0)],
+		0.0, PieceDefinitionScript.ShapeType.CIRCLE
 	)
 	if d.has("role"):
-		p.role = int(d["role"])
-	return p
+		p2.role = int(d["role"])
+	return p2
 
 static func _build_link(d: Dictionary):
-	var cuff: Color = _resolve_color_dict(d, "cuff_color_name", "cuff_color_hex", "orange")
-	var link_id: String = String(d.get("id", "link_"))
-	if link_id == "link_":
-		link_id = "link_%s_%s" % [d.get("from_id", "x"), d.get("to_id", "y")]
-	return LinkDefinitionScript.new(
-		StringName(link_id),
-		StringName(String(d.get("from_id", "ring_a"))),
-		StringName(String(d.get("to_id", "ring_b"))),
-		cuff, 0.0, 0.0
-	)
+	return LinkDefinitionScript.from_dict(d)
 
 static func _resolve_color(d: Dictionary) -> Color:
 	return _resolve_color_dict(d, "color_name", "color_hex", "orange")
 
 static func _resolve_color_dict(d: Dictionary, name_key: String, hex_key: String, default_name: String) -> Color:
 	var n: String = String(d.get(name_key, default_name))
-	if COLOR_TABLE.has(n):
-		return COLOR_TABLE[n]
+	if COLOR_TABLE.has(n): return COLOR_TABLE[n]
 	var hex := String(d.get(hex_key, ""))
-	if hex != "":
+	if hex != "" and hex != "#00000000":
 		if Color.html_is_valid(hex): return Color(hex)
 	return COLOR_TABLE[default_name]
 

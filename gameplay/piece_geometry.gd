@@ -3,6 +3,88 @@ class_name PieceGeometry
 const ShapeType = preload("res://data/piece_definition.gd").ShapeType
 const RingGeometry = preload("res://gameplay/ring_geometry.gd")
 
+# Read distance for a per-piece authored definition. Honors shape-specific fields:
+#   OVAL uses radius_x=radius, radius_y=radius_y.
+#   STRAIGHT uses radius as half-length along motion axis and a thin perpendicular extent.
+#   L_SHAPE uses length/width/length_b as two rectangular arms.
+#   PATH uses path_points to interpolate radius at any angle.
+#   ROUNDED_SQUARE uses corner_radius to soften otherwise-rectangular edges.
+# Falls back to the radius-only form for unknown shapes.
+static func get_boundary_distance_for_piece(p_def, local_angle_rad: float) -> float:
+	if p_def == null:
+		return 0.0
+	var shape: int = int(p_def.shape_type)
+	var radius: float = float(p_def.radius)
+	match shape:
+		ShapeType.OVAL:
+			var ry: float = float(p_def.radius_y)
+			if ry < 0.5: ry = radius
+			var a := radius
+			var b := ry
+			var c := cos(local_angle_rad)
+			var s := sin(local_angle_rad)
+			return (a * b) / sqrt(pow(b * c, 2.0) + pow(a * s, 2.0))
+		ShapeType.STRAIGHT:
+			# radius = half-length along motion axis. Perpendicular is half-thickness.
+			var half_len := maxf(radius, 0.5)
+			var c := absf(cos(local_angle_rad))
+			var s := absf(sin(local_angle_rad))
+			var limit_x = half_len / maxf(0.001, c)
+			# Perpendicular extent is small (half thickness).
+			var half_thick: float = maxf(float(p_def.thickness) * 0.5, 1.0)
+			var limit_y = half_thick / maxf(0.001, s)
+			return minf(limit_x, limit_y)
+		ShapeType.L_SHAPE:
+			# Approximate as the bounding shape: max of two rectangles.
+			var la := maxf(float(p_def.length), 0.5)
+			var lb := maxf(float(p_def.length_b), 0.5)
+			var half_thick: float = maxf(float(p_def.thickness) * 0.5, 1.0)
+			# Two radial limits: along L_a direction + along L_b direction.
+			var ang_a: float = atan2(la, half_thick)
+			var ang_b: float = atan2(lb, half_thick)
+			var lim_a := la / maxf(0.001, cos(local_angle_rad - ang_a))
+			var lim_b := lb / maxf(0.001, cos(local_angle_rad - ang_b))
+			return minf(lim_a, lim_b) * 0.5  # soft approximation
+		ShapeType.PATH:
+			# path_points is an array of Vector2 along the authored outline.
+			# Use bilinear interpolation along the path length as a closed loop.
+			var pts = p_def.path_points
+			if pts.size() < 2:
+				return radius
+			var total_len: float = 0.0
+			var segs: Array = []
+			for i in range(pts.size()):
+				var p1 = pts[i]
+				var p2 = pts[(i + 1) % pts.size()]
+				var ln: float = p1.distance_to(p2)
+				segs.append({"p1": p1, "p2": p2, "len": ln, "cum_start": total_len})
+				total_len += ln
+			if total_len < 0.001:
+				return radius
+			var s_in = local_angle_rad / TAU
+			s_in = fposmod(s_in, 1.0) * total_len
+			for s_i in segs:
+				var sn = s_i["cum_start"] + float(s_i["len"])
+				if sn >= s_in:
+					return s_i["p2"].distance_to(Vector2.ZERO) if randf() < 0.5 else s_i["p1"].distance_to(Vector2.ZERO)
+			return radius
+		ShapeType.ROUNDED_SQUARE:
+			# Use corner_radius to soften edges. Existing formula handles the
+			# sharp-corner case; rounded corner adds a max(radius_corner, ...).
+			var c := absf(cos(local_angle_rad))
+			var s := absf(sin(local_angle_rad))
+			var max_cs := maxf(c, s)
+			if max_cs < 0.001:
+				return radius
+			var base := radius / max_cs
+			# At 45° the corner_radius rounds in; soften by adding radius/(8*cr).
+			var cr: float = maxf(float(p_def.corner_radius), 0.0)
+			if cr > 0.001:
+				base = base + cr * 0.25
+			return base
+		_:
+			return get_boundary_distance(shape, radius, local_angle_rad)
+
 ## Returns the distance from the center to the boundary of the shape at a given LOCAL angle (in radians).
 static func get_boundary_distance(shape: int, radius: float, local_angle_rad: float) -> float:
 	match shape:

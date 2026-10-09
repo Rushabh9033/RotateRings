@@ -23,6 +23,9 @@ signal piece_moved(piece_id: String, position: Vector2)
 @export var debug_print: bool = false
 @export var grid_size: float = 20.0       # px per snap step
 @export var align_threshold: float = 12.0  # px — drop within this range snaps to guide
+@export var show_debug_ids: bool = false   # Section 14: show piece ID, center, bbox, gap, motion-axis, z_index as text overlays.
+@export var snap_enabled: bool = true      # Section 12: Snap must be OPTIONAL. Toggle off for reference reconstruction.
+@export var nudge_unit: float = 1.0        # Section 12: Arrow = 1 unit nudge, Shift+Arrow = 10 units (then divided by 10).
 
 enum DragMode {
 	NONE,
@@ -127,6 +130,9 @@ func _auto_align(pos: Vector2, viewport_size: Vector2) -> Vector2:
 
 func _gui_input(event: InputEvent) -> void:
 	if not _is_active: return
+	if event is InputEventKey:
+		_handle_key_nudge(event)
+		return
 	if not (event is InputEventMouseButton or event is InputEventMouseMotion): return
 	var local_pos = get_local_mouse_position()
 
@@ -201,6 +207,34 @@ func _gui_input(event: InputEvent) -> void:
 					accept_event()
 
 # Hit-tests --------------------------------------------------------------
+
+# Section 12: Arrow-key nudge for the currently selected piece.
+# Shift+Arrow = 10-unit (per directive: Shift+Arrow = 10 units).
+# Snap is OPTIONAL — toggle off via snap_enabled.
+func _handle_key_nudge(event: InputEventKey) -> void:
+	if not event.pressed or event.echo: return
+	if _dragging_piece_idx < 0 or _dragging_piece_idx >= _pieces.size(): return
+	var unit: float = nudge_unit * 10.0 if event.shift_pressed else nudge_unit
+	var dx: float = 0.0
+	var dy: float = 0.0
+	match event.keycode:
+		KEY_LEFT:   dx = -unit
+		KEY_RIGHT:  dx = unit
+		KEY_UP:     dy = -unit
+		KEY_DOWN:   dy = unit
+		_:
+			return
+	accept_event()
+	var p = _pieces[_dragging_piece_idx]
+	var np: Vector2 = p["piece"].global_position + Vector2(dx, dy)
+	if snap_enabled:
+		np = Vector2(_snap(np.x), _snap(np.y))
+	p["piece"].global_position = np
+	p["center"] = np
+	p["def"].position = np
+	# Live-save so the level reflects the change without waiting for drag-end.
+	_save_all_pieces()
+	queue_redraw()
 
 func _hit_test_body(local_pos: Vector2) -> int:
 	for i in range(_pieces.size() - 1, -1, -1):
@@ -377,35 +411,17 @@ func _save_all_pieces() -> void:
 	var pieces_obj: Array = []
 	for entry in _pieces:
 		var pdef = entry["def"]
-		var gap_arr: Array = []
-		for g in pdef.gaps:
-			var cn = float(g.center_angle_deg)
-			var wd = float(g.width_deg)
-			var tol = float(g.tolerance_deg)
-			gap_arr.append({"center_angle_deg": cn, "width_deg": wd, "tolerance_deg": tol})
-		pieces_obj.append({
-			"id": String(pdef.id),
-			"color_name": _color_name(pdef.color),
-			"color_hex": _color_hex(pdef.color),
-			"x": float(pdef.position.x),
-			"y": float(pdef.position.y),
-			"radius": float(pdef.radius),
-			"thickness": float(pdef.thickness),
-			"gap_deg": float(pdef.start_angle_deg),
-			"shape": "CIRCLE",
-			"closed": gap_arr.is_empty(),
-			"locked": bool(entry["locked"]),
-		})
+		var d: Dictionary = (pdef as PieceDefinition).to_dict()
+		# Overlay-only metadata that is NOT in PieceDefinition schema.
+		d["locked"] = bool(entry["locked"])
+		pieces_obj.append(d)
 	var links_obj: Array = []
 	for pl in _puzzle.active_links:
 		var ld = pl.def
-		links_obj.append({
-			"from_id": String(ld.from_piece_id),
-			"to_id": String(ld.to_piece_id),
-			"cuff_color_name": _color_name(ld.joint_color),
-			"cuff_color_hex": _color_hex(ld.joint_color),
-			"stem_dist": float(pl.current_stem_dist),
-		})
+		var ld_d: Dictionary = (ld as LinkDefinition).to_dict()
+		# Runtime-only state (not authored, lives in ConnectorRuntime).
+		ld_d["runtime_current_stem_dist"] = float(pl.current_stem_dist)
+		links_obj.append(ld_d)
 	var data = {
 		"id": level_id,
 		"title": "Level %d" % level_id,
@@ -447,6 +463,62 @@ func _color_hex(c: Color) -> String:
 	var g: int = int(round(c.g * 255))
 	var b: int = int(round(c.b * 255))
 	return "#%02X%02X%02X" % [r, g, b]
+
+# Draw debug ID labels for each piece (Section 14). Always rendered behind
+# gameplay pieces (this function is called BEFORE the piece rendering loop)
+# so the user sees the real ring on top with a small ID label nearby.
+func _draw_debug_ids_for_pieces() -> void:
+	if _puzzle == null: return
+	var container = _puzzle.get("pieces_container") if _puzzle else null
+	if container == null: container = _puzzle
+	var font = ThemeDB.fallback_font
+	if font == null: return
+	var label_color = Color(0.05, 0.05, 0.1, 0.92)
+	var bg_color = Color(1.0, 1.0, 1.0, 0.65)
+	for child in container.get_children():
+		if not (child is Node2D): continue
+		var d = child.def if "def" in child else null
+		if d == null: continue
+		var pos: Vector2 = child.global_position
+		var radius: float = float(d.radius)
+		# Bounding box outline.
+		draw_rect(Rect2(pos.x - radius, pos.y - radius, radius * 2, radius * 2),
+				Color(0.0, 0.4, 0.8, 0.5), false, 2.0)
+		# ID label at the piece center.
+		var id_text: String = String(d.id)
+		draw_string(font, pos + Vector2(-30, 5), id_text,
+				HORIZONTAL_ALIGNMENT_CENTER, 60, 18, label_color)
+		# Coordinate label below.
+		var coord_text: String = "(%d, %d)" % [int(pos.x), int(pos.y)]
+		draw_string(font, pos + Vector2(-30, radius + 18), coord_text,
+				HORIZONTAL_ALIGNMENT_CENTER, 60, 14, label_color)
+		# Radius label above.
+		var r_text: String = "r=%d t=%d z=%d" % [int(radius), int(float(d.thickness)), int(d.z_index)]
+		draw_string(font, pos + Vector2(-30, -radius - 8), r_text,
+				HORIZONTAL_ALIGNMENT_CENTER, 60, 14, label_color)
+		# Gap summary.
+		if d.gaps.size() > 0:
+			var first_gap = d.gaps[0]
+			var g_text: String = "gap[0]: %d° wide" % int(float(first_gap.width_deg))
+			draw_string(font, pos + Vector2(-30, radius + 32), g_text,
+					HORIZONTAL_ALIGNMENT_CENTER, 60, 14, label_color)
+		# Motion axis indicator.
+		var axis: Vector2 = d.motion_axis if d.motion_axis.length_squared() > 0.001 else Vector2.RIGHT
+		draw_line(pos, pos + axis.normalized() * (radius * 0.6),
+				Color(0.4, 0.0, 0.7, 0.85), 2.0)
+		# Connector ID labels.
+	if _puzzle.active_links != null:
+		for pl in _puzzle.active_links:
+			var ld = pl.def
+			var from_p = PuzzleRulesScript.get_piece_by_id(ld.from_piece_id, _puzzle.active_pieces)
+			if not is_instance_valid(from_p): continue
+			var world_angle_rad := deg_to_rad(from_p.rotation_degrees + ld.collar_angle_deg)
+			var dir := Vector2.from_angle(world_angle_rad)
+			var child_r: float = float(ld.cuff_depth) * 0.5
+			var pos_cuff: Vector2 = from_p.position + dir * (float(pl.current_stem_dist) - child_r)
+			var link_text: String = String(ld.id) + "  d=" + str(int(float(pl.current_stem_dist)))
+			draw_string(font, pos_cuff + Vector2(-30, 4), link_text,
+					HORIZONTAL_ALIGNMENT_CENTER, 60, 14, Color(0.6, 0.2, 0.0, 0.9))
 
 # Drawing -----------------------------------------------------------------
 
@@ -523,3 +595,9 @@ func _draw() -> void:
 		# Center mark for the dragged piece
 		if is_dragging:
 			draw_circle(pos, 4.0, Color(0.95, 0.7, 0.3))
+
+	# Debug ID mode (Section 14): per-piece ID, center, bbox, gap boundaries,
+	# motion axis, z_index. Renders as overlays on top of the gameplay pieces
+	# so the user can see exactly which authored value maps to which object.
+	if show_debug_ids:
+		_draw_debug_ids_for_pieces()

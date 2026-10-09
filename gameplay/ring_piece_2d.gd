@@ -174,10 +174,16 @@ func _draw_hold_rim(a_start: float, a_end: float, segs: int, cap_r: float, is_cl
 	if is_closed:
 		return
 	var cap_color := rim
-	var p_start := Vector2.from_angle(a_start) * PieceGeometry.get_boundary_distance(shape_type, radius, a_start)
-	var p_end := Vector2.from_angle(a_end) * PieceGeometry.get_boundary_distance(shape_type, radius, a_end)
+	var p_start := Vector2.from_angle(a_start) * _b(a_start)
+	var p_end := Vector2.from_angle(a_end) * _b(a_end)
 	draw_circle(p_start, cap_r + 7.0, cap_color)
 	draw_circle(p_end, cap_r + 7.0, cap_color)
+
+# Boundary distance at a given local angle, honoring authored shape-specific fields.
+func _b(local_angle_rad: float) -> float:
+	if def != null:
+		return PieceGeometry.get_boundary_distance_for_piece(def, local_angle_rad)
+	return PieceGeometry.get_boundary_distance(shape_type, radius, local_angle_rad)
 
 func _draw_ring_arc(center: Vector2, r: float, a_start: float, a_end: float, segs: int, cap_r: float, is_closed: bool, shape_type: int) -> void:
 	# PERFORMANCE: fixed 72 segs for shapes
@@ -191,19 +197,19 @@ func _draw_ring_arc(center: Vector2, r: float, a_start: float, a_end: float, seg
 		var shadow_pts := PackedVector2Array()
 		for i in range(segs + 1):
 			var theta: float = TAU * float(i) / float(segs)
-			shadow_pts.append(center + Vector2(0, 3.0) + Vector2(cos(theta), sin(theta)) * PieceGeometry.get_boundary_distance(shape_type, r + 1.5, theta))
+			shadow_pts.append(center + Vector2(0, 3.0) + Vector2(cos(theta), sin(theta)) * _b(theta))
 		draw_colored_polygon(shadow_pts, Color(0.16, 0.13, 0.11, 0.20))
 		# Filled body
 		var body_pts := PackedVector2Array()
 		for i in range(segs + 1):
 			var theta: float = TAU * float(i) / float(segs)
-			body_pts.append(center + Vector2(cos(theta), sin(theta)) * PieceGeometry.get_boundary_distance(shape_type, r, theta))
+			body_pts.append(center + Vector2(cos(theta), sin(theta)) * _b(theta))
 		draw_colored_polygon(body_pts, _c_main)
 		# Top highlight: offset slightly up + lighter color
 		var hl_pts := PackedVector2Array()
 		for i in range(segs + 1):
 			var theta: float = TAU * float(i) / float(segs)
-			hl_pts.append(center + Vector2(0, -1.0) + Vector2(cos(theta), sin(theta)) * PieceGeometry.get_boundary_distance(shape_type, r * 0.85, theta))
+			hl_pts.append(center + Vector2(0, -1.0) + Vector2(cos(theta), sin(theta)) * _b(theta * 0.85))
 		draw_colored_polygon(hl_pts, _c_light)
 		return
 
@@ -212,22 +218,22 @@ func _draw_ring_arc(center: Vector2, r: float, a_start: float, a_end: float, seg
 
 	_draw_poly_arc(center + shadow_off1, r, a_start, a_end, segs, _c_shadow, thickness + 2.0, shape_type)
 	if not is_closed:
-		var p_start = center + shadow_off1 + Vector2.from_angle(a_start) * PieceGeometry.get_boundary_distance(shape_type, r, a_start)
-		var p_end = center + shadow_off1 + Vector2.from_angle(a_end) * PieceGeometry.get_boundary_distance(shape_type, r, a_end)
+		var p_start = center + shadow_off1 + Vector2.from_angle(a_start) * _b(a_start)
+		var p_end = center + shadow_off1 + Vector2.from_angle(a_end) * _b(a_end)
 		draw_circle(p_start, cap_r + 1.0, _c_shadow)
 		draw_circle(p_end, cap_r + 1.0, _c_shadow)
 
 	_draw_poly_arc(center + off_dark, r, a_start, a_end, segs, _c_dark, thickness, shape_type)
 	if not is_closed:
-		var p_start = center + off_dark + Vector2.from_angle(a_start) * PieceGeometry.get_boundary_distance(shape_type, r, a_start)
-		var p_end = center + off_dark + Vector2.from_angle(a_end) * PieceGeometry.get_boundary_distance(shape_type, r, a_end)
+		var p_start = center + off_dark + Vector2.from_angle(a_start) * _b(a_start)
+		var p_end = center + off_dark + Vector2.from_angle(a_end) * _b(a_end)
 		draw_circle(p_start, cap_r, _c_dark)
 		draw_circle(p_end, cap_r, _c_dark)
 
 	_draw_poly_arc(center, r, a_start, a_end, segs, _c_main, thickness, shape_type)
 	if not is_closed:
-		var p_start = center + Vector2.from_angle(a_start) * PieceGeometry.get_boundary_distance(shape_type, r, a_start)
-		var p_end = center + Vector2.from_angle(a_end) * PieceGeometry.get_boundary_distance(shape_type, r, a_end)
+		var p_start = center + Vector2.from_angle(a_start) * _b(a_start)
+		var p_end = center + Vector2.from_angle(a_end) * _b(a_end)
 		draw_circle(p_start, cap_r, _c_main)
 		draw_circle(p_end, cap_r, _c_main)
 
@@ -247,12 +253,12 @@ func _draw_poly_arc(center: Vector2, r: float, a_start: float, a_end: float, seg
 	# Outer edge from a_start to a_end
 	for i in range(segs + 1):
 		var theta: float = a_start + step * i
-		var dist: float = PieceGeometry.get_boundary_distance(shape_type, r, theta) + half_t
+		var dist: float = _b(theta) + half_t
 		pts.append(center + Vector2(cos(theta), sin(theta)) * dist)
 	# Inner edge from a_end to a_start (reverse)
 	for i in range(segs, -1, -1):
 		var theta2: float = a_start + step * i
-		var dist2: float = maxf(0.0, PieceGeometry.get_boundary_distance(shape_type, r, theta2) - half_t)
+		var dist2: float = maxf(0.0, _b(theta2) - half_t)
 		pts.append(center + Vector2(cos(theta2), sin(theta2)) * dist2)
 	if pts.size() >= 3:
 		draw_colored_polygon(pts, color)
