@@ -47,6 +47,25 @@ func _initialize() -> void:
 	for i in range(150):
 		await process_frame
 
+	# Kill the drop tweens explicitly so they don't keep overwriting
+	# the piece positions. Then force the pieces to their authored
+	# positions.
+	var pc2 = gp.puzzle_controller
+	for t in pc2._active_drop_tweens:
+		if is_instance_valid(t):
+			t.kill()
+	pc2._active_drop_tweens.clear()
+	for child in pc2.pieces_container.get_children():
+		if child is Node2D and child.def != null:
+			child.position = child.def.position
+			child.modulate.a = 1.0
+	# Also kill each piece's state tween
+	for child in pc2.pieces_container.get_children():
+		if child.get("_state_tween") != null:
+			var st = child.get("_state_tween")
+			if is_instance_valid(st):
+				st.kill()
+
 	var pc = gp.puzzle_controller
 	print("[capture] (with framing) puzzle_controller.scale=", pc.scale, " position=", pc.position)
 

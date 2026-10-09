@@ -132,6 +132,7 @@ func setup(p_def) -> void:
 	current_angle_deg = p_def.start_angle_deg
 	target_exit_angle_deg = p_def.target_exit_angle_deg if p_def.get("target_exit_angle_deg") != null else 0.0
 	rotation_degrees = current_angle_deg
+	position = p_def.position
 	gaps = p_def.gaps.duplicate()
 	role = 1 if gaps.is_empty() else 0
 	_default_z_index = int(p_def.z_index) if p_def.get("z_index") != null else 0

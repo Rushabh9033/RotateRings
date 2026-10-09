@@ -20,9 +20,9 @@
       "x": 289.0,
       "y": 544.0,
       "start_angle_deg": 0.0,
-      "radius": 96,
-      "radius_y": 96,
-      "thickness": 18.0,
+      "radius": 70,
+      "radius_y": 70,
+      "thickness": 14.0,
       "z_index": 1,
       "initially_locked": false,
       "release_direction": {
@@ -32,7 +32,7 @@
       "target_exit_angle_deg": 0.0,
       "gaps": [
         {
-          "center_angle_deg": 30.0,
+          "center_angle_deg": 270.0,
           "width_deg": 70.0,
           "tolerance_deg": 16.0
         }
@@ -55,9 +55,9 @@
       "x": 447.0,
       "y": 544.0,
       "start_angle_deg": 0.0,
-      "radius": 65,
-      "radius_y": 65,
-      "thickness": 18.0,
+      "radius": 52,
+      "radius_y": 52,
+      "thickness": 14.0,
       "z_index": 1,
       "initially_locked": false,
       "release_direction": {
@@ -88,11 +88,11 @@
       "role": 0,
       "piece_type": 1,
       "x": 353.0,
-      "y": 679.0,
+      "y": 700.0,
       "start_angle_deg": 0.0,
-      "radius": 75,
-      "radius_y": 75,
-      "thickness": 18.0,
+      "radius": 60,
+      "radius_y": 60,
+      "thickness": 14.0,
       "z_index": 1,
       "initially_locked": false,
       "release_direction": {
