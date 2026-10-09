@@ -12,7 +12,10 @@ const HapticService = preload("res://app/haptic_service.gd")
 
 func _initialize() -> void:
 	var sv := SubViewport.new()
-	sv.size = Vector2i(720, 1280)
+	# The project has window/stretch/aspect=expand with reference 720x1280.
+	# Render at 2x the reference so the captured image is at the
+	# 1:1 reference resolution after the stretch transform is applied.
+	sv.size = Vector2i(1440, 2560)
 	sv.transparent_bg = false
 	sv.own_world_3d = false
 	sv.render_target_update_mode = SubViewport.UPDATE_ALWAYS
@@ -55,10 +58,24 @@ func _initialize() -> void:
 		if is_instance_valid(t):
 			t.kill()
 	pc2._active_drop_tweens.clear()
+	# Cancel the framing tween so the puzzle_controller stays at (0,0,1,1)
+	if pc2.has_method("kill"):
+		for ch in pc2.get_children():
+			if ch is Tween:
+				ch.kill()
 	for child in pc2.pieces_container.get_children():
 		if child is Node2D and child.def != null:
 			child.position = child.def.position
 			child.modulate.a = 1.0
+			child.visible = true
+			if child.has_method("kill") and child.get("_state_tween") != null:
+				var st = child.get("_state_tween")
+				if is_instance_valid(st):
+					st.kill()
+	# Reset puzzle_controller transform so pieces appear at their
+	# authored positions (not framed into a sub-area).
+	pc2.scale = Vector2.ONE
+	pc2.position = Vector2.ZERO
 	# Also kill each piece's state tween
 	for child in pc2.pieces_container.get_children():
 		if child.get("_state_tween") != null:
