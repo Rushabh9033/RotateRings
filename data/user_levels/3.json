@@ -134,8 +134,8 @@
       "stem_width": 6.0,
       "stem_distance_from_piece": 0.0,
       "stem_dist": 200.0,
-      "joint_color_hex": "#32ADDA",
-      "joint_color_name": "cyan",
+      "joint_color_hex": "#EA7829",
+      "joint_color_name": "orange",
       "z_index": 0,
       "clearance_tolerance_deg": 20.0,
       "is_detached": false
@@ -153,8 +153,8 @@
       "stem_width": 6.0,
       "stem_distance_from_piece": 0.0,
       "stem_dist": 200.0,
-      "joint_color_hex": "#32ADDA",
-      "joint_color_name": "cyan",
+      "joint_color_hex": "#7B61FF",
+      "joint_color_name": "purple",
       "z_index": 0,
       "clearance_tolerance_deg": 20.0,
       "is_detached": false

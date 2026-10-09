@@ -268,8 +268,8 @@
       "stem_width": 6.0,
       "stem_distance_from_piece": 0.0,
       "stem_dist": 200.0,
-      "joint_color_hex": "#3EC6B0",
-      "joint_color_name": "green",
+      "joint_color_hex": "#1F5A82",
+      "joint_color_name": "blue",
       "z_index": 0,
       "clearance_tolerance_deg": 20.0,
       "is_detached": false
