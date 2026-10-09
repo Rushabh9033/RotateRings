@@ -57,6 +57,7 @@ func _init() -> void:
 	gp.current_level_id = 97
 	# Re-call set_puzzle / refresh pieces because level_id changed.
 	overlay.set_puzzle(gp.puzzle_controller)
+	overlay.set_level_id(97)
 	overlay._refresh_pieces()
 	print("After re-refresh (level 97): ", overlay._pieces.size(), " pieces")
 

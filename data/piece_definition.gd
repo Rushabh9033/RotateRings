@@ -73,6 +73,7 @@ enum PieceType {
 # ----- Z-order / authoring flags -----
 @export var z_index: int = 1
 @export var initially_locked: bool = false
+@export var locked: bool = false                          # runtime editor state (saved)
 @export var release_direction: Vector2 = Vector2.RIGHT    # gameplay release-axis hint
 
 # ----- Victory target -----
@@ -90,7 +91,8 @@ func _init(
 	p_start_angle: float = 90.0,
 	p_gaps: Array = [],
 	p_target_exit: float = 0.0,
-	p_shape: ShapeType = ShapeType.CIRCLE
+	p_shape: ShapeType = ShapeType.CIRCLE,
+	p_piece_type: PieceType = -1
 ) -> void:
 	id = p_id
 	position = p_pos
@@ -103,12 +105,12 @@ func _init(
 	target_exit_angle_deg = p_target_exit
 	shape_type = p_shape
 
-	if gaps.is_empty():
-		piece_type = PieceType.CLOSED_CIRCLE
-	elif gaps.size() == 1:
-		piece_type = PieceType.OPEN_CIRCLE
-	elif gaps.size() == 2:
-		piece_type = PieceType.DUAL_GAP_CIRCLE
+	# piece_type is the AUTHORED value. Section 11: never silently derive it
+	# from gaps.size(). Callers that want the historical behavior pass an
+	# explicit value (or -1 for "leave at the @export default OPEN_CIRCLE").
+	# apply_dict() is the canonical JSON loader and sets this explicitly.
+	if int(p_piece_type) >= 0:
+		piece_type = p_piece_type
 
 
 # Serialization helpers (used by editor + user-levels.gd to write JSON losslessly).
@@ -161,11 +163,10 @@ func to_dict() -> Dictionary:
 		"path_points": path_ary,
 		"z_index": int(z_index),
 		"initially_locked": bool(initially_locked),
+		"locked": bool(locked),
 		"release_direction": {"x": float(release_direction.x), "y": float(release_direction.y)},
 		"target_exit_angle_deg": float(target_exit_angle_deg),
 		"gaps": gap_ary,
-		"gap_count": gap_ary.size(),
-		"closed": gap_ary.is_empty(),
 	}
 
 func _shape_name(s: ShapeType) -> String:
@@ -286,8 +287,9 @@ func apply_dict(d: Dictionary) -> void:
 				if pp_i is Dictionary:
 					new_path2.append(Vector2(float(pp_i.get("x", 0.0)), float(pp_i.get("y", 0.0))))
 			path_points = new_path2
-	z_index = int(d.get("z_index", 1))
+	z_index = int(d.get("z_index", d.get("z", 1)))
 	initially_locked = bool(d.get("initially_locked", false))
+	locked = bool(d.get("locked", false))
 	if d.has("release_direction"):
 		var rd: Variant = d["release_direction"]
 		if rd is Dictionary:
@@ -314,5 +316,16 @@ func apply_dict(d: Dictionary) -> void:
 			gaps = [gd]
 		else:
 			gaps = []
+	# Sanity check: flag (without rewriting) the common authoring slip of
+	# DUAL_GAP_CIRCLE with one gap, OPEN_CIRCLE with zero, etc. Silent
+	# downstream failures cost more than a one-line warning at load time.
+	if d.has("piece_type"):
+		var gap_count_now := gaps.size()
+		if int(piece_type) == int(PieceType.DUAL_GAP_CIRCLE) and gap_count_now != 2:
+			push_warning("PieceDefinition.load: id=%s claims DUAL_GAP_CIRCLE but has %d gap(s)" % [String(id), gap_count_now])
+		elif int(piece_type) == int(PieceType.OPEN_CIRCLE) and gap_count_now != 1:
+			push_warning("PieceDefinition.load: id=%s claims OPEN_CIRCLE but has %d gap(s)" % [String(id), gap_count_now])
+		elif int(piece_type) == int(PieceType.CLOSED_CIRCLE) and gap_count_now != 0:
+			push_warning("PieceDefinition.load: id=%s claims CLOSED_CIRCLE but has %d gap(s)" % [String(id), gap_count_now])
 	# piece_type was already set from d.piece_type if present. No mirroring
 	# to preserve authored values per Section 11.

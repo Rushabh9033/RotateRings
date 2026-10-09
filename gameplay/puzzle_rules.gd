@@ -5,11 +5,18 @@ const PieceGeometry = preload("res://gameplay/piece_geometry.gd")
 
 const ConnectorRuntimeScript = preload("res://gameplay/connector_runtime.gd")
 
+# Mirror of data/piece_definition.gd::PieceRole. Kept as a separate enum here
+# because gameplay code references these by integer constant and we don't want
+# a one-line edit in the schema file to silently shift all enum values used by
+# the runtime. The schema may grow new roles (HUB, etc.); the runtime will
+# receive them as ints and treat anything > EXIT as "not NORMAL, not
+# ROOT_ANCHOR, not EXIT" until we add explicit branches.
 enum PieceRole {
-	NORMAL,
-	ROOT_ANCHOR,
-	EXIT,
-	SPECIAL,
+	NORMAL = 0,
+	ROOT_ANCHOR = 1,
+	HUB = 2,        # declared in schema; runtime treats as NORMAL for now
+	EXIT = 3,
+	SPECIAL = 4,
 }
 
 enum ReleaseReason {
@@ -30,8 +37,6 @@ static func infer_role(gaps: Array) -> int:
 static func piece_role(piece) -> int:
 	if piece != null and "role" in piece:
 		return int(piece.role)
-	if piece != null and piece.get("gaps") != null and piece.gaps.is_empty() and false:
-		return PieceRole.ROOT_ANCHOR
 	return PieceRole.NORMAL
 
 static func piece_shape(piece) -> int:
@@ -51,6 +56,12 @@ static func _is_gone(piece) -> bool:
 		var st := int(piece.state)
 		return st == _RELEASED or st == _RELEASING
 	return false
+
+# Dictionary-typed variant for the pure solver pipeline, which stores pieces
+# as plain Dictionary snapshots. Honors both RELEASED (6) and RELEASING (5).
+static func _is_gone_dict(p: Dictionary) -> bool:
+	var st := int(p.get("state", 0))
+	return st == _RELEASED or st == _RELEASING
 
 static func bind_connector(link_def, from_pos: Vector2, from_rot_deg: float, to_pos: Vector2, from_radius: float = 0.0) -> void:
 	var diff: Vector2 = to_pos - from_pos
@@ -662,9 +673,9 @@ static func apply_action(state, action) -> Dictionary:
 		return result
 		
 	var p: Dictionary = state.pieces[pid]
-	if int(p.get("state", 0)) == _RELEASED:
+	if _is_gone_dict(p):
 		return result
-		
+
 	if not is_pure_piece_rotatable(state, pid):
 		return result
 		
@@ -708,9 +719,9 @@ static func is_pure_piece_rotatable(state, pid: StringName) -> bool:
 	if not state.pieces.has(pid):
 		return false
 	var p: Dictionary = state.pieces[pid]
-	if int(p.get("state", 0)) == _RELEASED:
+	if _is_gone_dict(p):
 		return false
-		
+
 	# A piece cannot rotate if any outgoing child link is in CLEARING state
 	for cid in state.connectors.keys():
 		var conn: Dictionary = state.connectors[cid]
@@ -730,7 +741,7 @@ static func is_pure_piece_releasable(state, pid: StringName) -> bool:
 	if not state.pieces.has(pid):
 		return false
 	var p: Dictionary = state.pieces[pid]
-	if int(p.get("state", 0)) == _RELEASED:
+	if _is_gone_dict(p):
 		return false
 		
 	# 1. Outgoing child constraints: piece cannot release if any attached child is not gone
@@ -823,7 +834,7 @@ static func resolve_pure_releases(state) -> Array:
 		changed = false
 		for pid in state.pieces.keys():
 			var p: Dictionary = state.pieces[pid]
-			if int(p.get("state", 0)) == _RELEASED:
+			if _is_gone_dict(p):
 				continue
 			if not is_pure_piece_releasable(state, pid):
 				continue
@@ -846,7 +857,7 @@ static func is_pure_state_won(state) -> bool:
 	if state == null or state.pieces.is_empty():
 		return false
 	for pid in state.pieces.keys():
-		if int(state.pieces[pid].get("state", 0)) != _RELEASED:
+		if not _is_gone_dict(state.pieces[pid]):
 			return false
 	return true
 

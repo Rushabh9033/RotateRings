@@ -53,6 +53,14 @@ var _resize_original_offset: float = 0.0
 func set_puzzle(p: Node) -> void:
 	_puzzle = p
 
+# Injected by the gameplay screen so _save_all_pieces() doesn't have to walk
+# the parent chain looking for current_level_id. Falls back to the walk if
+# not injected (back-compat with old callers).
+var _level_id: int = -1
+
+func set_level_id(lid: int) -> void:
+	_level_id = lid
+
 func toggle(active: bool) -> void:
 	_is_active = active
 	if active:
@@ -255,8 +263,14 @@ func _hit_test_lock(local_pos: Vector2) -> int:
 func _hit_test_radius_handle(local_pos: Vector2) -> int:
 	for i in range(_pieces.size() - 1, -1, -1):
 		var p = _pieces[i]
-		# Handle sits at the TOP of the ring (12 o'clock world, but rotated by piece)
-		var a = 90.0  # top-of-ring in screen-up convention
+		# Handle sits at the TOP of the ring body (12 o'clock in the ring's LOCAL
+		# frame), rotated by the piece's current rotation so it tracks the ring
+		# as the user drags it. Without the rotation term the handle drifts off
+		# the visible top after the first drag.
+		var piece_obj = p["piece"]
+		var a: float = 90.0
+		if piece_obj != null and "rotation_degrees" in piece_obj:
+			a = 90.0 + float(piece_obj.rotation_degrees)
 		var hx = p["center"].x + cos(deg_to_rad(a)) * (p["radius"] + 22.0)
 		var hy = p["center"].y + sin(deg_to_rad(a)) * (p["radius"] + 22.0)
 		if Vector2(hx, hy).distance_to(local_pos) <= 16.0:
@@ -334,10 +348,16 @@ func _apply_resize_radius(idx: int, local_pos: Vector2) -> void:
 	var pdef: Resource = p["def"]
 	if pdef != null:
 		pdef.radius = new_rad
+		# OVAL has independent Y radius — keep it in lockstep so authored
+		# dimensions don't drift when the user drags the resize handle.
+		if int(pdef.shape_type) == int(PieceDefinition.ShapeType.OVAL):
+			pdef.radius_y = new_rad
 	# Live update the ring piece's radius field too.
 	var piece = p["piece"]
 	if piece and "radius" in piece:
 		piece.radius = new_rad
+		if int(pdef.shape_type) == int(PieceDefinition.ShapeType.OVAL):
+			piece.radius_y = new_rad
 		if "queue_redraw" in piece: piece.queue_redraw()
 	queue_redraw()
 	# Force the puzzle to redraw the connector at the new boundary.
@@ -396,15 +416,18 @@ func _commit_resize_connector(_drop_pos: Vector2) -> void:
 
 func _save_all_pieces() -> void:
 	if _puzzle == null: return
-	var gp: Node = _puzzle.get_parent()
-	while gp != null and not gp.has_method("load_level_by_id"):
-		gp = gp.get_parent()
-	if gp == null:
-		if debug_print: print("_save_all_pieces: gameplay screen not found in parent chain")
-		return
-	var level_id: int = -1
-	if "current_level_id" in gp:
-		level_id = int(gp.current_level_id)
+	# Prefer the injected level id (set by GameplayScreen via set_level_id).
+	# Fall back to the parent-chain walk only if not injected (legacy caller).
+	var level_id: int = _level_id
+	if level_id <= 0:
+		var gp: Node = _puzzle.get_parent()
+		while gp != null and not gp.has_method("load_level_by_id"):
+			gp = gp.get_parent()
+		if gp == null:
+			if debug_print: print("_save_all_pieces: gameplay screen not found in parent chain")
+			return
+		if "current_level_id" in gp:
+			level_id = int(gp.current_level_id)
 	if level_id <= 0:
 		if debug_print: print("_save_all_pieces: bad level_id=", level_id)
 		return
@@ -586,12 +609,19 @@ func _draw() -> void:
 		else:
 			# Open lock — small dot in middle
 			draw_circle(lock_pos, 3.0, Color(1, 1, 1, 0.9))
-		# Top-edge handle for radius resize
-		var top_handle = pos + Vector2(0, -(radius + 22.0))
+		# Top-edge handle for radius resize. Rotated with the piece so the
+	# handle sits at the body's local 12-o'clock regardless of ring rotation.
+		var piece_obj = p["piece"]
+		var handle_rot_deg: float = 0.0
+		if piece_obj != null and "rotation_degrees" in piece_obj:
+			handle_rot_deg = float(piece_obj.rotation_degrees)
+		var handle_offset := Vector2(0, -(radius + 22.0)).rotated(deg_to_rad(handle_rot_deg))
+		var top_handle = pos + handle_offset
 		draw_circle(top_handle, 9.0, Color(0.95, 0.7, 0.3, 0.95))
 		# Small triangle below handle to indicate "pull to grow"
-		draw_line(top_handle + Vector2(-4, 0), pos + Vector2(0, -radius - 2), Color(0.95, 0.7, 0.3, 0.6), 1.5)
-		draw_line(top_handle + Vector2(4, 0), pos + Vector2(0, -radius - 2), Color(0.95, 0.7, 0.3, 0.6), 1.5)
+		var ring_top_offset := Vector2(0, -radius - 2).rotated(deg_to_rad(handle_rot_deg))
+		draw_line(top_handle + Vector2(-4, 0), pos + ring_top_offset, Color(0.95, 0.7, 0.3, 0.6), 1.5)
+		draw_line(top_handle + Vector2(4, 0), pos + ring_top_offset, Color(0.95, 0.7, 0.3, 0.6), 1.5)
 		# Center mark for the dragged piece
 		if is_dragging:
 			draw_circle(pos, 4.0, Color(0.95, 0.7, 0.3))

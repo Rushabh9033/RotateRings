@@ -190,8 +190,13 @@ func load_level(def) -> void:
 			var from_p = piece_map.get(link.from_piece_id)
 			var to_p = piece_map.get(link.to_piece_id)
 			if from_p and to_p:
-				from_p.role = 1 if from_p.gaps.is_empty() else 0
-				to_p.role = 1 if to_p.gaps.is_empty() else 0
+				# Respect authored role. Section 11: never silently derive a runtime
+				# role from gaps.size(). Only infer ROOT_ANCHOR if the piece is
+				# already in the NORMAL state (i.e. the author did not declare one).
+				if int(from_p.role) == 0 and from_p.gaps.is_empty():
+					from_p.role = 1  # NORMAL -> ROOT_ANCHOR
+				if int(to_p.role) == 0 and to_p.gaps.is_empty():
+					to_p.role = 1
 			# Use definition positions. The drop tween has not reached them yet.
 			PuzzleRulesScript.bind_connector(link, from_def.position, from_def.start_angle_deg, to_def.position, from_def.radius)
 		var runtime = ConnectorRuntime.new(link)

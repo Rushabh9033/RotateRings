@@ -46,6 +46,11 @@ static func _to_pure_state(input_pieces, input_links = null) -> PuzzleStateScrip
 				rot_val = float(p.rotation_degrees)
 			elif "rotation_deg" in p:
 				rot_val = float(p.rotation_deg)
+			# Authored rotation always wins over a 0 default — the runtime's
+			# load_level() initializes current_angle_deg from start_angle_deg,
+			# so a PieceDefinition with no explicit rotation_degrees would
+			# otherwise start at 0 in the solver but at start_angle_deg in
+			# gameplay, breaking BFS/play parity.
 			elif "start_angle_deg" in p:
 				rot_val = float(p.start_angle_deg)
 				

@@ -43,6 +43,9 @@ func setup(save_svc: Node, audio_svc: Node, haptic_svc: Node) -> void:
 	# Edit overlay is fully inert until toggle(true) is called. Wire the puzzle
 	# controller reference so the overlay can read/write piece data on drag-end.
 	edit_overlay.set_puzzle(puzzle_controller)
+	# Inject the active level id so the overlay's _save_all_pieces() can write
+	# to res://data/user_levels/<n>.json without walking the parent chain.
+	edit_overlay.set_level_id(current_level_id)
 
 func _ready() -> void:
 	pause_modal.z_index = 100
@@ -98,7 +101,8 @@ func _load_definition(lvl_id: int, def) -> bool:
 			assert(false, "Playable or debug level %d resolved to null." % lvl_id)
 		return false
 	current_level_id = lvl_id
-	
+	if edit_overlay: edit_overlay.set_level_id(current_level_id)
+
 	level_prefix.text = "Level"
 	level_num_lbl.text = str(lvl_id)
 	level_num_lbl.add_theme_font_size_override("font_size", 24)

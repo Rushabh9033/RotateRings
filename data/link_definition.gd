@@ -32,7 +32,11 @@ class_name LinkDefinition
 @export var is_detached: bool = false                  # True when child slipped out of this cuff
 
 # Storage alias for backward-compat with existing code that reads `stem_dist`.
-# We honor `stem_distance_from_piece` first; if 0 we fall back to `stem_dist`.
+# `stem_distance_from_piece` is the Section-8 canonical value; this legacy
+# mirror exists only so older saved JSON (where only `stem_dist` was written)
+# can still load without silently dropping the field. New code should always
+# read/write `stem_distance_from_piece`; `stem_dist` is emitted to_dict() for
+# round-trip compatibility and ignored by apply_dict()/from_dict() otherwise.
 @export var stem_dist: float = 0.0
 
 func _init(
