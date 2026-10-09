@@ -387,8 +387,10 @@ func _labeled_spin(label: String, _doc_field: String, min_v: float, max_v: float
 	sb.min_value = min_v
 	sb.max_value = max_v
 	sb.step = step
-	if document != null:
-		sb.value = float(document.get(_doc_field))
+	if document != null and _doc_field in document:
+		var v = document.get(_doc_field)
+		if v != null:
+			sb.value = float(v)
 	sb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sb.add_theme_font_size_override("font_size", 11)
 	sb.value_changed.connect(on_change)
@@ -397,6 +399,27 @@ func _labeled_spin(label: String, _doc_field: String, min_v: float, max_v: float
 		"frame_scale": _frame_scale_spin = sb
 		"frame_offset_x": _frame_off_x_spin = sb
 		"frame_offset_y": _frame_off_y_spin = sb
+	return hbox
+
+# Variant for non-document fields (pan x/y are local toolbar state, not
+# on the LevelDocument).
+func _labeled_spin_local(label: String, init: float, min_v: float, max_v: float, step: float, on_change: Callable) -> Control:
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 4)
+	var l := Label.new()
+	l.text = label
+	l.custom_minimum_size = Vector2(40, 0)
+	l.add_theme_font_size_override("font_size", 11)
+	hbox.add_child(l)
+	var sb := SpinBox.new()
+	sb.min_value = min_v
+	sb.max_value = max_v
+	sb.step = step
+	sb.value = init
+	sb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sb.add_theme_font_size_override("font_size", 11)
+	sb.value_changed.connect(on_change)
+	hbox.add_child(sb)
 	return hbox
 
 func _on_frame_scale_changed(v: float) -> void:
@@ -748,8 +771,8 @@ func _build_reference_strip() -> Control:
 	v.add_child(fit_row)
 	v.add_child(_labeled_slider_compact("zoom", reference_zoom, func(v): reference_zoom = v; emit_signal("reference_zoom_changed", v), 0.25, 4.0, 0.05))
 	# Pan x/y
-	v.add_child(_labeled_spin("pan x", "pan_x", -1000.0, 1000.0, 1.0, _on_pan_x_changed))
-	v.add_child(_labeled_spin("pan y", "pan_y", -1000.0, 1000.0, 1.0, _on_pan_y_changed))
+	v.add_child(_labeled_spin_local("pan x", reference_pan.x, -1000.0, 1000.0, 1.0, _on_pan_x_changed))
+	v.add_child(_labeled_spin_local("pan y", reference_pan.y, -1000.0, 1000.0, 1.0, _on_pan_y_changed))
 	return v
 
 func _on_pan_x_changed(v: float) -> void:
