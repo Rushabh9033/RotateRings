@@ -106,4 +106,10 @@ func animate_release(
 	piece.state = RingPiece2DScript.State.RELEASED
 	if on_completed.is_valid():
 		on_completed.call(piece)
+	# Kill the piece's state tween so it cannot write to global_position
+	# (via the render path) after queue_free.
+	if piece != null and piece.get("_state_tween") != null:
+		var st = piece.get("_state_tween")
+		if is_instance_valid(st):
+			st.kill()
 	piece.queue_free()
