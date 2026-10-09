@@ -1,42 +1,67 @@
 {
   "id": 1,
-  "links": [
-    {
-      "cuff_color_hex": "#32ADDA",
-      "cuff_color_name": "cyan",
-      "from_id": "ring_left",
-      "stem_dist": 200.0,
-      "to_id": "ring_right"
-    }
-  ],
+  "title": "Level 1",
+  "source": "manual-fix",
   "pieces": [
     {
-      "closed": false,
-      "color_hex": "#32ADDA",
-      "color_name": "cyan",
-      "gap_deg": 180.0,
-      "id": "ring_left",
-      "locked": false,
-      "radius": 120.0,
-      "shape": "CIRCLE",
-      "thickness": 18.0,
-      "x": 200.0,
-      "y": 620.0
+      "id": "root_anchor",
+      "radius": 0.0,
+      "thickness": 0.0,
+      "gaps": [],
+      "shape_type": 0,
+      "start_angle_deg": 0.0,
+      "color": "000000",
+      "x": 360.0,
+      "y": 630.0,
+      "role": 1
     },
     {
-      "closed": false,
-      "color_hex": "#EA7829",
-      "color_name": "orange",
-      "gap_deg": 0.0,
-      "id": "ring_right",
-      "locked": false,
-      "radius": 90.0,
-      "shape": "CIRCLE",
+      "id": "ring_left",
+      "radius": 120.0,
       "thickness": 18.0,
+      "gaps": [
+        {
+          "center_angle_deg": 180.0,
+          "width_deg": 90.0
+        }
+      ],
+      "shape_type": 0,
+      "start_angle_deg": 0.0,
+      "color": "32ADDA",
+      "x": 260.0,
+      "y": 620.0,
+      "role": 0
+    },
+    {
+      "id": "ring_right",
+      "radius": 90.0,
+      "thickness": 18.0,
+      "gaps": [
+        {
+          "center_angle_deg": 0.0,
+          "width_deg": 90.0
+        }
+      ],
+      "shape_type": 0,
+      "start_angle_deg": 0.0,
+      "color": "EA7829",
       "x": 460.0,
-      "y": 620.0
+      "y": 640.0,
+      "role": 0
     }
   ],
-  "source": "in-game-edit-overlay",
-  "title": "Level 1"
+  "links": [
+    {
+      "from_id": "root_anchor",
+      "to_id": "ring_left",
+      "cuff_color_hex": "#32ADDA",
+      "stem_dist": 0.0
+    },
+    {
+      "from_id": "root_anchor",
+      "to_id": "ring_right",
+      "cuff_color_hex": "#EA7829",
+      "stem_dist": 0.0
+    }
+  ]
 }
