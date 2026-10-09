@@ -16,6 +16,7 @@ extends Control
 const LevelDatabaseScript = preload("res://data/level_database.gd")
 const UserLevelsScript = preload("res://data/user_levels.gd")
 const PuzzleRulesScript = preload("res://gameplay/puzzle_rules.gd")
+const PieceDefinitionScript = preload("res://data/piece_definition.gd")
 
 signal edit_mode_changed(is_on: bool)
 signal piece_moved(piece_id: String, position: Vector2)
@@ -306,6 +307,42 @@ func _gui_input(event: InputEvent) -> void:
 # by `nudge_unit` (Shift = nudge_unit * 10).
 func _handle_key_nudge(event: InputEventKey) -> void:
 	if not event.pressed or event.echo: return
+	# Ctrl shortcuts (M19 / M20): undo, redo, copy, paste, duplicate, delete.
+	if event.ctrl_pressed and not event.shift_pressed and not event.alt_pressed:
+		match event.keycode:
+			KEY_Z:
+				accept_event()
+				if _document != null: _document.undo()
+				queue_redraw()
+				return
+			KEY_C:
+				accept_event()
+				_copy_selected_to_clipboard()
+				return
+			KEY_V:
+				accept_event()
+				_paste_from_clipboard()
+				return
+			KEY_D:
+				accept_event()
+				_duplicate_selected()
+				return
+			KEY_DELETE, KEY_BACKSPACE:
+				accept_event()
+				_delete_selected()
+				return
+	if event.ctrl_pressed and event.shift_pressed and not event.alt_pressed:
+		if event.keycode == KEY_Z:
+			accept_event()
+			if _document != null: _document.redo()
+			queue_redraw()
+			return
+	if event.ctrl_pressed and not event.shift_pressed and not event.alt_pressed:
+		if event.keycode == KEY_Y:
+			accept_event()
+			if _document != null: _document.redo()
+			queue_redraw()
+			return
 	# R alone toggles rotate-mode (independent of selection so the user can
 	# flip modes before they pick a piece).
 	if event.keycode == KEY_R and not event.shift_pressed and not event.ctrl_pressed and not event.alt_pressed:
@@ -318,8 +355,8 @@ func _handle_key_nudge(event: InputEventKey) -> void:
 	if p["locked"]: return
 
 	if rotate_mode:
-		# Arrow keys nudge rotation: 5° / Shift=45°.
-		var step: float = 45.0 if event.shift_pressed else 5.0
+		# Arrow keys nudge rotation: 5° / Shift=45° / Alt=1° (precision).
+		var step: float = 45.0 if event.shift_pressed else (1.0 if event.alt_pressed else 5.0)
 		var ddeg: float = 0.0
 		match event.keycode:
 			KEY_LEFT:  ddeg = -step
@@ -333,7 +370,8 @@ func _handle_key_nudge(event: InputEventKey) -> void:
 		var def: Resource = p["def"]
 		var cur: float = float(piece_obj.rotation_degrees) if "rotation_degrees" in piece_obj else float(def.start_angle_deg)
 		var new_deg: float = fposmod(cur + ddeg, 360.0)
-		if snap_enabled:
+		if snap_enabled and not event.alt_pressed:
+			# Alt is "precision" — no snap.
 			new_deg = _snap_angle(new_deg, 5.0 if not event.shift_pressed else 45.0)
 		piece_obj.rotation_degrees = new_deg
 		if "current_angle_deg" in piece_obj:
@@ -343,8 +381,10 @@ func _handle_key_nudge(event: InputEventKey) -> void:
 		queue_redraw()
 		return
 
-	# Position nudge.
-	var unit: float = nudge_unit * 10.0 if event.shift_pressed else nudge_unit
+	# Position nudge. M8: arrow=1u, Shift=10u, Alt=0.1u.
+	var unit: float = nudge_unit
+	if event.shift_pressed: unit *= 10.0
+	if event.alt_pressed: unit *= 0.1
 	var dx: float = 0.0
 	var dy: float = 0.0
 	match event.keycode:
@@ -356,7 +396,8 @@ func _handle_key_nudge(event: InputEventKey) -> void:
 			return
 	accept_event()
 	var np: Vector2 = p["piece"].global_position + Vector2(dx, dy)
-	if snap_enabled:
+	if snap_enabled and not event.alt_pressed:
+		# Alt is "precision" — no snap.
 		np = Vector2(_snap(np.x), _snap(np.y))
 	p["piece"].global_position = np
 	p["center"] = np
@@ -368,6 +409,73 @@ func _handle_key_nudge(event: InputEventKey) -> void:
 func _snap_angle(deg: float, step: float) -> float:
 	if step <= 0.0: return deg
 	return round(deg / step) * step
+
+# Optional LevelDocument binding so Ctrl+Z / Ctrl+Y can use it directly. The
+# overlay still works for pieces that live in the runtime without a doc.
+var _document: Resource = null
+func set_document(doc) -> void:
+	_document = doc
+func _copy_selected_to_clipboard() -> void:
+	if _selected_piece_idx < 0: return
+	var p = _pieces[_selected_piece_idx]
+	var def: Resource = p["def"]
+	# Reuse the Inspector's clipboard if present; otherwise stash in
+	# a singleton-ish dict the paste path reads.
+	_clipboard_payload = def.to_dict() if def != null else {}
+func _paste_from_clipboard() -> void:
+	if _clipboard_payload.is_empty(): return
+	if _document != null:
+		# Use the document's paste_piece so we get undo support.
+		var new_id: String = _document.paste_piece(_clipboard_payload, Vector2(20, 20))
+		emit_signal("document_changed_requested", new_id)
+		_save_all_pieces()
+		queue_redraw()
+		return
+	# Fall back: insert into the puzzle directly.
+	if _puzzle == null: return
+	var new_piece = PieceDefinitionScript.new()
+	new_piece.apply_dict(_clipboard_payload)
+	new_piece.id = StringName("piece_copy_%d" % Time.get_ticks_msec())
+	_puzzle.current_level_def.pieces.append(new_piece)
+	_puzzle.load_level(_puzzle.current_level_def)
+	_save_all_pieces()
+	queue_redraw()
+func _duplicate_selected() -> void:
+	if _selected_piece_idx < 0: return
+	var p = _pieces[_selected_piece_idx]
+	if _document != null:
+		var new_id: String = _document.duplicate_piece(String(p["id"]), Vector2(20, 20))
+		emit_signal("document_changed_requested", new_id)
+		_save_all_pieces()
+		queue_redraw()
+		return
+	# Runtime fallback
+	_copy_selected_to_clipboard()
+	_paste_from_clipboard()
+func _delete_selected() -> void:
+	if _selected_piece_idx < 0: return
+	var p = _pieces[_selected_piece_idx]
+	if _document != null:
+		_document.delete_piece(String(p["id"]))
+		_selected_piece_idx = -1
+		_save_all_pieces()
+		queue_redraw()
+		return
+	# Runtime fallback
+	if _puzzle == null: return
+	var def = _puzzle.current_level_def
+	var keep: Array = []
+	for pp in def.pieces:
+		if String(pp.id) != String(p["id"]):
+			keep.append(pp)
+	def.pieces.clear()
+	for pp in keep: def.pieces.append(pp)
+	_puzzle.load_level(def)
+	_save_all_pieces()
+	queue_redraw()
+
+var _clipboard_payload: Dictionary = {}
+signal document_changed_requested(selection_hint: String)
 
 func _hit_test_body(local_pos: Vector2) -> int:
 	for i in range(_pieces.size() - 1, -1, -1):
