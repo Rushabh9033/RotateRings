@@ -364,6 +364,119 @@ func snap_coordinate(coord: Vector2) -> Vector2:
 	return out
 
 # ==============================================================================
+# Object clipboard (Section 3): Duplicate / Copy / Paste / Size Match.
+# All routed through apply_edit so undo works.
+# ==============================================================================
+
+# Duplicate a piece. Returns the new piece's id, or "" on failure. The
+# duplicate is offset by (offset.x, offset.y) from the source so the user
+# sees it. Caller can pass offset=Vector2.ZERO for in-place.
+func duplicate_piece(source_id: String, offset: Vector2 = Vector2(20, 20)) -> String:
+	var src: Dictionary = find_piece(source_id)
+	if src.is_empty(): return ""
+	var new_id: String = generate_unique_piece_id(String(src.get("id", "piece")).split("_")[0] if "_" in String(src.get("id", "")) else "piece")
+	var copy: Dictionary = src.duplicate(true)
+	copy["id"] = new_id
+	copy["x"] = float(copy.get("x", 0.0)) + offset.x
+	copy["y"] = float(copy.get("y", 0.0)) + offset.y
+	var captured_id := new_id
+	apply_edit(func():
+		pieces.append(copy)
+	)
+	return new_id
+
+# Paste a piece from a clipboard dict. Generates a unique id and inserts.
+# Returns the new id, or "" if the dict isn't a piece.
+func paste_piece(piece_dict: Dictionary, offset: Vector2 = Vector2(20, 20)) -> String:
+	if piece_dict.is_empty() or not piece_dict.has("shape_type"):
+		return ""
+	var new_id: String = generate_unique_piece_id("piece")
+	var copy: Dictionary = piece_dict.duplicate(true)
+	copy["id"] = new_id
+	copy["x"] = float(copy.get("x", 0.0)) + offset.x
+	copy["y"] = float(copy.get("y", 0.0)) + offset.y
+	apply_edit(func():
+		pieces.append(copy)
+	)
+	return new_id
+
+# Delete a piece by id. Also removes any links that reference it.
+func delete_piece(piece_id: String) -> bool:
+	var target: String = piece_id
+	var had: bool = false
+	for p in pieces:
+		if String(p.get("id", "")) == target:
+			had = true; break
+	if not had: return false
+	apply_edit(func():
+		var keep: Array = []
+		for p in pieces:
+			if String(p.get("id", "")) != target:
+				keep.append(p)
+		pieces.clear()
+		for p in keep: pieces.append(p)
+		var keep_links: Array = []
+		for l in links:
+			if String(l.get("from_id", "")) != target and String(l.get("to_id", "")) != target:
+				keep_links.append(l)
+		links.clear()
+		for l in keep_links: links.append(l)
+	)
+	return true
+
+# Delete a link by id.
+func delete_link(link_id: String) -> bool:
+	var had: bool = false
+	for l in links:
+		if String(l.get("id", "")) == link_id:
+			had = true; break
+	if not had: return false
+	apply_edit(func():
+		var keep: Array = []
+		for l in links:
+			if String(l.get("id", "")) != link_id:
+				keep.append(l)
+		links.clear()
+		for l in keep: links.append(l)
+	)
+	return true
+
+# Match size from a source piece to one or more target piece ids. Uses the
+# EditorClipboard shape table. Properties that are locked on the target are
+# not changed (Section 4 lock guard). All mutations happen inside a single
+# apply_edit so undo rolls them back as a unit.
+func match_size_from_piece(source_id: String, target_ids: Array) -> int:
+	var src: Dictionary = find_piece(source_id)
+	if src.is_empty(): return 0
+	var SHAPE_SIZE_FIELDS: Dictionary = preload("res://data/editor_clipboard.gd").SHAPE_SIZE_FIELDS
+	var src_shape: int = int(src.get("shape_type", 0))
+	var fields: Array = SHAPE_SIZE_FIELDS.get(src_shape, ["radius", "thickness"])
+	# Pre-compute the changes so apply_edit can run them as a single mutator.
+	var edits: Array = []  # [{ tid, field, value }, ...]
+	for tid in target_ids:
+		var target: Dictionary = find_piece(String(tid))
+		if target.is_empty(): continue
+		if is_property_locked(String(tid), "size"): continue
+		var tgt_shape: int = int(target.get("shape_type", 0))
+		if tgt_shape == src_shape:
+			for f in fields:
+				if src.has(f):
+					edits.append({"tid": String(tid), "field": String(f), "value": src[f]})
+		else:
+			for f in fields:
+				if src.has(f) and target.has(f):
+					edits.append({"tid": String(tid), "field": String(f), "value": src[f]})
+	if edits.is_empty(): return 0
+	var captured_edits := edits
+	apply_edit(func():
+		for e in captured_edits:
+			var tgt: Dictionary = find_piece(String(e["tid"]))
+			if not tgt.is_empty():
+				tgt[String(e["field"])] = e["value"]
+	)
+	return captured_edits.size()
+
+# ==============================================================================
 # Helpers — used by the editor UI and tests
 # ==============================================================================
 
