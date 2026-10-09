@@ -568,6 +568,102 @@ func match_size_from_piece(source_id: String, target_ids: Array) -> int:
 	return captured_edits.size()
 
 # ==============================================================================
+# Multi-select (Section 7) — alignment, distribute, match axis.
+# Routed through apply_edit so a 10-piece align is one undo step.
+# ==============================================================================
+
+# Group-edit a field across many piece ids. Honors per-piece locks.
+# Returns the number of pieces actually changed.
+func set_field_for_pieces(piece_ids: Array, field: String, value: Variant, lock_property: String = "") -> int:
+	var captured_ids: Array = piece_ids.duplicate()
+	var captured_field: String = field
+	var captured_value: Variant = value
+	var captured_lock: String = lock_property
+	var changed: int = 0
+	apply_edit(func():
+		for pid in captured_ids:
+			var p: Dictionary = find_piece(String(pid))
+			if p.is_empty(): continue
+			if captured_lock != "" and is_property_locked(String(pid), captured_lock): continue
+			p[captured_field] = captured_value
+			changed += 1
+	)
+	return changed
+
+# Align N pieces along an axis. axis = "x" or "y"; mode = "left" | "center"
+# | "right" (for x) or "top" | "middle" | "bottom" (for y). The first
+# selected piece is the reference.
+func align_pieces(piece_ids: Array, axis: String, mode: String) -> int:
+	if piece_ids.is_empty(): return 0
+	var ref: Dictionary = find_piece(String(piece_ids[0]))
+	if ref.is_empty(): return 0
+	var ref_pos: Vector2 = Vector2(float(ref["x"]), float(ref["y"]))
+	var ref_radius: float = float(ref["radius"])
+	var captured_ids: Array = piece_ids.duplicate()
+	var captured_axis: String = axis
+	var captured_mode: String = mode
+	var changed: int = 0
+	apply_edit(func():
+		for pid in captured_ids:
+			var p: Dictionary = find_piece(String(pid))
+			if p.is_empty(): continue
+			if is_property_locked(String(pid), "position"): continue
+			var r: float = float(p["radius"])
+			if captured_axis == "x":
+				if captured_mode == "left":
+					p["x"] = ref_pos.x - ref_radius + r
+				elif captured_mode == "center":
+					p["x"] = ref_pos.x
+				elif captured_mode == "right":
+					p["x"] = ref_pos.x + ref_radius - r
+			else:
+				if captured_mode == "top":
+					p["y"] = ref_pos.y - ref_radius + r
+				elif captured_mode == "middle":
+					p["y"] = ref_pos.y
+				elif captured_mode == "bottom":
+					p["y"] = ref_pos.y + ref_radius - r
+			changed += 1
+	)
+	return changed
+
+# Distribute N pieces evenly along an axis. Needs >= 3 selected.
+func distribute_pieces(piece_ids: Array, axis: String) -> int:
+	if piece_ids.size() < 3: return 0
+	var items: Array = []
+	for pid in piece_ids:
+		var p: Dictionary = find_piece(String(pid))
+		if p.is_empty(): continue
+		items.append({"id": String(pid), "pos": float(p[axis])})
+	if items.size() < 3: return 0
+	items.sort_custom(func(a, b): return a["pos"] < b["pos"])
+	var first: float = float(items[0]["pos"])
+	var last: float = float(items[items.size() - 1]["pos"])
+	var step: float = (last - first) / float(items.size() - 1)
+	var captured_items: Array = items.duplicate(true)
+	var captured_step: float = step
+	var captured_axis: String = axis
+	var changed: int = 0
+	apply_edit(func():
+		for i in range(captured_items.size()):
+			var pid: String = String(captured_items[i]["id"])
+			if is_property_locked(pid, "position"): continue
+			var p: Dictionary = find_piece(pid)
+			if p.is_empty(): continue
+			p[captured_axis] = first + float(i) * captured_step
+			changed += 1
+	)
+	return changed
+
+# Match an axis (x or y) across N pieces: copy the first piece's value.
+func match_axis(piece_ids: Array, axis: String) -> int:
+	if piece_ids.is_empty(): return 0
+	var ref: Dictionary = find_piece(String(piece_ids[0]))
+	if ref.is_empty(): return 0
+	var target: float = float(ref[axis])
+	return set_field_for_pieces(piece_ids, axis, target, "position")
+
+# ==============================================================================
 # Helpers — used by the editor UI and tests
 # ==============================================================================
 
