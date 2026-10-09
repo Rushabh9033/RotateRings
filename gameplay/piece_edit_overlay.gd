@@ -195,6 +195,27 @@ func _gui_input(event: InputEvent) -> void:
 	var local_pos = get_local_mouse_position()
 
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		# Measurement tool takes priority over everything else when active.
+		if measure_mode:
+			if _measure_state == MeasureMode.WAIT_A:
+				_measure_a = local_pos
+				_measure_state = MeasureMode.WAIT_B
+				accept_event()
+				queue_redraw()
+				return
+			elif _measure_state == MeasureMode.WAIT_B:
+				_measure_b = local_pos
+				_measure_state = MeasureMode.SHOW
+				accept_event()
+				queue_redraw()
+				return
+			else:
+				# SHOW: start a new measurement.
+				_measure_a = local_pos
+				_measure_state = MeasureMode.WAIT_B
+				accept_event()
+				queue_redraw()
+				return
 		# Try lock-toggle first (priority)
 		var lock_hit = _hit_test_lock(local_pos)
 		if lock_hit >= 0:
@@ -349,6 +370,11 @@ func _handle_key_nudge(event: InputEventKey) -> void:
 		rotate_mode = not rotate_mode
 		accept_event()
 		return
+	# M alone toggles measure mode.
+	if event.keycode == KEY_M and not event.shift_pressed and not event.ctrl_pressed and not event.alt_pressed:
+		measure_mode = not measure_mode
+		accept_event()
+		return
 	var target_idx: int = _dragging_piece_idx if _dragging_piece_idx >= 0 else _selected_piece_idx
 	if target_idx < 0 or target_idx >= _pieces.size(): return
 	var p = _pieces[target_idx]
@@ -476,6 +502,22 @@ func _delete_selected() -> void:
 
 var _clipboard_payload: Dictionary = {}
 signal document_changed_requested(selection_hint: String)
+
+# Measurement tool (M10). State = "idle" | "wait_a" | "wait_b" | "show". When
+# the user clicks with the M tool active, the click points are stored here.
+enum MeasureMode { IDLE, WAIT_A, WAIT_B, SHOW }
+var measure_mode: bool = false:
+	set(v):
+		measure_mode = v
+		if v: _measure_state = MeasureMode.WAIT_A
+		else:  _measure_state = MeasureMode.IDLE
+		queue_redraw()
+var _measure_state: int = MeasureMode.IDLE
+var _measure_a: Vector2 = Vector2.ZERO
+var _measure_b: Vector2 = Vector2.ZERO
+
+# Status panel (M25) — show when something is selected.
+var show_status_panel: bool = true
 
 func _hit_test_body(local_pos: Vector2) -> int:
 	for i in range(_pieces.size() - 1, -1, -1):
@@ -978,10 +1020,24 @@ func _draw_debug_ids_for_pieces() -> void:
 func _draw_grid() -> void:
 	var sz = get_viewport_rect().size
 	var grid_color = Color(0.85, 0.7, 0.55, 0.18)
-	for x in range(0, int(sz.x), int(grid_size)):
+	var step: int = int(grid_size) if grid_size >= 4.0 else 4
+	for x in range(0, int(sz.x), step):
 		draw_line(Vector2(x, 0), Vector2(x, sz.y), grid_color, 1.0)
-	for y in range(0, int(sz.y), int(grid_size)):
+	for y in range(0, int(sz.y), step):
 		draw_line(Vector2(0, y), Vector2(sz.x, y), grid_color, 1.0)
+	# Rulers: top and left edges with numeric ticks (every 50 units).
+	var tick_step: int = 50
+	var tick_color = Color(0.95, 0.7, 0.3, 0.85)
+	var font = ThemeDB.fallback_font
+	if font != null:
+		for x in range(0, int(sz.x), tick_step):
+			draw_line(Vector2(x, 0), Vector2(x, 12), tick_color, 1.0)
+			if x % 100 == 0:
+				draw_string(font, Vector2(x + 2, 11), str(x), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.95, 0.7, 0.3, 0.9))
+		for y in range(0, int(sz.y), tick_step):
+			draw_line(Vector2(0, y), Vector2(12, y), tick_color, 1.0)
+			if y % 100 == 0:
+				draw_string(font, Vector2(2, y - 1), str(y), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.95, 0.7, 0.3, 0.9))
 
 func _draw_guides() -> void:
 	var sz = get_viewport_rect().size
@@ -990,6 +1046,15 @@ func _draw_guides() -> void:
 	draw_line(Vector2(sz.x * 0.5, 0), Vector2(sz.x * 0.5, sz.y), guide_color, 1.0)
 	# Horizontal mid-band
 	draw_line(Vector2(0, sz.y * 0.5), Vector2(sz.x, sz.y * 0.5), guide_color, 1.0)
+	# User-defined guides from the LevelDocument (if any).
+	if _document != null:
+		for g in _document.guides:
+			var axis_s: String = String((g as Dictionary).get("axis", "x"))
+			var val: float = float((g as Dictionary).get("value", 0.0))
+			if axis_s == "x":
+				draw_line(Vector2(val, 0), Vector2(val, sz.y), Color(0.55, 0.95, 0.4, 0.85), 1.5)
+			else:
+				draw_line(Vector2(0, val), Vector2(sz.x, val), Color(0.55, 0.95, 0.4, 0.85), 1.5)
 
 func _draw() -> void:
 	if not _is_active: return
@@ -1107,3 +1172,73 @@ func _draw() -> void:
 	# so the user can see exactly which authored value maps to which object.
 	if show_debug_ids:
 		_draw_debug_ids_for_pieces()
+
+	# Measurement tool (M10) overlay.
+	if measure_mode:
+		_draw_measurement()
+
+	# Status panel (M25) — show the selected piece's numbers.
+	if show_status_panel and _selected_piece_idx >= 0 and _selected_piece_idx < _pieces.size():
+		_draw_status_panel()
+
+func _draw_measurement() -> void:
+	var font = ThemeDB.fallback_font
+	if font == null: return
+	var color_a = Color(0.2, 0.85, 0.95, 0.95)
+	var color_b = Color(0.95, 0.45, 0.2, 0.95)
+	# Cross-hairs on the picked points.
+	draw_circle(_measure_a, 6.0, color_a)
+	draw_circle(_measure_b, 6.0, color_b)
+	draw_string(font, _measure_a + Vector2(8, -6), "A", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, color_a)
+	draw_string(font, _measure_b + Vector2(8, -6), "B", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, color_b)
+	if _measure_state == MeasureMode.SHOW:
+		draw_line(_measure_a, _measure_b, Color(0.9, 0.9, 0.5, 0.85), 2.0)
+		var dx: float = _measure_b.x - _measure_a.x
+		var dy: float = _measure_b.y - _measure_a.y
+		var dist: float = sqrt(dx * dx + dy * dy)
+		var angle: float = fposmod(rad_to_deg(atan2(dy, dx)), 360.0)
+		var mid: Vector2 = (_measure_a + _measure_b) * 0.5
+		var lines: Array = [
+			"d=%.2f" % dist,
+			"dx=%.2f dy=%.2f" % [dx, dy],
+			"angle=%.2f\u00b0" % angle,
+		]
+		var box_h: int = 16 * lines.size() + 8
+		draw_rect(Rect2(mid.x - 60, mid.y - box_h, 200, box_h), Color(0, 0, 0, 0.6), true)
+		for i in range(lines.size()):
+			draw_string(font, mid + Vector2(-56, -box_h + 16 + 14 * i), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color.WHITE)
+	elif _measure_state == MeasureMode.WAIT_B:
+		# Live preview: draw a line from A to the current mouse position.
+		var m: Vector2 = get_local_mouse_position()
+		draw_line(_measure_a, m, Color(0.6, 0.6, 0.5, 0.5), 1.5)
+
+func _draw_status_panel() -> void:
+	var p = _pieces[_selected_piece_idx]
+	var def: Resource = p["def"]
+	if def == null: return
+	var font = ThemeDB.fallback_font
+	if font == null: return
+	var lines: Array = [
+		"%s  (%s)" % [String(def.id), _shape_short(def)],
+		"x=%.2f  y=%.2f" % [float(def.position.x), float(def.position.y)],
+		"radius=%.2f  thickness=%.2f" % [float(def.radius), float(def.thickness)],
+		"start_angle=%.2f" % float(def.start_angle_deg),
+		"gaps=%d  z_index=%d" % [def.gaps.size(), int(def.z_index)],
+	]
+	var sz = get_viewport_rect().size
+	var panel_w: int = 280
+	var panel_h: int = 16 * lines.size() + 14
+	draw_rect(Rect2(sz.x - panel_w - 12, 36, panel_w, panel_h), Color(0, 0, 0, 0.55), true)
+	for i in range(lines.size()):
+		draw_string(font, Vector2(sz.x - panel_w - 4, 36 + 18 + 14 * i), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color.WHITE)
+
+func _shape_short(def: Resource) -> String:
+	match int(def.shape_type):
+		0: return "CIRCLE"
+		1: return "ROUNDED_SQUARE"
+		2: return "ROUNDED_TRIANGLE"
+		3: return "OVAL"
+		4: return "STRAIGHT"
+		5: return "L_SHAPE"
+		6: return "PATH"
+	return "?"
