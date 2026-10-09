@@ -690,13 +690,24 @@ func _load_from_dict(data: Dictionary) -> void:
 		})
 		_next_piece_id += 1
 	for l in data.get("links", []):
-		var cuff_hex: String = String(l.get("cuff_color_hex", l.get("joint_color_hex", "#EA7829")))
-		var cuff_name: String = String(l.get("cuff_color_name", l.get("joint_color_name", "orange")))
+		# Always derive the cuff color from the DESTINATION piece's
+		# color, not from whatever joint_color is in the JSON. This
+		# guarantees the visual convention "cuff = destination color"
+		# and self-heals any legacy JSONs that had the source color
+		# stored as the joint color.
+		var to_id_str: String = String(l["to_id"])
+		var dest_color_hex: String = "#EA7829"
+		var dest_color_name: String = "orange"
+		for pp in _placed_pieces:
+			if String(pp["id"]) == to_id_str:
+				dest_color_hex = String(pp.get("color_hex", "#EA7829"))
+				dest_color_name = String(pp.get("color_name", "orange"))
+				break
 		_placed_links.append({
 			"from_id": l["from_id"],
 			"to_id": l["to_id"],
-			"cuff_color_name": cuff_name,
-			"cuff_color_hex": cuff_hex,
+			"cuff_color_name": dest_color_name,
+			"cuff_color_hex": dest_color_hex,
 		})
 	puzzle_preview.queue_redraw()
 
