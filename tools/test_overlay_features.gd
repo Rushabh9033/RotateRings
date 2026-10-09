@@ -124,6 +124,7 @@ func _init() -> void:
 	# --- Final: JSON write round-trip ---
 	# Set level_id to a unique number for test isolation, write & read.
 	gp.current_level_id = 99
+	overlay.set_level_id(99)
 	overlay._save_all_pieces()
 	var def = UserLevelsScript.build(99)
 	if def == null:

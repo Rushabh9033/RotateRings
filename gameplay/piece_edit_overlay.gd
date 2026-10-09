@@ -32,15 +32,57 @@ enum DragMode {
 	MOVE_PIECE,
 	RESIZE_RADIUS,
 	RESIZE_CONNECTOR,
+	RESIZE_AXIS,
+	ROTATE_PIECE,
 	TOGGLE_LOCK,
 }
 
+# Per-shape axis-routing for the resize handles. Keyed by PieceDefinition.ShapeType int.
+# Each value is { "x": field_name, "y": field_name }. The field named "x" is
+# mutated when the user drags the piece's LOCAL +X (right) handle; "y" is
+# mutated for LOCAL +Y (down) handle. Negative axes drag the opposite field
+# by the same delta.
+const SHAPE_AXIS_FIELDS := {
+	0: {"x": "radius",      "y": "radius"},          # CIRCLE  (uniform)
+	1: {"x": "radius",      "y": "radius"},          # ROUNDED_SQUARE
+	2: {"x": "radius",      "y": "radius"},          # ROUNDED_TRIANGLE
+	3: {"x": "radius",      "y": "radius_y"},        # OVAL
+	4: {"x": "length",      "y": "width"},           # STRAIGHT
+	5: {"x": "length",      "y": "length_b"},        # L_SHAPE
+	6: {"x": "path_scale",  "y": "path_scale"},      # PATH (uniform scale)
+}
+
 var _is_active: bool = false
-var _pieces: Array = []              # [{id, piece, def, center, radius, locked}]
+var _pieces: Array = []              # [{id, piece, def, center, radius, locked, path_anchor_dist}]
 var _dragging_piece_idx: int = -1
 var _drag_offset: Vector2 = Vector2.ZERO
 var _drag_mode: int = DragMode.NONE
 var _puzzle: Node = null
+
+# Per-resize state for the new axis-aware drag.
+# _resize_axis is one of: Vector2.RIGHT, Vector2.LEFT, Vector2.DOWN, Vector2.UP
+# (in the piece's LOCAL frame). Negative axes mirror the positive one.
+var _resize_axis: Vector2 = Vector2.ZERO
+var _resize_original_field_value: float = 0.0
+var _resize_original_dist_along_axis: float = 0.0
+var _resize_original_path_anchor: float = 0.0  # PATH: average radial distance from center at axis start
+
+# Per-rotate state for the dashed rotate ring.
+var _rotate_start_angle: float = 0.0     # piece.rotation_degrees at drag start
+var _rotate_start_mouse_angle: float = 0.0  # mouse angle from piece center at drag start
+
+# R toggles rotate mode (no piece grabbed). When rotate_mode is true the
+# arrow keys nudge the SELECTED piece's rotation instead of position.
+var rotate_mode: bool = false:
+	set(v):
+		rotate_mode = v
+		emit_signal("rotate_mode_changed", v)
+		queue_redraw()
+
+signal rotate_mode_changed(is_on: bool)
+
+# Selected piece index (for keyboard nudges when no body drag is active).
+var _selected_piece_idx: int = -1
 
 # Per-resize state for connector length
 var _resizing_link_idx: int = -1       # index into _puzzle.active_links
@@ -107,6 +149,13 @@ func _refresh_pieces() -> void:
 		}
 		_pieces.append(entry)
 
+	# Default selection: first unlocked piece, so arrow keys have a target.
+	if _selected_piece_idx < 0 or _selected_piece_idx >= _pieces.size():
+		for i in range(_pieces.size()):
+			if not _pieces[i]["locked"]:
+				_selected_piece_idx = i
+				break
+
 func _process(_delta: float) -> void:
 	# Refresh centers each frame in case pieces animate.
 	for i in range(_pieces.size()):
@@ -157,7 +206,21 @@ func _gui_input(event: InputEvent) -> void:
 			_begin_resize_connector(conn_hit, local_pos)
 			accept_event()
 			return
-		# Radius resize handles
+		# Rotation ring handle (around the body). Higher priority than axis
+		# handles so the dashed ring never steals a hit that was meant for
+		# a resize dot near the body.
+		var rot_hit = _hit_test_rotate_ring(local_pos)
+		if rot_hit >= 0:
+			_begin_rotate(rot_hit, local_pos)
+			accept_event()
+			return
+		# Axis-aware resize handle. Returns (piece_idx, local_axis) or (-1, ZERO).
+		var axis_res = _hit_test_axis_handle(local_pos)
+		if axis_res[0] >= 0:
+			_begin_resize_axis(axis_res[0], axis_res[1], local_pos)
+			accept_event()
+			return
+		# Legacy single-radius handle (kept for back-compat smoke tests).
 		var rad_hit = _hit_test_radius_handle(local_pos)
 		if rad_hit >= 0:
 			_begin_resize_radius(rad_hit, local_pos)
@@ -171,6 +234,7 @@ func _gui_input(event: InputEvent) -> void:
 				accept_event()
 				return
 			_dragging_piece_idx = body_hit
+			_selected_piece_idx = body_hit
 			_drag_mode = DragMode.MOVE_PIECE
 			var p = _pieces[body_hit]
 			_drag_offset = local_pos - p["center"]
@@ -188,9 +252,19 @@ func _gui_input(event: InputEvent) -> void:
 				_dragging_piece_idx = -1
 				_drag_mode = DragMode.NONE
 				accept_event()
+			DragMode.RESIZE_AXIS:
+				_commit_resize_axis(_dragging_piece_idx)
+				_dragging_piece_idx = -1
+				_drag_mode = DragMode.NONE
+				accept_event()
 			DragMode.RESIZE_CONNECTOR:
 				_commit_resize_connector(local_pos)
 				_resizing_link_idx = -1
+				_drag_mode = DragMode.NONE
+				accept_event()
+			DragMode.ROTATE_PIECE:
+				_commit_rotate()
+				_dragging_piece_idx = -1
 				_drag_mode = DragMode.NONE
 				accept_event()
 			_:
@@ -209,9 +283,17 @@ func _gui_input(event: InputEvent) -> void:
 				if _dragging_piece_idx >= 0:
 					_apply_resize_radius(_dragging_piece_idx, local_pos)
 					accept_event()
+			DragMode.RESIZE_AXIS:
+				if _dragging_piece_idx >= 0:
+					_apply_resize_axis(_dragging_piece_idx, local_pos)
+					accept_event()
 			DragMode.RESIZE_CONNECTOR:
 				if _resizing_link_idx >= 0:
 					_apply_resize_connector(local_pos)
+					accept_event()
+			DragMode.ROTATE_PIECE:
+				if _dragging_piece_idx >= 0:
+					_apply_rotate(_dragging_piece_idx, local_pos)
 					accept_event()
 
 # Hit-tests --------------------------------------------------------------
@@ -219,9 +301,49 @@ func _gui_input(event: InputEvent) -> void:
 # Section 12: Arrow-key nudge for the currently selected piece.
 # Shift+Arrow = 10-unit (per directive: Shift+Arrow = 10 units).
 # Snap is OPTIONAL — toggle off via snap_enabled.
+# R toggles rotate-mode. In rotate-mode, arrow keys nudge the SELECTED piece's
+# rotation by 5° (Shift = 45°). Outside rotate-mode, arrow keys nudge position
+# by `nudge_unit` (Shift = nudge_unit * 10).
 func _handle_key_nudge(event: InputEventKey) -> void:
 	if not event.pressed or event.echo: return
-	if _dragging_piece_idx < 0 or _dragging_piece_idx >= _pieces.size(): return
+	# R alone toggles rotate-mode (independent of selection so the user can
+	# flip modes before they pick a piece).
+	if event.keycode == KEY_R and not event.shift_pressed and not event.ctrl_pressed and not event.alt_pressed:
+		rotate_mode = not rotate_mode
+		accept_event()
+		return
+	var target_idx: int = _dragging_piece_idx if _dragging_piece_idx >= 0 else _selected_piece_idx
+	if target_idx < 0 or target_idx >= _pieces.size(): return
+	var p = _pieces[target_idx]
+	if p["locked"]: return
+
+	if rotate_mode:
+		# Arrow keys nudge rotation: 5° / Shift=45°.
+		var step: float = 45.0 if event.shift_pressed else 5.0
+		var ddeg: float = 0.0
+		match event.keycode:
+			KEY_LEFT:  ddeg = -step
+			KEY_RIGHT: ddeg = step
+			KEY_UP:    ddeg = -step
+			KEY_DOWN:  ddeg = step
+			_:
+				return
+		accept_event()
+		var piece_obj = p["piece"]
+		var def: Resource = p["def"]
+		var cur: float = float(piece_obj.rotation_degrees) if "rotation_degrees" in piece_obj else float(def.start_angle_deg)
+		var new_deg: float = fposmod(cur + ddeg, 360.0)
+		if snap_enabled:
+			new_deg = _snap_angle(new_deg, 5.0 if not event.shift_pressed else 45.0)
+		piece_obj.rotation_degrees = new_deg
+		if "current_angle_deg" in piece_obj:
+			piece_obj.current_angle_deg = new_deg
+		def.start_angle_deg = new_deg
+		_save_all_pieces()
+		queue_redraw()
+		return
+
+	# Position nudge.
 	var unit: float = nudge_unit * 10.0 if event.shift_pressed else nudge_unit
 	var dx: float = 0.0
 	var dy: float = 0.0
@@ -233,7 +355,6 @@ func _handle_key_nudge(event: InputEventKey) -> void:
 		_:
 			return
 	accept_event()
-	var p = _pieces[_dragging_piece_idx]
 	var np: Vector2 = p["piece"].global_position + Vector2(dx, dy)
 	if snap_enabled:
 		np = Vector2(_snap(np.x), _snap(np.y))
@@ -243,6 +364,10 @@ func _handle_key_nudge(event: InputEventKey) -> void:
 	# Live-save so the level reflects the change without waiting for drag-end.
 	_save_all_pieces()
 	queue_redraw()
+
+func _snap_angle(deg: float, step: float) -> float:
+	if step <= 0.0: return deg
+	return round(deg / step) * step
 
 func _hit_test_body(local_pos: Vector2) -> int:
 	for i in range(_pieces.size() - 1, -1, -1):
@@ -274,6 +399,46 @@ func _hit_test_radius_handle(local_pos: Vector2) -> int:
 		var hx = p["center"].x + cos(deg_to_rad(a)) * (p["radius"] + 22.0)
 		var hy = p["center"].y + sin(deg_to_rad(a)) * (p["radius"] + 22.0)
 		if Vector2(hx, hy).distance_to(local_pos) <= 16.0:
+			return i
+	return -1
+
+# Axis-aware resize handles. Returns [piece_idx, local_axis_vector].
+# local_axis is in the piece's local frame: Vector2.RIGHT (1,0), DOWN (0,1),
+# LEFT (-1,0), UP (0,-1). The hit zone is a circle radius=14 at the boundary
+# point on each side, rotated by the piece's current rotation.
+func _hit_test_axis_handle(local_pos: Vector2) -> Array:
+	for i in range(_pieces.size() - 1, -1, -1):
+		var p = _pieces[i]
+		var piece_obj = p["piece"]
+		var rot_deg: float = 0.0
+		if piece_obj != null and "rotation_degrees" in piece_obj:
+			rot_deg = float(piece_obj.rotation_degrees)
+		var shape: int = int(p["def"].shape_type) if p["def"] != null and "shape_type" in p["def"] else 0
+		# The four local axis vectors; rotated into world space.
+		var axes: Array = [
+			Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1),
+		]
+		for ax in axes:
+			var world_ax: Vector2 = ax.rotated(deg_to_rad(rot_deg))
+			var boundary: float = PieceGeometry.get_boundary_distance_for_piece(p["def"], ax.angle())
+			var hit_pos: Vector2 = p["center"] + world_ax * (boundary + 16.0)
+			if hit_pos.distance_to(local_pos) <= 14.0:
+				return [i, ax]
+	return [-1, Vector2.ZERO]
+
+# Rotation ring: a hit zone on a dashed outer ring radius+30 around each piece.
+# Returns the piece idx if the local pos is within 14px of the ring's circle,
+# AND the angle from the piece center is consistent with the visible arrow
+# marker (3-o'clock by default). The full ring is hittable; the arrow is just
+# a visual cue.
+func _hit_test_rotate_ring(local_pos: Vector2) -> int:
+	for i in range(_pieces.size() - 1, -1, -1):
+		var p = _pieces[i]
+		var piece_obj = p["piece"]
+		if piece_obj == null or not ("rotation_degrees" in piece_obj): continue
+		var ring_r: float = float(p["radius"]) + 30.0
+		var d: float = (p["center"] - local_pos).length()
+		if absf(d - ring_r) <= 14.0:
 			return i
 	return -1
 
@@ -366,6 +531,143 @@ func _apply_resize_radius(idx: int, local_pos: Vector2) -> void:
 
 func _commit_resize_radius(idx: int, _drop_pos: Vector2) -> void:
 	# Persist on release.
+	_save_all_pieces()
+
+# Axis-aware resize --------------------------------------------------------
+
+# SHAPE_AXIS_FIELDS maps each shape type to the two field names that should
+# be mutated when the user drags along +X / +Y in the piece's LOCAL frame.
+# For non-uniform shapes (OVAL, STRAIGHT, L_SHAPE) the X and Y fields differ.
+# For PATH the X field name is "path_scale" — handled specially (uniform scale).
+
+func _begin_resize_axis(idx: int, local_axis: Vector2, local_pos: Vector2) -> void:
+	_dragging_piece_idx = idx
+	_selected_piece_idx = idx
+	_drag_mode = DragMode.RESIZE_AXIS
+	_resize_axis = local_axis
+	var p = _pieces[idx]
+	var def: Resource = p["def"]
+	var shape: int = int(def.shape_type) if def != null and "shape_type" in def else 0
+	var routing: Dictionary = SHAPE_AXIS_FIELDS.get(shape, {"x": "radius", "y": "radius"})
+	# Use the absolute-axis field: positive axes use +X, negative axes use +Y
+	# (the routing dict maps both polarities). Negative axes still read the
+	# matching field — sign of the drag delta is applied at apply time.
+	var field_name: String = routing["x"] if absf(local_axis.x) > 0.5 else routing["y"]
+	if def != null and field_name in def:
+		_resize_original_field_value = float(def.get(field_name))
+	else:
+		_resize_original_field_value = 0.0
+	# Remember how far the mouse was along the world axis at drag start so
+	# we can compute the delta in apply.
+	var piece_obj = p["piece"]
+	var rot_deg: float = float(piece_obj.rotation_degrees) if piece_obj != null and "rotation_degrees" in piece_obj else 0.0
+	var world_axis: Vector2 = local_axis.rotated(deg_to_rad(rot_deg))
+	_resize_original_dist_along_axis = (local_pos - p["center"]).dot(world_axis)
+	# For PATH we scale path_points by a ratio; remember the average radial
+	# distance from the piece center at drag-start so we can map the
+	# per-frame drag delta to a uniform scale factor.
+	if shape == 6:
+		var pts = def.path_points if def != null and "path_points" in def else []
+		var sum: float = 0.0
+		var count: int = 0
+		for pt in pts:
+			sum += Vector2(pt.x, pt.y).length()
+			count += 1
+		_resize_original_path_anchor = sum / maxf(1.0, float(count))
+
+func _apply_resize_axis(idx: int, local_pos: Vector2) -> void:
+	var p = _pieces[idx]
+	var def: Resource = p["def"]
+	var shape: int = int(def.shape_type) if def != null and "shape_type" in def else 0
+	var routing: Dictionary = SHAPE_AXIS_FIELDS.get(shape, {"x": "radius", "y": "radius"})
+	var field_name: String = routing["x"] if absf(_resize_axis.x) > 0.5 else routing["y"]
+	var piece_obj = p["piece"]
+	var rot_deg: float = float(piece_obj.rotation_degrees) if piece_obj != null and "rotation_degrees" in piece_obj else 0.0
+	var world_axis: Vector2 = _resize_axis.rotated(deg_to_rad(rot_deg))
+	var cur_along: float = (local_pos - p["center"]).dot(world_axis)
+	var delta: float = cur_along - _resize_original_dist_along_axis
+
+	# OVAL Y-axis needs to read/write radius_y, not radius. Map both polarities
+	# of Y to the y field (the routing dict stores the canonical field name).
+	# Apply a 2x move delta → 2x field change (1:1 with screen distance).
+	var new_val: float = _resize_original_field_value + delta
+
+	# Clamp to a reasonable authoring range. Tight lower bound so connectors
+	# always have somewhere to land; upper bound matches the existing legacy
+	# clamp on the circle resize handle.
+	if shape == 6:
+		# PATH: scale every path_point's distance from origin by new_val /
+		# _resize_original_path_anchor.
+		if _resize_original_path_anchor > 0.001:
+			var factor: float = new_val / _resize_original_path_anchor
+			factor = clamp(factor, 0.25, 4.0)
+			var pts = def.path_points if def != null and "path_points" in def else []
+			for i in range(pts.size()):
+				var pt: Vector2 = Vector2(pts[i].x, pts[i].y)
+				var new_pt: Vector2 = pt * factor
+				pts[i] = {"x": float(new_pt.x), "y": float(new_pt.y)}
+			def.path_points = pts
+	else:
+		# Snap to integer when snap is enabled so authored values stay clean.
+		if snap_enabled:
+			new_val = round(new_val)
+		new_val = clamp(new_val, 16.0, 400.0)
+		if def != null and field_name in def:
+			def.set(field_name, new_val)
+		# Keep runtime fields (ring_piece_2d.radius / .radius_y) in sync.
+		if piece_obj != null:
+			if field_name == "radius" and "radius" in piece_obj:
+				piece_obj.radius = new_val
+			elif field_name == "radius_y" and "radius_y" in piece_obj:
+				piece_obj.radius_y = new_val
+		# p["radius"] is the cached display radius for OVAL/CIRCLE — keep it
+		# consistent with whatever was just changed.
+		if field_name == "radius":
+			p["radius"] = new_val
+		elif field_name == "radius_y" and p["def"] != null and "radius" in p["def"]:
+			# OVAL: display radius only follows when shape is uniform.
+			pass
+
+	if piece_obj != null and "queue_redraw" in piece_obj:
+		piece_obj.queue_redraw()
+	queue_redraw()
+	if _puzzle and _puzzle.has_method("_redraw_connectors"):
+		_puzzle._redraw_connectors()
+
+func _commit_resize_axis(idx: int) -> void:
+	_save_all_pieces()
+
+# Rotation drag ------------------------------------------------------------
+
+func _begin_rotate(idx: int, local_pos: Vector2) -> void:
+	_dragging_piece_idx = idx
+	_selected_piece_idx = idx
+	_drag_mode = DragMode.ROTATE_PIECE
+	var p = _pieces[idx]
+	var piece_obj = p["piece"]
+	_rotate_start_angle = float(piece_obj.rotation_degrees) if piece_obj != null and "rotation_degrees" in piece_obj else float(p["def"].start_angle_deg)
+	_rotate_start_mouse_angle = (local_pos - p["center"]).angle()
+
+func _apply_rotate(idx: int, local_pos: Vector2) -> void:
+	var p = _pieces[idx]
+	var cur_mouse_angle: float = (local_pos - p["center"]).angle()
+	var delta_deg: float = rad_to_deg(cur_mouse_angle - _rotate_start_mouse_angle)
+	if snap_enabled:
+		delta_deg = _snap_angle(delta_deg, 5.0)
+	var new_deg: float = fposmod(_rotate_start_angle + delta_deg, 360.0)
+	var piece_obj = p["piece"]
+	if piece_obj != null and "rotation_degrees" in piece_obj:
+		piece_obj.rotation_degrees = new_deg
+		if "current_angle_deg" in piece_obj:
+			piece_obj.current_angle_deg = new_deg
+	var def: Resource = p["def"]
+	if def != null:
+		def.start_angle_deg = new_deg
+	queue_redraw()
+	if _puzzle and _puzzle.has_method("_redraw_connectors"):
+		_puzzle._redraw_connectors()
+
+func _commit_rotate() -> void:
 	_save_all_pieces()
 
 # Connector resize ------------------------------------------------------
@@ -592,10 +894,34 @@ func _draw() -> void:
 		var pos: Vector2 = p["center"]
 		var radius: float = float(p["radius"])
 		var is_dragging := (i == _dragging_piece_idx and _drag_mode == DragMode.MOVE_PIECE)
+		var piece_obj = p["piece"]
+		var handle_rot_deg: float = 0.0
+		if piece_obj != null and "rotation_degrees" in piece_obj:
+			handle_rot_deg = float(piece_obj.rotation_degrees)
 		# Body outline
 		var outline_color = Color(0.4, 0.4, 0.4, 0.4) if p["locked"] else Color(0.95, 0.7, 0.3, 0.85)
 		draw_arc(pos, radius + 6.0, 0, 360, 64, outline_color, 2.0)
-		# Drag-to-move grip dot at the right rim
+		# Rotation ring: dashed outer circle at radius+30, with a directional
+		# arrow at the 3-o'clock position pointing along +X (so the user
+		# understands "drag me to spin").
+		if not p["locked"]:
+			var rot_ring_r: float = radius + 30.0
+			# Dashed effect: 12 short arcs around the circle.
+			var segs := 24
+			for s in range(segs):
+				if s % 2 == 1: continue
+				var a0 := TAU * float(s) / float(segs)
+				var a1 := TAU * float(s + 1) / float(segs)
+				draw_arc(pos, rot_ring_r, a0, a1, 8, Color(0.55, 0.32, 0.12, 0.85), 1.5, true)
+			# Directional arrow head at the 3-o'clock position. Pointing
+			# tangentially (counter-clockwise) so it reads as "rotate me."
+			var arrow_pos: Vector2 = pos + Vector2(rot_ring_r, 0)
+			draw_circle(arrow_pos, 9.0, Color(0.95, 0.7, 0.3, 0.95))
+			# Arrow shape — two short tangential lines.
+			draw_line(arrow_pos + Vector2(-4, -6), arrow_pos + Vector2(4, 0), Color(0.2, 0.13, 0.08, 0.9), 2.0)
+			draw_line(arrow_pos + Vector2(-4, 6), arrow_pos + Vector2(4, 0), Color(0.2, 0.13, 0.08, 0.9), 2.0)
+		# Drag-to-move grip dot at the right rim (still useful as a "grab here"
+		# affordance; not the same as the rotate ring above).
 		var grip_pos = pos + Vector2(radius + 18.0, 0)
 		draw_circle(grip_pos, 8.0, Color(0.95, 0.7, 0.3, 0.95))
 		# Lock icon at the LEFT rim (small box + dot)
@@ -609,22 +935,44 @@ func _draw() -> void:
 		else:
 			# Open lock — small dot in middle
 			draw_circle(lock_pos, 3.0, Color(1, 1, 1, 0.9))
-		# Top-edge handle for radius resize. Rotated with the piece so the
-	# handle sits at the body's local 12-o'clock regardless of ring rotation.
-		var piece_obj = p["piece"]
-		var handle_rot_deg: float = 0.0
-		if piece_obj != null and "rotation_degrees" in piece_obj:
-			handle_rot_deg = float(piece_obj.rotation_degrees)
-		var handle_offset := Vector2(0, -(radius + 22.0)).rotated(deg_to_rad(handle_rot_deg))
-		var top_handle = pos + handle_offset
-		draw_circle(top_handle, 9.0, Color(0.95, 0.7, 0.3, 0.95))
-		# Small triangle below handle to indicate "pull to grow"
-		var ring_top_offset := Vector2(0, -radius - 2).rotated(deg_to_rad(handle_rot_deg))
-		draw_line(top_handle + Vector2(-4, 0), pos + ring_top_offset, Color(0.95, 0.7, 0.3, 0.6), 1.5)
-		draw_line(top_handle + Vector2(4, 0), pos + ring_top_offset, Color(0.95, 0.7, 0.3, 0.6), 1.5)
+		# Axis-aware resize handles: one dot on each cardinal direction in the
+		# piece's local frame, with a small arrow showing which axis it drags.
+		# Works on EVERY shape because we use PieceGeometry's boundary function
+		# to place the dot on the actual outline.
+		if not p["locked"] and p["def"] != null:
+			var shape_t: int = int(p["def"].shape_type) if "shape_type" in p["def"] else 0
+			var routing: Dictionary = SHAPE_AXIS_FIELDS.get(shape_t, {"x": "radius", "y": "radius"})
+			var cardinals: Array = [
+				{"ax": Vector2(1, 0), "label": "x"},
+				{"ax": Vector2(-1, 0), "label": "x"},
+				{"ax": Vector2(0, 1), "label": "y"},
+				{"ax": Vector2(0, -1), "label": "y"},
+			]
+			for c in cardinals:
+				var ax_local: Vector2 = c["ax"]
+				var ax_world: Vector2 = ax_local.rotated(deg_to_rad(handle_rot_deg))
+				var boundary: float = PieceGeometry.get_boundary_distance_for_piece(p["def"], ax_local.angle())
+				var dot_pos: Vector2 = pos + ax_world * (boundary + 14.0)
+				draw_circle(dot_pos, 7.0, Color(0.95, 0.7, 0.3, 0.95))
+				draw_arc(dot_pos, 7.0, 0, TAU, 16, Color(0.2, 0.13, 0.08, 0.9), 1.5, true)
+				# Tiny arrow inside the dot pointing along its axis.
+				var arrow_dir: Vector2 = ax_world
+				draw_line(dot_pos - arrow_dir * 4.0, dot_pos + arrow_dir * 4.0, Color(0.2, 0.13, 0.08, 0.95), 1.5)
 		# Center mark for the dragged piece
 		if is_dragging:
 			draw_circle(pos, 4.0, Color(0.95, 0.7, 0.3))
+		# Selected-piece badge — extra glow around the active selection so the
+		# user knows which piece arrow keys will affect.
+		if i == _selected_piece_idx and not p["locked"]:
+			draw_arc(pos, radius + 10.0, 0, TAU, 64, Color(0.20, 0.55, 0.95, 0.85), 2.5, true)
+	# Rotate-mode badge: a small caption in the top-left of the overlay so
+	# users know that arrow keys now nudge rotation, not position.
+	if rotate_mode:
+		var font = ThemeDB.fallback_font
+		if font != null:
+			var badge := "ROTATE MODE  (R to exit, Shift+Arrow = 45\u00b0)"
+			draw_rect(Rect2(8, 8, 360, 22), Color(0.20, 0.55, 0.95, 0.95), true)
+			draw_string(font, Vector2(14, 24), badge, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.WHITE)
 
 	# Debug ID mode (Section 14): per-piece ID, center, bbox, gap boundaries,
 	# motion axis, z_index. Renders as overlays on top of the gameplay pieces
