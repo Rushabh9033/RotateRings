@@ -342,6 +342,7 @@ func _handle_click(local_pos: Vector2) -> void:
 				radius_slider.value = p["radius"]
 				radius_label.text = "Radius: %d" % int(p["radius"])
 				puzzle_preview.queue_redraw()
+				_set_status("Selected " + str(p.get("id", "?")) + ". Drag the Radius slider or drag the body to move.")
 			else:
 				_selected_piece_idx = -1
 				puzzle_preview.queue_redraw()
@@ -351,6 +352,7 @@ func _handle_click(local_pos: Vector2) -> void:
 				_selected_piece_idx = idx
 				_rotating_gap = true
 				puzzle_preview.queue_redraw()
+				_set_status("Rotating gap on " + str(_placed_pieces[idx].get("id", "?")) + ". Drag to rotate.")
 		Tool.LINK:
 			var idx = _hit_test_piece(local_pos)
 			if idx >= 0:
