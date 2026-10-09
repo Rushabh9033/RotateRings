@@ -63,21 +63,18 @@ static func bind_connector(link_def, from_pos: Vector2, from_rot_deg: float, to_
 		link_def.collar_angle_deg = fposmod(rad_to_deg(diff.angle()) - from_rot_deg, 360.0)
 
 static func is_piece_rotatable(piece, _all_pieces: Array, links: Array) -> bool:
+	# A piece is rotatable if it is not gone and not a root anchor.
+	# The previous version returned false if the piece was a parent
+	# with any non-gone child, which deadlocked every level whose root
+	# had children (e.g. L2 orange, L3 cyan and orange) -- the user
+	# could not rotate the very piece they needed to rotate. The
+	# correct rule is: any non-root, non-gone piece can rotate. The
+	# collision check (clamp_rotation_step is_piece_overlap_contact)
+	# blocks rotations that would physically collide.
 	if _is_gone(piece):
 		return false
 	if piece_role(piece) == PieceRole.ROOT_ANCHOR:
 		return false
-	var p_id: StringName = piece.piece_id
-	for link in links:
-		if link.def.to_piece_id == p_id and link.state == ConnectorRuntimeScript.State.CLEARING:
-			return false
-		if link.def.from_piece_id != p_id:
-			continue
-		if link.state == ConnectorRuntimeScript.State.DETACHED:
-			continue
-		var child = get_piece_by_id(link.def.to_piece_id, _all_pieces)
-		if not _is_gone(child):
-			return false
 	return true
 
 static func cuff_world_angle_deg(child, link, pieces: Array) -> float:
