@@ -120,9 +120,11 @@ func _draw() -> void:
 		var hx = pos.x + cos(a) * radius
 		var hy = pos.y + sin(a) * radius
 		draw_line(pos, Vector2(hx, hy), color, 3.0)
-		draw_circle(Vector2(hx, hy), 14.0, color)  # larger hit zone
-		draw_line(Vector2(hx - 5, hy), Vector2(hx + 5, hy), Color.WHITE, 1.5)
-		draw_line(Vector2(hx, hy - 5), Vector2(hx, hy + 5), Color.WHITE, 1.5)
+		draw_arc(Vector2(hx, hy), 18.0, 0, TAU, 32, Color.WHITE, 2.5)
+		draw_circle(Vector2(hx, hy), 12.0, color)
+		draw_circle(Vector2(hx, hy), 5.0, Color.WHITE)
+		draw_line(Vector2(hx - 8, hy), Vector2(hx + 8, hy), Color.WHITE, 2.0)
+		draw_line(Vector2(hx, hy - 8), Vector2(hx, hy + 8), Color.WHITE, 2.0)
 		# Label.
 		var label := String(p["id"])
 		draw_string(ThemeDB.fallback_font, pos + Vector2(radius + 18, 0), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, color.darkened(0.4))
