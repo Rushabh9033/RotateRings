@@ -171,6 +171,60 @@ min_value = 30.0
 max_value = 150.0
 value = 80.0
 
+[node name="ScaleLabel" type="Label" parent="RightPanel/VBox/SizeSection"]
+layout_mode = 2
+text = "Scale All: 1.00x"
+
+[node name="ScaleSlider" type="HSlider" parent="RightPanel/VBox/SizeSection"]
+layout_mode = 2
+min_value = 0.5
+max_value = 2.0
+step = 0.05
+value = 1.0
+
+[node name="LayoutSection" type="VBoxContainer" parent="RightPanel/VBox"]
+
+[node name="LayoutLabel" type="Label" parent="RightPanel/VBox/LayoutSection"]
+layout_mode = 2
+text = "Layout"
+
+[node name="GridRow" type="HBoxContainer" parent="RightPanel/VBox/LayoutSection"]
+layout_mode = 2
+
+[node name="GridBtn" type="Button" parent="RightPanel/VBox/LayoutSection/GridRow"]
+layout_mode = 2
+toggle_mode = true
+text = "Grid 10px"
+
+[node name="SnapBtn" type="Button" parent="RightPanel/VBox/LayoutSection/GridRow"]
+layout_mode = 2
+toggle_mode = true
+text = "Snap 10px"
+button_pressed = true
+
+[node name="GridSizeSlider" type="HSlider" parent="RightPanel/VBox/LayoutSection"]
+layout_mode = 2
+min_value = 5.0
+max_value = 50.0
+step = 1.0
+value = 10.0
+
+[node name="CenterRow" type="HBoxContainer" parent="RightPanel/VBox/LayoutSection"]
+layout_mode = 2
+
+[node name="CenterXBtn" type="Button" parent="RightPanel/VBox/LayoutSection/CenterRow"]
+layout_mode = 2
+text = "Center X (360)"
+
+[node name="CenterYBtn" type="Button" parent="RightPanel/VBox/LayoutSection/CenterRow"]
+layout_mode = 2
+text = "Center Y (640)"
+
+[node name="PixelLabel" type="Label" parent="RightPanel/VBox/LayoutSection"]
+layout_mode = 2
+text = "Selected: —"
+clip_text = true
+
 [node name="DeleteBtn" type="Button" parent="RightPanel/VBox"]
 layout_mode = 2
 text = "Delete selected"

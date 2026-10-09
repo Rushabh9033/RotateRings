@@ -57,6 +57,14 @@ const COLOR_HEX := {
 @onready var green_btn: Button = $RightPanel/VBox/ColorSection/ColorBtns/GreenBtn
 @onready var radius_slider: HSlider = $RightPanel/VBox/SizeSection/RadiusSlider
 @onready var radius_label: Label = $RightPanel/VBox/SizeSection/RadiusLabel
+@onready var scale_slider: HSlider = $RightPanel/VBox/SizeSection/ScaleSlider
+@onready var scale_label: Label = $RightPanel/VBox/SizeSection/ScaleLabel
+@onready var grid_btn: Button = $RightPanel/VBox/LayoutSection/GridRow/GridBtn
+@onready var snap_btn: Button = $RightPanel/VBox/LayoutSection/GridRow/SnapBtn
+@onready var grid_size_slider: HSlider = $RightPanel/VBox/LayoutSection/GridSizeSlider
+@onready var center_x_btn: Button = $RightPanel/VBox/LayoutSection/CenterRow/CenterXBtn
+@onready var center_y_btn: Button = $RightPanel/VBox/LayoutSection/CenterRow/CenterYBtn
+@onready var pixel_label: Label = $RightPanel/VBox/LayoutSection/PixelLabel
 @onready var delete_btn: Button = $RightPanel/VBox/DeleteBtn
 @onready var back_btn: Button = $TopBar/BackBtn
 @onready var status_label: Label = $BottomStatus
@@ -95,8 +103,15 @@ func _ready() -> void:
 	for b in [orange_btn, cyan_btn, purple_btn, red_btn, green_btn]:
 		b.toggled.connect(_on_color_btn.bind(b))
 	radius_slider.value_changed.connect(_on_radius_changed)
+	scale_slider.value_changed.connect(_on_scale_all_changed)
+	grid_btn.toggled.connect(_on_grid_toggled)
+	snap_btn.toggled.connect(_on_snap_toggled)
+	grid_size_slider.value_changed.connect(_on_grid_size_changed)
+	center_x_btn.pressed.connect(_center_x_pressed)
+	center_y_btn.pressed.connect(_center_y_pressed)
 	level_input.value_changed.connect(_on_level_changed)
 	delete_btn.pressed.connect(_delete_selected)
+	_update_pixel_label()
 
 func _on_level_changed(v: float) -> void:
 	# Loading on change would clobber work; let user click Load explicitly.
@@ -107,6 +122,120 @@ func _on_radius_changed(v: float) -> void:
 	if _selected_piece_idx >= 0 and _selected_piece_idx < _placed_pieces.size():
 		_placed_pieces[_selected_piece_idx]["radius"] = int(v)
 		puzzle_preview.queue_redraw()
+
+# Scale All: every placed piece's radius and thickness is multiplied by
+# the slider value (1.0x = no change, 0.5x = half, 2.0x = double).
+#
+# Anchoring: we snapshot the values at the moment the user starts a drag
+# (i.e. when the slider value differs from its last set value AND the
+# last set value was 1.0 — meaning we're starting a fresh scale from
+# the resting position). Within a single drag we apply the slider value
+# directly relative to that snapshot, so 0.5x always means "half of where
+# we started this drag."
+#
+# Releasing the slider: when value returns to 1.0 OR when the user makes
+# any other change, we drop the snapshot so the next drag starts fresh.
+var _scale_anchor_radii: Array = []
+var _scale_anchor_thicknesses: Array = []
+var _scale_anchor_value: float = 1.0
+var _scale_drag_active: bool = false
+
+func _on_scale_all_changed(v: float) -> void:
+	scale_label.text = "Scale All: %.2fx" % v
+	if _placed_pieces.is_empty():
+		return
+	# If the piece set changed, or the user has "broken" the drag (e.g. added/
+	# removed a piece), reset the anchor.
+	if _scale_anchor_radii.size() != _placed_pieces.size():
+		_scale_drag_active = false
+	if not _scale_drag_active:
+		_scale_anchor_radii.clear()
+		_scale_anchor_thicknesses.clear()
+		for p in _placed_pieces:
+			_scale_anchor_radii.append(float(p.get("radius", 60)))
+			_scale_anchor_thicknesses.append(float(p.get("thickness", 18)))
+		_scale_anchor_value = 1.0
+		_scale_drag_active = true
+	# Apply: new_value = snapshot * (v / 1.0) — so 1.0x restores snapshot.
+	var factor: float = v
+	for i in range(_placed_pieces.size()):
+		_placed_pieces[i]["radius"] = maxf(8.0, _scale_anchor_radii[i] * factor)
+		if _scale_anchor_thicknesses.size() > i:
+			_placed_pieces[i]["thickness"] = maxf(4.0, _scale_anchor_thicknesses[i] * factor)
+	puzzle_preview.queue_redraw()
+
+# === Grid / Snap / Center / Pixel-precise editing ===
+
+# When snap is on, any piece move (drag) rounds its x,y to a multiple of
+# the current grid_size. The PuzzlePreview reads grid_enabled + snap_enabled
+# + grid_size to render the grid and the snap guides.
+var grid_enabled: bool = false
+var snap_enabled: bool = true
+var grid_size: float = 10.0
+
+func _on_grid_toggled(on: bool) -> void:
+	grid_enabled = on
+	puzzle_preview.queue_redraw()
+
+func _on_snap_toggled(on: bool) -> void:
+	snap_enabled = on
+
+func _on_grid_size_changed(v: float) -> void:
+	grid_size = v
+	puzzle_preview.queue_redraw()
+
+func _center_x_pressed() -> void:
+	if _placed_pieces.is_empty(): return
+	# Find mean X across all pieces, then translate the whole set so the
+	# mean lands on canvas X=360 (the visual center of a 720-wide canvas).
+	var sum_x: float = 0.0
+	for p in _placed_pieces:
+		sum_x += float(p["x"])
+	var mean_x: float = sum_x / _placed_pieces.size()
+	var dx: float = 360.0 - mean_x
+	for p in _placed_pieces:
+		p["x"] = float(p["x"]) + dx
+		if _snap_on_commit():
+			p["x"] = _round_to_grid(p["x"])
+	puzzle_preview.queue_redraw()
+	_update_pixel_label()
+	_set_status("Centered horizontally: dx=%.1f" % dx)
+
+func _center_y_pressed() -> void:
+	if _placed_pieces.is_empty(): return
+	var sum_y: float = 0.0
+	for p in _placed_pieces:
+		sum_y += float(p["y"])
+	var mean_y: float = sum_y / _placed_pieces.size()
+	var dy: float = 640.0 - mean_y
+	for p in _placed_pieces:
+		p["y"] = float(p["y"]) + dy
+		if _snap_on_commit():
+			p["y"] = _round_to_grid(p["y"])
+	puzzle_preview.queue_redraw()
+	_update_pixel_label()
+	_set_status("Centered vertically: dy=%.1f" % dy)
+
+func _snap_on_commit() -> bool:
+	return snap_enabled
+
+func _round_to_grid(v: float) -> float:
+	return round(v / grid_size) * grid_size
+
+func _update_pixel_label() -> void:
+	if _selected_piece_idx < 0 or _selected_piece_idx >= _placed_pieces.size():
+		pixel_label.text = "Selected: —"
+		return
+	var p: Dictionary = _placed_pieces[_selected_piece_idx]
+	var x: float = float(p["x"])
+	var y: float = float(p["y"])
+	var snapped_x: float = _round_to_grid(x) if snap_enabled else x
+	var snapped_y: float = _round_to_grid(y) if snap_enabled else y
+	var snap_marker: String = "*" if snap_enabled and (snapped_x != x or snapped_y != y) else ""
+	pixel_label.text = "Selected %s: x=%.1f y=%.1f%s (grid=%.0f)" % [
+		String(p.get("id", "?")),
+		x, y, snap_marker, grid_size,
+	]
 
 func _set_status(msg: String) -> void:
 	status_label.text = "Status: " + msg

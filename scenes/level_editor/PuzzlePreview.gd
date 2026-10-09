@@ -21,6 +21,27 @@ func _draw() -> void:
 	# Bounding box at canvas size (anchor at canvas origin).
 	draw_rect(Rect2(0, 0, 720, 1280), Color(0.85, 0.7, 0.55), false, 4)
 
+	# === Grid + center guides ===
+	# Always draw center crosshairs at (360, 640) so the user can eyeball
+	# centralization even with the grid off.
+	draw_line(Vector2(360, 0), Vector2(360, 1280), Color(0.7, 0.5, 0.3, 0.35), 1.0)
+	draw_line(Vector2(0, 640), Vector2(720, 640), Color(0.7, 0.5, 0.3, 0.35), 1.0)
+	if editor_ref.get("grid_enabled") == true:
+		var g: float = float(editor_ref.grid_size) if "grid_size" in editor_ref else 10.0
+		if g >= 5.0:
+			var minor := Color(0.7, 0.55, 0.4, 0.18)
+			var major := Color(0.7, 0.55, 0.4, 0.30)
+			var x: float = 0.0
+			while x <= 720.0:
+				var is_major: bool = fmod(x, 50.0) < 0.5
+				draw_line(Vector2(x, 0), Vector2(x, 1280), major if is_major else minor, 1.0)
+				x += g
+			var y: float = 0.0
+			while y <= 1280.0:
+				var is_majory: bool = fmod(y, 50.0) < 0.5
+				draw_line(Vector2(0, y), Vector2(720, y), major if is_majory else minor, 1.0)
+				y += g
+
 	# Draw links first (so pieces overlay them).
 	for l in editor_ref._placed_links:
 		var src = null
