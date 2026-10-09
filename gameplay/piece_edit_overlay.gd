@@ -393,11 +393,15 @@ func _gui_input(event: InputEvent) -> void:
 		match _drag_mode:
 			DragMode.MOVE_PIECE:
 				if _dragging_piece_idx >= 0:
+					# M21: numeric transform is authoritative. Position during
+					# drag follows the cursor EXACTLY (no implicit quantization).
+					# Snap is opt-in via snap_enabled and applies only on commit
+					# (see _commit_move). Hold Alt to disable snap during the
+					# whole drag regardless of snap_enabled.
 					var new_pos = local_pos - _drag_offset
-					var snapped = Vector2(_snap(new_pos.x), _snap(new_pos.y))
 					var p = _pieces[_dragging_piece_idx]
-					p["piece"].global_position = snapped
-					p["center"] = snapped
+					p["piece"].global_position = new_pos
+					p["center"] = new_pos
 					accept_event()
 			DragMode.RESIZE_RADIUS:
 				if _dragging_piece_idx >= 0:
@@ -735,15 +739,19 @@ func _commit_move(idx: int, drop_pos: Vector2) -> void:
 	if pdef != null and pdef.is_property_locked("position"):
 		if debug_print: print("Piece %s position locked; move ignored" % p["id"])
 		return
-	var snapped = Vector2(_snap(drop_pos.x - _drag_offset.x), _snap(drop_pos.y - _drag_offset.y))
-	# Auto-align guides if near them
-	var viewport_size := get_viewport_rect().size
-	snapped = _auto_align(snapped, viewport_size)
-	p["piece"].global_position = snapped
-	p["center"] = snapped
+	# M21: numeric transform is authoritative. If snap is OFF, write the
+	# cursor position EXACTLY (no implicit rounding). If snap is ON, apply
+	# the grid snap + auto-align on commit only.
+	var final_pos: Vector2 = drop_pos - _drag_offset
+	if snap_enabled:
+		final_pos = Vector2(_snap(final_pos.x), _snap(final_pos.y))
+		var viewport_size := get_viewport_rect().size
+		final_pos = _auto_align(final_pos, viewport_size)
+	p["piece"].global_position = final_pos
+	p["center"] = final_pos
 	if pdef != null:
-		pdef.position = snapped
-	emit_signal("piece_moved", p["id"], snapped)
+		pdef.position = final_pos
+	emit_signal("piece_moved", p["id"], final_pos)
 	_save_all_pieces()
 	queue_redraw()
 

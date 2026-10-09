@@ -364,6 +364,86 @@ func snap_coordinate(coord: Vector2) -> Vector2:
 	return out
 
 # ==============================================================================
+# ==============================================================================
+# Z-order controls (M17): bring forward, send back, to front, to back, set exact.
+# Routed through apply_edit.
+# ==============================================================================
+
+func set_z_index(piece_id: String, z: int) -> void:
+	apply_edit(func():
+		var p: Dictionary = find_piece(piece_id)
+		if not p.is_empty():
+			p["z_index"] = z
+	)
+
+func bring_forward(piece_id: String) -> bool:
+	return _nudge_z(piece_id, 1)
+func send_backward(piece_id: String) -> bool:
+	return _nudge_z(piece_id, -1)
+func bring_to_front(piece_id: String) -> bool:
+	var z_max: int = 1
+	for p in pieces:
+		z_max = max(z_max, int(p.get("z_index", 1)))
+	set_z_index(piece_id, z_max + 1)
+	return true
+func send_to_back(piece_id: String) -> bool:
+	var z_min: int = 1
+	for p in pieces:
+		z_min = min(z_min, int(p.get("z_index", 1)))
+	set_z_index(piece_id, z_min - 1)
+	return true
+
+func _nudge_z(piece_id: String, delta: int) -> bool:
+	var cur: int = 0
+	var found: bool = false
+	for p in pieces:
+		if String(p.get("id", "")) == piece_id:
+			cur = int(p.get("z_index", 1))
+			found = true
+			break
+	if not found: return false
+	set_z_index(piece_id, cur + delta)
+	return true
+
+# ==============================================================================
+# Mirror tools (M16): mirror N pieces around a vertical or horizontal axis.
+# ==============================================================================
+
+func mirror_pieces(piece_ids: Array, mirror: String) -> int:
+	if piece_ids.is_empty(): return 0
+	var min_x: float = 1e9
+	var min_y: float = 1e9
+	var max_x: float = -1e9
+	var max_y: float = -1e9
+	for pid in piece_ids:
+		var p: Dictionary = find_piece(String(pid))
+		if p.is_empty(): continue
+		var r: float = float(p.get("radius", 0.0))
+		min_x = min(min_x, float(p["x"]) - r)
+		min_y = min(min_y, float(p["y"]) - r)
+		max_x = max(max_x, float(p["x"]) + r)
+		max_y = max(max_y, float(p["y"]) + r)
+	var cx: float = (min_x + max_x) * 0.5
+	var cy: float = (min_y + max_y) * 0.5
+	var captured_ids: Array = piece_ids.duplicate()
+	var captured_mirror: String = mirror
+	var captured_cx: float = cx
+	var captured_cy: float = cy
+	var changed: int = 0
+	apply_edit(func():
+		for pid in captured_ids:
+			var p: Dictionary = find_piece(String(pid))
+			if p.is_empty(): continue
+			if is_property_locked(String(pid), "position"): continue
+			if captured_mirror == "vertical":
+				p["x"] = captured_cx * 2.0 - float(p["x"])
+			elif captured_mirror == "horizontal":
+				p["y"] = captured_cy * 2.0 - float(p["y"])
+			changed += 1
+	)
+	return changed
+
+# ==============================================================================
 # Object clipboard (Section 3): Duplicate / Copy / Paste / Size Match.
 # All routed through apply_edit so undo works.
 # ==============================================================================
