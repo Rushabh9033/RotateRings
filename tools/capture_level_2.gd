@@ -76,6 +76,11 @@ func _initialize() -> void:
 	# authored positions (not framed into a sub-area).
 	pc2.scale = Vector2.ONE
 	pc2.position = Vector2.ZERO
+	# Print actual visual positions (global_position) so we can see
+	# where the pieces end up in the SubViewport.
+	for child in pc2.pieces_container.get_children():
+		if child is Node2D:
+			print("  [visual] ", child.piece_id, " global_pos=", child.global_position, " z=", child.z_index)
 	# Also kill each piece's state tween
 	for child in pc2.pieces_container.get_children():
 		if child.get("_state_tween") != null:
@@ -91,9 +96,26 @@ func _initialize() -> void:
 	if img == null:
 		print("[capture] FAIL: SubViewport texture null")
 		quit(2); return
+	print("[capture] img size=", img.get_size())
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://_godot_test_out"))
 	var err := img.save_png("res://_godot_test_out/level2_actual.png")
 	print("[capture] saved _godot_test_out/level2_actual.png err=", err)
+	# Also save a cropped view centered on the puzzle so it's easy to
+	# see in chat previews. The puzzle pieces are at authored y=520-700
+	# in 720x1280 game space; with the 2x SubViewport (1440x2560), that's
+	# y=1040-1400 in texture space. After the project stretch shrinks
+	# the texture by 0.5, those display at y=520-700 in a 720x1280 view.
+	# The chat renderer shows the top portion first, so crop the top
+	# 60% of the texture (where the puzzle should be) at 0.4 scale
+	# (half-resolution for chat preview).
+	var img_size: Vector2i = img.get_size()
+	# Crop the top half of the texture (where the puzzle should be).
+	var crop: Image = img.get_region(Rect2i(0, int(img_size.y * 0.20), img_size.x, int(img_size.y * 0.30)))
+	if crop != null:
+		# Downscale by 2x for chat-friendly size.
+		crop.resize(int(crop.get_size().x * 0.5), int(crop.get_size().y * 0.5), Image.INTERPOLATE_BILINEAR)
+		crop.save_png("res://_godot_test_out/level2_actual_crop.png")
+		print("[capture] saved _godot_test_out/level2_actual_crop.png size=", crop.get_size())
 
 	# Also save a no-framing variant (authored coords 1:1 to canvas)
 	# for calibration: kill the framing transform.
