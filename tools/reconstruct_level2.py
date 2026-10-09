@@ -142,10 +142,24 @@ for l in links:
 
 # Per-piece reference vs our error
 def find_ref(comp_name, color_name):
-    for c in measurements.get(color_name, []):
-        if c["area"] > 800:
-            return c
-    return None
+    """Return a per-color reference dict computed from the COMBINED bounding
+    box of all major components of that color. Using only the largest component
+    gives a biased y-center when the C-ring has a gap; combining all large
+    components (top + bottom arcs) gives a stable center.
+    """
+    bigs = [c for c in measurements.get(color_name, []) if c["area"] > 800]
+    if not bigs:
+        return None
+    x0 = min(c["x0"] for c in bigs)
+    y0 = min(c["y0"] for c in bigs)
+    x1 = max(c["x1"] for c in bigs)
+    y1 = max(c["y1"] for c in bigs)
+    return {
+        "x0": x0, "y0": y0, "x1": x1, "y1": y1,
+        "cx": (x0 + x1) * 0.5, "cy": (y0 + y1) * 0.5,
+        "w": x1 - x0 + 1, "h": y1 - y0 + 1,
+        "area": sum(c["area"] for c in bigs),
+    }
 
 color_map = {
     "ring_orange": "orange",
@@ -164,17 +178,24 @@ for piece in pieces:
     ref_dx = ref["w"] / 2
     ref_dy = ref["h"] / 2
     ref_r = max(ref_dx, ref_dy)  # the gap-facing side shrinks
-    ref_cx = ref["cx"]
-    ref_cy = ref["cy"]
+    # Reference image is 685x1170; our authored coordinates are in 720x1280.
+    # Scale reference center and radius to viewport coords for an apples-to-apples
+    # comparison. (Both ring_piece_2d and connector rendering work in viewport
+    # pixels, not reference pixels.)
+    sx = 720.0 / 685.0
+    sy = 1280.0 / 1170.0
+    ref_cx = ref["cx"] * sx
+    ref_cy = ref["cy"] * sy
+    ref_r_scaled = ref_r * ((sx + sy) * 0.5)
     err_x = our_cx - ref_cx
     err_y = our_cy - ref_cy
-    err_r = our_r - ref_r
+    err_r = our_r - ref_r_scaled
     errors.append({
         "id": piece["id"],
-        "ref_center": [round(ref_cx, 1), round(ref_cy, 1)],
+        "ref_center_viewport": [round(ref_cx, 1), round(ref_cy, 1)],
         "our_center": [our_cx, our_cy],
         "err_center_px": [round(err_x, 2), round(err_y, 2)],
-        "ref_radius": round(ref_r, 1),
+        "ref_radius_viewport": round(ref_r_scaled, 1),
         "our_radius": our_r,
         "err_radius_px": round(err_r, 2),
     })

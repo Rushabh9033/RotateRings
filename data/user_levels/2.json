@@ -1,7 +1,7 @@
 {
   "id": 2,
   "title": "Three Cuffs",
-  "source": "seeded-modern-schema",
+  "source": "calibrated-against-2.jpeg",
   "pieces": [
     {
       "id": "ring_orange",
@@ -14,17 +14,17 @@
       "slide_max": 1000.0,
       "role": 0,
       "piece_type": 1,
-      "x": 260.0,
-      "y": 510.0,
-      "start_angle_deg": 270.0,
-      "radius": 88.0,
-      "radius_y": 88.0,
-      "thickness": 22.0,
+      "x": 289.0,
+      "y": 544.0,
+      "start_angle_deg": 0.0,
+      "radius": 96.0,
+      "radius_y": 96.0,
+      "thickness": 18.0,
       "z_index": 1,
       "initially_locked": false,
       "release_direction": {"x": 1.0, "y": 0.0},
       "target_exit_angle_deg": 0.0,
-      "gaps": [{"center_angle_deg": 0.0, "width_deg": 100.0, "tolerance_deg": 16.0}]
+      "gaps": [{"center_angle_deg": 0.0, "width_deg": 70.0, "tolerance_deg": 16.0}]
     },
     {
       "id": "ring_cyan",
@@ -37,17 +37,17 @@
       "slide_max": 1000.0,
       "role": 0,
       "piece_type": 1,
-      "x": 460.0,
-      "y": 510.0,
-      "start_angle_deg": 90.0,
-      "radius": 88.0,
-      "radius_y": 88.0,
-      "thickness": 22.0,
+      "x": 447.0,
+      "y": 544.0,
+      "start_angle_deg": 0.0,
+      "radius": 77.0,
+      "radius_y": 77.0,
+      "thickness": 18.0,
       "z_index": 1,
       "initially_locked": false,
       "release_direction": {"x": 1.0, "y": 0.0},
       "target_exit_angle_deg": 0.0,
-      "gaps": [{"center_angle_deg": 0.0, "width_deg": 100.0, "tolerance_deg": 16.0}]
+      "gaps": [{"center_angle_deg": 0.0, "width_deg": 70.0, "tolerance_deg": 16.0}]
     },
     {
       "id": "ring_purple",
@@ -60,17 +60,17 @@
       "slide_max": 1000.0,
       "role": 0,
       "piece_type": 1,
-      "x": 360.0,
-      "y": 680.0,
-      "start_angle_deg": 270.0,
-      "radius": 88.0,
-      "radius_y": 88.0,
-      "thickness": 22.0,
+      "x": 353.0,
+      "y": 679.0,
+      "start_angle_deg": 0.0,
+      "radius": 78.0,
+      "radius_y": 78.0,
+      "thickness": 18.0,
       "z_index": 1,
       "initially_locked": false,
       "release_direction": {"x": 0.0, "y": 1.0},
       "target_exit_angle_deg": 0.0,
-      "gaps": [{"center_angle_deg": 0.0, "width_deg": 100.0, "tolerance_deg": 16.0}]
+      "gaps": [{"center_angle_deg": 90.0, "width_deg": 70.0, "tolerance_deg": 16.0}]
     }
   ],
   "links": [
@@ -96,7 +96,7 @@
     {
       "from_id": "ring_orange",
       "to_id": "ring_purple",
-      "collar_angle_deg": 90.0,
+      "collar_angle_deg": 0.0,
       "cuff_center_local": {"x": 0.0, "y": 0.0},
       "cuff_orientation_deg": 0.0,
       "cuff_width": 32.0,
