@@ -53,6 +53,8 @@ func _make_bar() -> Control:
 func _test_toolbar_construction() -> void:
 	var bar = _make_bar()
 	if bar.get_child_count() == 0: _fail("toolbar built no children")
+	# The panel is hidden by default; show it so the inner content builds.
+	bar.show_panel()
 	# Verify the dock has 6 mode buttons.
 	if bar._mode_buttons.size() != 6:
 		_fail("expected 6 mode buttons, got %d" % bar._mode_buttons.size())

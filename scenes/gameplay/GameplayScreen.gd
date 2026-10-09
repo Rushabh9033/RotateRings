@@ -354,15 +354,14 @@ func _ensure_editor_toolbar() -> void:
 	editor_toolbar.set_document(editor_document)
 	editor_toolbar.set_overlay(edit_overlay)
 	editor_toolbar.test_level_pressed.connect(_on_test_level_pressed)
-	# Right-side dock (380 px wide). The toolbar self-anchors in _ready
-	# (anchor_right=1, anchor_bottom=1, offset_left=-380), so we just
-	# add it to the scene tree.
+	# Right-side slide-in dock. The dock self-anchors to the right edge
+	# of the screen; it's hidden by default and a thin handle sits on
+	# the right edge for the user to click and slide it in.
 	editor_toolbar.z_index = 50
 	add_child(editor_toolbar)
-	# Hide the standard top HUD while in edit mode so the toolbar has
-	# the full right edge. (The puzzle area is full-screen behind it,
-	# but the dock sits on top with semi-transparent background, so the
-	# user can still see puzzle pieces in the puzzle area to its left.)
+	# Auto-show on first entry so the user sees their tools immediately.
+	editor_toolbar.show_panel()
+	# Hide the standard top HUD while in edit mode.
 	if has_node("SafeArea/TopHUD"):
 		$SafeArea/TopHUD.visible = false
 
