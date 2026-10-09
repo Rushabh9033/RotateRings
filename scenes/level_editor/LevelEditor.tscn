@@ -33,7 +33,7 @@ color = Color(1, 0.96, 0.9, 1)
 
 [node name="PuzzlePreview" type="Node2D" parent="."]
 script = ExtResource("2_pp_script")
-position = Vector2(360, 640)
+position = Vector2(0, 0)
 
 [node name="TopBar" type="HBoxContainer" parent="."]
 layout_mode = 1
