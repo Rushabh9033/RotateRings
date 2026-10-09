@@ -133,7 +133,12 @@ func _on_level_changed(v: float) -> void:
 # 720x1280) where the panel covers the puzzle canvas.
 func _on_panel_toggle() -> void:
 	right_panel.visible = not right_panel.visible
-	panel_toggle_btn.text = "Panel" if right_panel.visible else "Show"
+	if right_panel.visible:
+		panel_toggle_btn.text = "Hide panel"
+		_set_status("Right panel shown.")
+	else:
+		panel_toggle_btn.text = "Show panel"
+		_set_status("Right panel hidden. Tap Show panel (top-left) to bring it back.")
 
 func _on_radius_changed(v: float) -> void:
 	radius_label.text = "Radius: %d" % int(v)
