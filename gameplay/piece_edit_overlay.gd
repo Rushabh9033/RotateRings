@@ -36,6 +36,7 @@ enum DragMode {
 	RESIZE_AXIS,
 	ROTATE_PIECE,
 	TOGGLE_LOCK,
+	DRAG_GAP,
 }
 
 # Per-shape axis-routing for the resize handles. Keyed by PieceDefinition.ShapeType int.
@@ -168,6 +169,90 @@ func _process(_delta: float) -> void:
 func _snap(v: float) -> float:
 	return round(v / grid_size) * grid_size
 
+# ==============================================================================
+# Gap drag handles (M12) — drag the gap center or one of the two edges
+# ==============================================================================
+
+enum GapDragKind { NONE, CENTER, LEFT_EDGE, RIGHT_EDGE }
+
+# Returns [piece_idx, gap_idx, kind] or [-1, -1, NONE].
+func _hit_test_gap_handle(local_pos: Vector2) -> Array:
+	for i in range(_pieces.size() - 1, -1, -1):
+		var p = _pieces[i]
+		var def: Resource = p["def"]
+		if def == null: continue
+		if not "gaps" in def or def.gaps.is_empty(): continue
+		if def.is_property_locked("gaps"): continue
+		var piece_obj = p["piece"]
+		var rot: float = float(piece_obj.rotation_degrees) if piece_obj != null and "rotation_degrees" in piece_obj else 0.0
+		var r: float = float(p["radius"])
+		for gi in range(def.gaps.size()):
+			var g: Resource = def.gaps[gi]
+			var center_deg: float = float(g.center_angle_deg)
+			var width_deg: float = float(g.width_deg)
+			var left_deg: float = fposmod(center_deg - width_deg * 0.5, 360.0)
+			var right_deg: float = fposmod(center_deg + width_deg * 0.5, 360.0)
+			var world_left: float = rot + left_deg
+			var world_right: float = rot + right_deg
+			var world_center: float = rot + center_deg
+			var pt_left: Vector2 = p["center"] + Vector2(cos(deg_to_rad(world_left)), sin(deg_to_rad(world_left))) * r
+			var pt_right: Vector2 = p["center"] + Vector2(cos(deg_to_rad(world_right)), sin(deg_to_rad(world_right))) * r
+			var pt_center: Vector2 = p["center"] + Vector2(cos(deg_to_rad(world_center)), sin(deg_to_rad(world_center))) * r
+			if pt_center.distance_to(local_pos) <= 14.0:
+				return [i, gi, GapDragKind.CENTER]
+			if pt_left.distance_to(local_pos) <= 10.0:
+				return [i, gi, GapDragKind.LEFT_EDGE]
+			if pt_right.distance_to(local_pos) <= 10.0:
+				return [i, gi, GapDragKind.RIGHT_EDGE]
+	return [-1, -1, GapDragKind.NONE]
+
+var _gap_drag_piece_idx: int = -1
+var _gap_drag_gap_idx: int = -1
+var _gap_drag_kind: int = GapDragKind.NONE
+var _gap_drag_start_mouse_angle: float = 0.0
+var _gap_drag_start_value: float = 0.0
+
+func _begin_gap_drag(piece_idx: int, gap_idx: int, kind: int, local_pos: Vector2) -> void:
+	_dragging_piece_idx = piece_idx
+	_selected_piece_idx = piece_idx
+	_gap_drag_piece_idx = piece_idx
+	_gap_drag_gap_idx = gap_idx
+	_gap_drag_kind = kind
+	_gap_drag_start_mouse_angle = (local_pos - _pieces[piece_idx]["center"]).angle()
+	var g: Resource = _pieces[piece_idx]["def"].gaps[gap_idx]
+	_gap_drag_start_value = float(g.center_angle_deg) if kind == GapDragKind.CENTER else float(g.width_deg)
+
+func _apply_gap_drag(local_pos: Vector2) -> void:
+	if _gap_drag_piece_idx < 0: return
+	var p = _pieces[_gap_drag_piece_idx]
+	var piece_obj = p["piece"]
+	var rot: float = float(piece_obj.rotation_degrees) if piece_obj != null and "rotation_degrees" in piece_obj else 0.0
+	# Current mouse angle minus start = delta in degrees (in piece-local frame).
+	var cur_local_angle: float = fposmod((local_pos - p["center"]).angle() - deg_to_rad(rot), 360.0)
+	var start_local: float = fposmod(_gap_drag_start_mouse_angle - deg_to_rad(rot), 360.0)
+	var delta_deg: float = rad_to_deg(cur_local_angle - start_local)
+	# Normalize delta to (-180, 180] so dragging clockwise isn't a huge jump.
+	if delta_deg > 180.0: delta_deg -= 360.0
+	if delta_deg < -180.0: delta_deg += 360.0
+	var def: Resource = p["def"]
+	var g: Resource = def.gaps[_gap_drag_gap_idx]
+	if _gap_drag_kind == GapDragKind.CENTER:
+		g.center_angle_deg = fposmod(_gap_drag_start_value + delta_deg, 360.0)
+	elif _gap_drag_kind == GapDragKind.LEFT_EDGE:
+		var new_center: float = _gap_drag_start_value + delta_deg
+		var new_width: float = absf(delta_deg) * 2.0
+		g.center_angle_deg = fposmod(new_center, 360.0)
+		g.width_deg = maxf(8.0, new_width)
+	elif _gap_drag_kind == GapDragKind.RIGHT_EDGE:
+		var new_width: float = absf(delta_deg) * 2.0
+		g.width_deg = maxf(8.0, new_width)
+	if piece_obj != null and "queue_redraw" in piece_obj:
+		piece_obj.queue_redraw()
+	queue_redraw()
+
+func _commit_gap_drag() -> void:
+	_save_all_pieces()
+
 # Auto-align: if within align_threshold of a canvas guide, snap to it. Returns
 # the snapped position with auto-align applied.
 func _auto_align(pos: Vector2, viewport_size: Vector2) -> Vector2:
@@ -242,6 +327,12 @@ func _gui_input(event: InputEvent) -> void:
 			_begin_resize_axis(axis_res[0], axis_res[1], local_pos)
 			accept_event()
 			return
+		# Gap handle (M12). Returns (piece_idx, gap_idx, kind).
+		var gap_res = _hit_test_gap_handle(local_pos)
+		if gap_res[0] >= 0:
+			_begin_gap_drag(gap_res[0], gap_res[1], int(gap_res[2]), local_pos)
+			accept_event()
+			return
 		# Legacy single-radius handle (kept for back-compat smoke tests).
 		var rad_hit = _hit_test_radius_handle(local_pos)
 		if rad_hit >= 0:
@@ -289,6 +380,13 @@ func _gui_input(event: InputEvent) -> void:
 				_dragging_piece_idx = -1
 				_drag_mode = DragMode.NONE
 				accept_event()
+			DragMode.DRAG_GAP:
+				_commit_gap_drag()
+				_dragging_piece_idx = -1
+				_gap_drag_piece_idx = -1
+				_gap_drag_kind = GapDragKind.NONE
+				_drag_mode = DragMode.NONE
+				accept_event()
 			_:
 				pass
 	elif event is InputEventMouseMotion:
@@ -316,6 +414,11 @@ func _gui_input(event: InputEvent) -> void:
 			DragMode.ROTATE_PIECE:
 				if _dragging_piece_idx >= 0:
 					_apply_rotate(_dragging_piece_idx, local_pos)
+					accept_event()
+			DragMode.DRAG_GAP:
+				if _gap_drag_piece_idx >= 0:
+					_apply_gap_drag(local_pos)
+					accept_event()
 					accept_event()
 
 # Hit-tests --------------------------------------------------------------
@@ -1151,6 +1254,30 @@ func _draw() -> void:
 				# Tiny arrow inside the dot pointing along its axis.
 				var arrow_dir: Vector2 = ax_world
 				draw_line(dot_pos - arrow_dir * 4.0, dot_pos + arrow_dir * 4.0, Color(0.2, 0.13, 0.08, 0.95), 1.5)
+			# Gap drag handles (M12). One center dot + two edge dots on the
+			# boundary circle, at the gap's center and edges.
+			if not p["locked"] and "gaps" in p["def"] and p["def"].gaps.size() > 0:
+				for gi in range(p["def"].gaps.size()):
+					var g: Resource = p["def"].gaps[gi]
+					var cd: float = float(g.center_angle_deg)
+					var wd: float = float(g.width_deg)
+					var ld: float = fposmod(cd - wd * 0.5, 360.0)
+					var rd: float = fposmod(cd + wd * 0.5, 360.0)
+					var wc: float = handle_rot_deg + cd
+					var wl: float = handle_rot_deg + ld
+					var wr: float = handle_rot_deg + rd
+					var pt_c: Vector2 = pos + Vector2(cos(deg_to_rad(wc)), sin(deg_to_rad(wc))) * radius
+					var pt_l: Vector2 = pos + Vector2(cos(deg_to_rad(wl)), sin(deg_to_rad(wl))) * radius
+					var pt_r: Vector2 = pos + Vector2(cos(deg_to_rad(wr)), sin(deg_to_rad(wr))) * radius
+					# Draw the gap arc boundary in white so the user sees the
+					# actual gap they're editing.
+					draw_arc(pos, radius, deg_to_rad(wl), deg_to_rad(wr), 16, Color(0.95, 0.95, 0.95, 0.6), 1.5, true)
+					# Center handle: orange diamond.
+					draw_circle(pt_c, 7.0, Color(0.95, 0.7, 0.3, 0.95))
+					draw_arc(pt_c, 7.0, 0, TAU, 16, Color(0.2, 0.13, 0.08, 0.9), 1.2, true)
+					# Edge handles: small triangles.
+					draw_circle(pt_l, 5.0, Color(0.95, 0.4, 0.7, 0.95))
+					draw_circle(pt_r, 5.0, Color(0.95, 0.4, 0.7, 0.95))
 		# Center mark for the dragged piece
 		if is_dragging:
 			draw_circle(pos, 4.0, Color(0.95, 0.7, 0.3))
