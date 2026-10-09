@@ -66,7 +66,6 @@ const COLOR_HEX := {
 @onready var center_y_btn: Button = $RightPanel/VBox/LayoutSection/CenterRow/CenterYBtn
 @onready var pixel_label: Label = $RightPanel/VBox/LayoutSection/PixelLabel
 @onready var delete_btn: Button = $RightPanel/VBox/DeleteBtn
-@onready var panel_toggle_btn: Button = $PanelToggleBtn
 @onready var rotate_selected_btn: Button = $RightPanel/VBox/ActionRow/RotateSelectedBtn
 @onready var resize_selected_btn: Button = $RightPanel/VBox/ActionRow/ResizeSelectedBtn
 @onready var closed_toggle_btn: CheckButton = $RightPanel/VBox/ClosedToggleBtn
@@ -119,7 +118,6 @@ func _ready() -> void:
 	center_y_btn.pressed.connect(_center_y_pressed)
 	level_input.value_changed.connect(_on_level_changed)
 	delete_btn.pressed.connect(_delete_selected)
-	panel_toggle_btn.pressed.connect(_on_panel_toggle)
 	rotate_selected_btn.pressed.connect(_on_rotate_selected_pressed)
 	resize_selected_btn.pressed.connect(_on_resize_selected_pressed)
 	right_panel.visible = true
@@ -131,15 +129,6 @@ func _on_level_changed(v: float) -> void:
 
 # Toggle the right panel on/off. Useful on narrow viewports (mobile
 # 720x1280) where the panel covers the puzzle canvas.
-func _on_panel_toggle() -> void:
-	right_panel.visible = not right_panel.visible
-	if right_panel.visible:
-		panel_toggle_btn.text = "Hide panel"
-		_set_status("Right panel shown.")
-	else:
-		panel_toggle_btn.text = "Show panel"
-		_set_status("Right panel hidden. Tap Show panel (top-left) to bring it back.")
-
 func _on_radius_changed(v: float) -> void:
 	radius_label.text = "Radius: %d" % int(v)
 	if _selected_piece_idx >= 0 and _selected_piece_idx < _placed_pieces.size():
