@@ -443,6 +443,97 @@ func delete_link(link_id: String) -> bool:
 
 # Match size from a source piece to one or more target piece ids. Uses the
 # EditorClipboard shape table. Properties that are locked on the target are
+# Add a new empty piece at the given position. Returns the new piece's id.
+# The piece is OPEN_CIRCLE with default radius, thickness, and color (so the
+# user can immediately grab its handles and resize it). The schema field set
+# is the full set the editor can later mutate.
+func add_piece(at_position: Vector2 = Vector2(360, 640), shape: int = 0) -> String:
+	var new_id: String = generate_unique_piece_id("piece")
+	var piece_dict: Dictionary = {
+		"id": new_id,
+		"shape_type": int(shape),
+		"piece_type": 1,  # OPEN_CIRCLE
+		"x": float(at_position.x),
+		"y": float(at_position.y),
+		"start_angle_deg": 0.0,
+		"radius": 60.0,
+		"radius_y": 60.0,
+		"thickness": 22.0,
+		"length": 100.0,
+		"length_b": 60.0,
+		"width": 24.0,
+		"height": 60.0,
+		"corner_radius": 8.0,
+		"path_points": [],
+		"color": Color("#EA7829"),
+		"color_hex": "#EA7829",
+		"color_name": "orange",
+		"motion_model": 0,  # ROTATE
+		"motion_axis": {"x": 1.0, "y": 0.0},
+		"slide_min": -1000.0,
+		"slide_max": 1000.0,
+		"slide_path": [],
+		"role": 0,  # NORMAL
+		"z_index": 1,
+		"gaps": [{
+			"center_angle_deg": 90.0,
+			"width_deg": 80.0,
+			"tolerance_deg": 16.0,
+		}],
+		"initially_locked": false,
+		"locked": false,
+		"property_locks": {},
+		"release_direction": {"x": 1.0, "y": 0.0},
+		"target_exit_angle_deg": 0.0,
+	}
+	var captured := piece_dict
+	apply_edit(func():
+		pieces.append(captured)
+	)
+	return new_id
+
+# Add a link between two pieces (M5 free connector authoring). The link is
+# in CLEARING state by default and snaps to the from-piece's local right
+# cuff at radius + cuff_depth. The from-piece must be a valid id; the
+# to-piece can be the same id only if from-piece's gap is large enough
+# (M6 multi-connector). Returns the new link's id, or "" on failure.
+func add_link(from_id: String, to_id: String) -> String:
+	var from_p: Dictionary = find_piece(from_id)
+	var to_p: Dictionary = find_piece(to_id)
+	if from_p.is_empty() or to_p.is_empty(): return ""
+	# Section 4 connectors lock guard.
+	if is_property_locked(from_id, "connectors"): return ""
+	var new_id: String = generate_unique_link_id("link")
+	# Compute a default collar angle from the world vector to the child.
+	var dx: float = float(to_p["x"]) - float(from_p["x"])
+	var dy: float = float(to_p["y"]) - float(from_p["y"])
+	var collar: float = 0.0
+	if absf(dx) > 0.001 or absf(dy) > 0.001:
+		collar = fposmod(rad_to_deg(atan2(dy, dx)) - float(from_p.get("start_angle_deg", 0.0)), 360.0)
+	var link_dict: Dictionary = {
+		"id": new_id,
+		"from_id": from_id,
+		"to_id": to_id,
+		"collar_angle_deg": collar,
+		"cuff_center_local": {"x": 0.0, "y": 0.0},
+		"cuff_orientation_deg": 0.0,
+		"cuff_width": 32.0,
+		"cuff_depth": 18.0,
+		"cuff_round_radius": 5.0,
+		"stem_length": 200.0,
+		"stem_width": 6.0,
+		"stem_distance_from_piece": maxf(60.0, sqrt(dx * dx + dy * dy)),
+		"joint_color_hex": "#32ADDA",
+		"joint_color_name": "cyan",
+		"clearance_tolerance_deg": 16.0,
+		"is_detached": false,
+	}
+	var captured_link := link_dict
+	apply_edit(func():
+		links.append(captured_link)
+	)
+	return new_id
+
 # not changed (Section 4 lock guard). All mutations happen inside a single
 # apply_edit so undo rolls them back as a unit.
 func match_size_from_piece(source_id: String, target_ids: Array) -> int:
