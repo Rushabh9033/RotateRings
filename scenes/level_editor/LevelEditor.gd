@@ -256,23 +256,27 @@ func _on_place_toggled(_pressed: bool) -> void:
 	_move_btn_off(); _gap_btn_off(); _link_btn_off()
 	_selected_piece_idx = -1
 	puzzle_preview.queue_redraw()
+	_set_status("Place: click on canvas to drop a new ring (uses active color).")
 
 func _on_move_toggled(_pressed: bool) -> void:
 	_tool = Tool.MOVE; mode_label.text = "Tool: MOVE"
 	_place_btn_off(); _gap_btn_off(); _link_btn_off()
 	_selected_piece_idx = -1
 	puzzle_preview.queue_redraw()
+	_set_status("Move: click on a ring, then drag the body to move it.")
 
 func _on_gap_toggled(_pressed: bool) -> void:
 	_tool = Tool.GAP; mode_label.text = "Tool: GAP"
 	_place_btn_off(); _move_btn_off(); _link_btn_off()
 	puzzle_preview.queue_redraw()
+	_set_status("Gap: click the white-ringed handle on a ring's rim, then drag to rotate the gap.")
 
 func _on_link_toggled(_pressed: bool) -> void:
 	_tool = Tool.LINK; mode_label.text = "Tool: LINK"
 	_place_btn_off(); _move_btn_off(); _gap_btn_off()
 	_linking_first_idx = -1
 	puzzle_preview.queue_redraw()
+	_set_status("Link: click first ring, then click second ring to create a chain link.")
 
 func _place_btn_off() -> void: place_btn.set_pressed_no_signal(false)
 func _move_btn_off()  -> void: move_btn.set_pressed_no_signal(false)
