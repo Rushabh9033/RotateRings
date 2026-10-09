@@ -80,6 +80,19 @@ var _align_edge_picker: OptionButton = null
 var _recent_colors: Array = []
 
 var reference_visible: bool = true
+
+# Section collapse state. Sections NOT in this dict are shown by default.
+# The user can collapse any section by clicking its header.
+var _section_collapsed: Dictionary = {
+	"Mode": false,
+	"Snap & Grid": true,
+	"Framing": true,
+	"Color": true,
+	"Size Link": true,
+	"Align": false,
+	"Reference": true,
+	"Test": false,
+}
 var reference_opacity: float = 0.5
 var reference_overlay_mode: String = "normal"
 var reference_locked: bool = false
@@ -244,30 +257,42 @@ func _rebuild_panel() -> void:
 	vbox.add_theme_constant_override("separation", 4)
 	scroll.add_child(vbox)
 
-	# Add the sections. Each is a single tight row.
-	vbox.add_child(_make_section("Mode"))
-	vbox.add_child(_build_mode_strip())
-	vbox.add_child(_make_section("Snap & Grid"))
-	vbox.add_child(_build_snap_strip())
-	vbox.add_child(_make_section("Framing"))
-	vbox.add_child(_build_framing_strip())
-	vbox.add_child(_make_section("Color"))
-	vbox.add_child(_build_color_strip())
-	vbox.add_child(_make_section("Size Link"))
-	vbox.add_child(_build_size_link_strip())
-	vbox.add_child(_make_section("Align"))
-	vbox.add_child(_build_align_strip())
-	vbox.add_child(_make_section("Reference"))
-	vbox.add_child(_build_reference_strip())
-	vbox.add_child(_make_section("Test"))
-	vbox.add_child(_build_test_level_strip())
+	# Add the sections. Each is a single tight row wrapped in a
+	# collapsible header so the panel can stay uncluttered.
+	_add_collapsible_section(vbox, "Mode", _build_mode_strip())
+	_add_collapsible_section(vbox, "Snap & Grid", _build_snap_strip())
+	_add_collapsible_section(vbox, "Framing", _build_framing_strip())
+	_add_collapsible_section(vbox, "Color", _build_color_strip())
+	_add_collapsible_section(vbox, "Size Link", _build_size_link_strip())
+	_add_collapsible_section(vbox, "Align", _build_align_strip())
+	_add_collapsible_section(vbox, "Reference", _build_reference_strip())
+	_add_collapsible_section(vbox, "Test", _build_test_level_strip())
 
-func _make_section(title: String) -> Label:
-	var l := Label.new()
-	l.text = title
-	l.add_theme_font_size_override("font_size", 10)
-	l.add_theme_color_override("font_color", Color(0.85, 0.65, 0.45, 1))
-	return l
+func _add_collapsible_section(parent: Control, title: String, body: Control) -> void:
+	var v := VBoxContainer.new()
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.add_theme_constant_override("separation", 0)
+	var header := Button.new()
+	header.toggle_mode = true
+	var is_open: bool = not _section_collapsed.get(title, false)
+	header.button_pressed = is_open
+	header.text = "▾  " + title if is_open else "▸  " + title
+	header.add_theme_font_size_override("font_size", 10)
+	header.add_theme_color_override("font_color", Color(0.95, 0.7, 0.3, 1))
+	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.custom_minimum_size = Vector2(0, 22)
+	var captured_title: String = title
+	header.pressed.connect(func():
+		var new_state: bool = not _section_collapsed.get(captured_title, false)
+		_section_collapsed[captured_title] = not new_state
+		header.text = "▾  " + captured_title if new_state else "▸  " + captured_title
+		body.visible = new_state
+	)
+	v.add_child(header)
+	body.visible = is_open
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.add_child(body)
+	parent.add_child(v)
 
 # ==============================================================================
 # Mode (M26)

@@ -164,11 +164,15 @@ func _frame_puzzle() -> void:
 			safe_margin_bottom = viewport_size.y - bot_y + 48.0
 	
 	var safe_margin_x = clampf(viewport_size.x * 0.10, 36.0, 72.0)
-	
-	var safe_width = viewport_size.x - (safe_margin_x * 2.0)
+	# Reserve space on the right when the editor dock is shown so the
+	# puzzle pieces don't get hidden under the panel.
+	var safe_margin_right: float = safe_margin_x
+	if editor_toolbar != null and editor_toolbar.is_panel_shown():
+		safe_margin_right = maxf(safe_margin_right, 320.0 + 28.0 + 12.0)
+
+	var safe_width = viewport_size.x - safe_margin_x - safe_margin_right
 	var safe_height = viewport_size.y - safe_margin_top - safe_margin_bottom
 	if safe_height <= 50.0: safe_height = 200.0
-	
 	var safe_rect = Rect2(safe_margin_x, safe_margin_top, safe_width, safe_height)
 	
 	# Calculate required scale to fit within safe_rect
@@ -354,6 +358,10 @@ func _ensure_editor_toolbar() -> void:
 	editor_toolbar.set_document(editor_document)
 	editor_toolbar.set_overlay(edit_overlay)
 	editor_toolbar.test_level_pressed.connect(_on_test_level_pressed)
+	# Re-frame the puzzle when the dock is shown/hidden so pieces
+	# stay draggable.
+	if editor_toolbar.has_signal("editor_panel_shown"):
+		editor_toolbar.editor_panel_shown.connect(_on_editor_panel_shown)
 	# Right-side slide-in dock. The dock self-anchors to the right edge
 	# of the screen; it's hidden by default and a thin handle sits on
 	# the right edge for the user to click and slide it in.
@@ -369,6 +377,11 @@ func _ensure_editor_toolbar() -> void:
 # runtime LevelDefinition, swap the puzzle controller to use it, and
 # exit edit mode. The editor document stays in memory so Back returns
 # to the exact same state.
+func _on_editor_panel_shown(_shown: bool) -> void:
+	# Re-frame the puzzle so the safe area respects the dock's width.
+	if is_inside_tree():
+		get_tree().process_frame.connect(_frame_puzzle, CONNECT_ONE_SHOT)
+
 func _on_test_level_pressed() -> void:
 	if editor_document == null: return
 	# Build a LevelDefinition from the editor document and hand it to the
