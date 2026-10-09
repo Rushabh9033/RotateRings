@@ -237,6 +237,10 @@ clip_text = true
 layout_mode = 2
 text = "Delete selected"
 
+[node name="ClosedToggleBtn" type="CheckButton" parent="RightPanel/VBox"]
+layout_mode = 2
+text = "Filled (closed)"
+
 [node name="BottomStatus" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = 12

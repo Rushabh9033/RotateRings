@@ -67,6 +67,7 @@ const COLOR_HEX := {
 @onready var pixel_label: Label = $RightPanel/VBox/LayoutSection/PixelLabel
 @onready var delete_btn: Button = $RightPanel/VBox/DeleteBtn
 @onready var panel_toggle_btn: Button = $PanelToggleBtn
+@onready var closed_toggle_btn: CheckButton = $RightPanel/VBox/ClosedToggleBtn
 @onready var right_panel: PanelContainer = $RightPanel
 @onready var back_btn: Button = $TopBar/BackBtn
 @onready var status_label: Label = $BottomStatus
@@ -386,6 +387,7 @@ func _hit_test_gap_handle(local_pos: Vector2) -> int:
 
 func _place_piece(local_pos: Vector2) -> void:
 	var col_hex = COLOR_HEX[_active_color]
+	var is_closed: bool = closed_toggle_btn.button_pressed if is_instance_valid(closed_toggle_btn) else false
 	var p = {
 		"id": "piece_%d" % _next_piece_id,
 		"color_name": _color_name_from_enum(_active_color),
@@ -395,7 +397,7 @@ func _place_piece(local_pos: Vector2) -> void:
 		"thickness": 22,
 		"gap_deg": 270.0,
 		"shape": "CIRCLE",
-		"closed": false,
+		"closed": is_closed,
 	}
 	_next_piece_id += 1
 	_placed_pieces.append(p)
