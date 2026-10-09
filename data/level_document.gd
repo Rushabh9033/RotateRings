@@ -444,6 +444,171 @@ func mirror_pieces(piece_ids: Array, mirror: String) -> int:
 	return changed
 
 # ==============================================================================
+# Equalize spacing (Canva / Figma "Tidy up").
+#
+#   - equalize_h_gaps: arrange the selection into a single horizontal
+#     row with equal gap between each pair. The first piece (in input
+#     order) is the position anchor; everything after is shifted right
+#     to make all gaps equal. Honors per-piece position lock.
+#
+#   - equalize_v_gaps: same but vertically.
+#
+#   - align_in_row: align all selected pieces into a horizontal row at
+#     the first piece's y, then equalize horizontal gaps.
+#
+#   - align_in_column: same vertically.
+#
+#   - align_to_pieces(target_ids, source_id, edge="left"|"right"|"center"):
+#     align each target's specified edge to the source's same edge.
+#     Honors per-piece position lock.
+# ==============================================================================
+
+func equalize_h_gaps(piece_ids: Array, gap: float = -1.0) -> int:
+	# gap < 0 means "use the average current gap"
+	if piece_ids.size() < 2: return 0
+	var items: Array = []
+	for pid in piece_ids:
+		var p: Dictionary = find_piece(String(pid))
+		if p.is_empty(): continue
+		items.append({"id": String(pid), "x": float(p["x"]), "r": float(p.get("radius", 0.0))})
+	if items.size() < 2: return 0
+	items.sort_custom(func(a, b): return a["x"] < b["x"])
+	if gap < 0.0:
+		# Average current gap = (rightmost right - leftmost left) / (n - 1)
+		var total: float = 0.0
+		for i in range(items.size() - 1):
+			total += items[i + 1]["x"] - items[i]["x"]
+		gap = total / float(items.size() - 1)
+	# Anchor = first piece's x; push later pieces right to fit gap.
+	var first_x: float = items[0]["x"]
+	var captured_items: Array = items.duplicate(true)
+	var captured_gap: float = gap
+	var captured_first_x: float = first_x
+	var changed: int = 0
+	apply_edit(func():
+		for i in range(captured_items.size()):
+			var pid: String = String(captured_items[i]["id"])
+			if is_property_locked(pid, "position"): continue
+			var p: Dictionary = find_piece(pid)
+			if p.is_empty(): continue
+			p["x"] = captured_first_x + float(i) * captured_gap
+			changed += 1
+	)
+	return changed
+
+func equalize_v_gaps(piece_ids: Array, gap: float = -1.0) -> int:
+	if piece_ids.size() < 2: return 0
+	var items: Array = []
+	for pid in piece_ids:
+		var p: Dictionary = find_piece(String(pid))
+		if p.is_empty(): continue
+		items.append({"id": String(pid), "y": float(p["y"]), "r": float(p.get("radius", 0.0))})
+	if items.size() < 2: return 0
+	items.sort_custom(func(a, b): return a["y"] < b["y"])
+	if gap < 0.0:
+		var total: float = 0.0
+		for i in range(items.size() - 1):
+			total += items[i + 1]["y"] - items[i]["y"]
+		gap = total / float(items.size() - 1)
+	var first_y: float = items[0]["y"]
+	var captured_items: Array = items.duplicate(true)
+	var captured_gap: float = gap
+	var captured_first_y: float = first_y
+	var changed: int = 0
+	apply_edit(func():
+		for i in range(captured_items.size()):
+			var pid: String = String(captured_items[i]["id"])
+			if is_property_locked(pid, "position"): continue
+			var p: Dictionary = find_piece(pid)
+			if p.is_empty(): continue
+			p["y"] = captured_first_y + float(i) * captured_gap
+			changed += 1
+	)
+	return changed
+
+# Align the selection to a horizontal row at the first piece's y, then
+# equalize the horizontal gaps. Canva's "Tidy up horizontal".
+func align_in_row(piece_ids: Array) -> int:
+	if piece_ids.is_empty(): return 0
+	# Capture the anchor y.
+	var anchor_y: float = -1.0
+	for pid in piece_ids:
+		var p: Dictionary = find_piece(String(pid))
+		if p.is_empty(): continue
+		anchor_y = float(p["y"]); break
+	if anchor_y < 0.0: return 0
+	# Move all pieces to anchor_y, then equalize x gaps.
+	var captured_y: float = anchor_y
+	apply_edit(func():
+		for pid in piece_ids:
+			var p: Dictionary = find_piece(String(pid))
+			if p.is_empty(): continue
+			if is_property_locked(String(pid), "position"): continue
+			p["y"] = captured_y
+	)
+	return equalize_h_gaps(piece_ids, -1.0)
+
+# Same but vertical.
+func align_in_column(piece_ids: Array) -> int:
+	if piece_ids.is_empty(): return 0
+	var anchor_x: float = -1.0
+	for pid in piece_ids:
+		var p: Dictionary = find_piece(String(pid))
+		if p.is_empty(): continue
+		anchor_x = float(p["x"]); break
+	if anchor_x < 0.0: return 0
+	var captured_x: float = anchor_x
+	apply_edit(func():
+		for pid in piece_ids:
+			var p: Dictionary = find_piece(String(pid))
+			if p.is_empty(): continue
+			if is_property_locked(String(pid), "position"): continue
+			p["x"] = captured_x
+	)
+	return equalize_v_gaps(piece_ids, -1.0)
+
+# Align each target's edge to the source's same edge. edge = "left" |
+# "right" | "center" | "top" | "bottom" | "middle".
+func align_to_pieces(target_ids: Array, source_id: String, edge: String) -> int:
+	if target_ids.is_empty(): return 0
+	var src: Dictionary = find_piece(source_id)
+	if src.is_empty(): return 0
+	var src_r: float = float(src.get("radius", 0.0))
+	# Source's coordinate on the chosen edge.
+	var src_val: float = 0.0
+	match edge:
+		"left":    src_val = float(src["x"]) - src_r
+		"right":   src_val = float(src["x"]) + src_r
+		"center":  src_val = float(src["x"])
+		"top":     src_val = float(src["y"]) - src_r
+		"bottom":  src_val = float(src["y"]) + src_r
+		"middle":  src_val = float(src["y"])
+		_: return 0
+	var is_x_edge: bool = edge in ["left", "right", "center"]
+	var captured_val: float = src_val
+	var captured_ids: Array = target_ids.duplicate()
+	var changed: int = 0
+	apply_edit(func():
+		for pid in captured_ids:
+			var p: Dictionary = find_piece(String(pid))
+			if p.is_empty(): continue
+			if is_property_locked(String(pid), "position"): continue
+			var r: float = float(p.get("radius", 0.0))
+			if is_x_edge:
+				match edge:
+					"left":   p["x"] = captured_val + r
+					"right":  p["x"] = captured_val - r
+					"center": p["x"] = captured_val
+			else:
+				match edge:
+					"top":    p["y"] = captured_val + r
+					"bottom": p["y"] = captured_val - r
+					"middle": p["y"] = captured_val
+			changed += 1
+	)
+	return changed
+
+# ==============================================================================
 # Object clipboard (Section 3): Duplicate / Copy / Paste / Size Match.
 # All routed through apply_edit so undo works.
 # ==============================================================================

@@ -86,6 +86,16 @@ signal rotate_mode_changed(is_on: bool)
 # Selected piece index (for keyboard nudges when no body drag is active).
 var _selected_piece_idx: int = -1
 
+# Multi-piece selection. Used for the Canva-style align/equalize actions.
+# The first entry is the "primary" (single-click target). Shift+click adds
+# pieces; click again toggles. Click without shift replaces the selection
+# with just that piece.
+var _multi_select: Array = []  # [String piece_id, ...]
+
+# Emitted when the multi-selection changes; the dock reads this to keep
+# the align pickers in sync.
+signal selection_changed(piece_ids: Array)
+
 # Per-resize state for connector length
 var _resizing_link_idx: int = -1       # index into _puzzle.active_links
 var _resize_axis_dir: Vector2 = Vector2.ZERO  # unit vector from cuff to parent piece
@@ -346,8 +356,26 @@ func _gui_input(event: InputEvent) -> void:
 				if debug_print: print("Piece locked, ignoring drag")
 				accept_event()
 				return
-			_dragging_piece_idx = body_hit
+			var hit_id: String = String(_pieces[body_hit]["id"])
+			# Multi-select: shift-click toggles this piece in/out of the
+			# selection; plain click replaces the selection with just this
+			# piece. After updating, don't start a drag — the user is
+			# selecting, not moving.
+			if event.shift_pressed:
+				if _multi_select.has(hit_id):
+					_multi_select.erase(hit_id)
+				else:
+					_multi_select.append(hit_id)
+				_selected_piece_idx = body_hit
+				emit_signal("selection_changed", _multi_select.duplicate())
+				queue_redraw()
+				accept_event()
+				return
+			# Plain click: replace selection.
+			_multi_select = [hit_id]
 			_selected_piece_idx = body_hit
+			emit_signal("selection_changed", _multi_select.duplicate())
+			_dragging_piece_idx = body_hit
 			_drag_mode = DragMode.MOVE_PIECE
 			var p = _pieces[body_hit]
 			_drag_offset = local_pos - p["center"]

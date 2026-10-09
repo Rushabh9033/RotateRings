@@ -37,6 +37,15 @@ var overlay: Control = null
 # Mode (M26). 0=SELECT, 1=PIECE, 2=GAP, 3=CONNECTOR, 4=MEASURE, 5=REFERENCE.
 var current_mode: int = 0
 
+# Multi-piece selection. The dock pulls this from the overlay on demand.
+# The first entry is the "source" piece for align_to_* actions.
+var selected_pieces: Array = []  # [String, ...]
+
+# Source picker for align_to_*.
+var _align_source_picker: OptionButton = null
+# Target picker for align_to_* (when target ≠ source, the others).
+var _align_target_picker: OptionButton = null
+
 # Dock UI state.
 var _collapsed: bool = false
 
@@ -140,6 +149,16 @@ func set_overlay(o: Control) -> void:
 	if overlay != null and overlay.get("measure_mode"):
 		current_mode = 4
 		_refresh_mode_buttons()
+	# Listen for selection changes from the overlay.
+	if overlay != null and overlay.has_signal("selection_changed"):
+		if not overlay.selection_changed.is_connected(_on_overlay_selection_changed):
+			overlay.selection_changed.connect(_on_overlay_selection_changed)
+	# Push current selection to the dock.
+	if overlay != null and "_multi_select" in overlay:
+		set_selected_pieces(overlay._multi_select)
+
+func _on_overlay_selection_changed(ids: Array) -> void:
+	set_selected_pieces(ids)
 
 func _apply_collapsed() -> void:
 	if _dock_root == null: return
@@ -225,6 +244,8 @@ func _rebuild_ui() -> void:
 	vbox.add_child(_build_color_strip())
 	vbox.add_child(_build_section_title("Size Link"))
 	vbox.add_child(_build_size_link_strip())
+	vbox.add_child(_build_section_title("Align (Canva-style)"))
+	vbox.add_child(_build_align_strip())
 	vbox.add_child(_build_section_title("Reference Overlay"))
 	vbox.add_child(_build_reference_strip())
 	vbox.add_child(_build_section_title("TEST LEVEL"))
@@ -690,6 +711,132 @@ func _labeled_slider(label: String, range_label: String, init: float, on_change:
 	return v
 
 # ----- Row 6: TEST LEVEL (M22) -----
+
+func _build_align_strip() -> Control:
+	var v := VBoxContainer.new()
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.add_theme_constant_override("separation", 4)
+	# Source / target pickers.
+	var lbl1 := Label.new()
+	lbl1.text = "source (reference)"
+	v.add_child(lbl1)
+	var src := OptionButton.new()
+	src.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	src.tooltip_text = "The piece other selected pieces align to"
+	v.add_child(src)
+	_align_source_picker = src
+	var lbl2 := Label.new()
+	lbl2.text = "align mode"
+	v.add_child(lbl2)
+	# Edge picker.
+	var edge_picker := OptionButton.new()
+	edge_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	edge_picker.add_item("align left")
+	edge_picker.set_item_metadata(0, "left")
+	edge_picker.add_item("align right")
+	edge_picker.set_item_metadata(1, "right")
+	edge_picker.add_item("align center H")
+	edge_picker.set_item_metadata(2, "center")
+	edge_picker.add_item("align top")
+	edge_picker.set_item_metadata(3, "top")
+	edge_picker.add_item("align bottom")
+	edge_picker.set_item_metadata(4, "bottom")
+	edge_picker.add_item("align middle V")
+	edge_picker.set_item_metadata(5, "middle")
+	v.add_child(edge_picker)
+	# Apply align-to-source.
+	var apply_align := Button.new()
+	apply_align.text = "Apply Align"
+	apply_align.custom_minimum_size = Vector2(0, 32)
+	apply_align.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	apply_align.pressed.connect(func():
+		_apply_align_to_source(String(edge_picker.get_item_metadata(edge_picker.selected)) if edge_picker.selected >= 0 else "left")
+	)
+	v.add_child(apply_align)
+	# Tidy up row: align_in_row / align_in_column / equalize_h / equalize_v
+	var tidy_lbl := Label.new()
+	tidy_lbl.text = "tidy up (selection)"
+	v.add_child(tidy_lbl)
+	var tidy_row1 := HBoxContainer.new()
+	tidy_row1.add_theme_constant_override("separation", 4)
+	var b_row := Button.new()
+	b_row.text = "Row"
+	b_row.custom_minimum_size = Vector2(0, 32)
+	b_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b_row.tooltip_text = "Align selection into a horizontal row with equal gaps (first piece's y + equalize horizontal gaps)"
+	b_row.pressed.connect(func():
+		if document != null:
+			document.align_in_row(selected_pieces)
+	)
+	tidy_row1.add_child(b_row)
+	var b_col := Button.new()
+	b_col.text = "Column"
+	b_col.custom_minimum_size = Vector2(0, 32)
+	b_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b_col.tooltip_text = "Align selection into a vertical column with equal gaps (first piece's x + equalize vertical gaps)"
+	b_col.pressed.connect(func():
+		if document != null:
+			document.align_in_column(selected_pieces)
+	)
+	tidy_row1.add_child(b_col)
+	v.add_child(tidy_row1)
+	var tidy_row2 := HBoxContainer.new()
+	tidy_row2.add_theme_constant_override("separation", 4)
+	var b_eh := Button.new()
+	b_eh.text = "Equalize H"
+	b_eh.custom_minimum_size = Vector2(0, 32)
+	b_eh.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b_eh.tooltip_text = "Set equal horizontal gaps between selected pieces (anchor: first piece's x)"
+	b_eh.pressed.connect(func():
+		if document != null:
+			document.equalize_h_gaps(selected_pieces, -1.0)
+	)
+	tidy_row2.add_child(b_eh)
+	var b_ev := Button.new()
+	b_ev.text = "Equalize V"
+	b_ev.custom_minimum_size = Vector2(0, 32)
+	b_ev.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b_ev.tooltip_text = "Set equal vertical gaps between selected pieces (anchor: first piece's y)"
+	b_ev.pressed.connect(func():
+		if document != null:
+			document.equalize_v_gaps(selected_pieces, -1.0)
+	)
+	tidy_row2.add_child(b_ev)
+	v.add_child(tidy_row2)
+	_refresh_align_pickers()
+	return v
+
+func _apply_align_to_source(edge: String) -> void:
+	if document == null: return
+	if selected_pieces.size() < 2: return
+	var src_idx: int = _align_source_picker.selected if _align_source_picker != null else -1
+	if src_idx < 0: return
+	var src_id: String = String(_align_source_picker.get_item_metadata(src_idx))
+	# Targets = every selected piece except the source.
+	var targets: Array = []
+	for pid in selected_pieces:
+		if String(pid) != src_id:
+			targets.append(pid)
+	if targets.is_empty(): return
+	document.align_to_pieces(targets, src_id, edge)
+
+func _refresh_align_pickers() -> void:
+	if _align_source_picker == null: return
+	_align_source_picker.clear()
+	if document == null: return
+	# Populate from selected_pieces first, then fall back to all pieces.
+	var src_list: Array = selected_pieces if not selected_pieces.is_empty() else []
+	for p in document.pieces:
+		var pid: String = String(p.get("id", ""))
+		if not pid.is_empty() and not src_list.has(pid):
+			src_list.append(pid)
+	for pid in src_list:
+		_align_source_picker.add_item(String(pid))
+		_align_source_picker.set_item_metadata(_align_source_picker.item_count - 1, String(pid))
+
+func set_selected_pieces(ids: Array) -> void:
+	selected_pieces = ids.duplicate()
+	_refresh_align_pickers()
 
 func _build_test_level_strip() -> Control:
 	var v := VBoxContainer.new()
