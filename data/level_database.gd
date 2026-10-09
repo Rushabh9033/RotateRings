@@ -39,6 +39,16 @@ static func get_next_playable_level(current_id: int) -> int:
 			return i
 	return 0
 
+# Returns the highest playable level id strictly less than current_id,
+# or 0 if there is no such level (i.e. current_id is the first playable).
+# Mirrors get_next_playable_level for "previous level" navigation in
+# the level select UI.
+static func get_previous_playable_level(current_id: int) -> int:
+	for i in range(current_id - 1, 0, -1):
+		if is_level_playable(i):
+			return i
+	return 0
+
 static func get_total_levels() -> int:
 	return HIGHEST_DEFINED_LEVEL
 

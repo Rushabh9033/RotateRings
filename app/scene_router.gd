@@ -63,19 +63,21 @@ func setup(
 
 func show_home() -> void:
 	current_screen = Screen.HOME
-	home_screen.update_continue_info()
-	home_screen.show()
-	level_select_screen.hide()
-	gameplay_screen.hide()
-	editor_screen.hide()
+	if home_screen and home_screen.has_method("update_continue_info"):
+		home_screen.update_continue_info()
+	if home_screen: home_screen.show()
+	if level_select_screen: level_select_screen.hide()
+	if gameplay_screen: gameplay_screen.hide()
+	if editor_screen: editor_screen.hide()
 
 func show_level_select() -> void:
 	current_screen = Screen.LEVEL_SELECT
-	level_select_screen.build_grid()
-	home_screen.hide()
-	level_select_screen.show()
-	gameplay_screen.hide()
-	editor_screen.hide()
+	if level_select_screen and level_select_screen.has_method("build_grid"):
+		level_select_screen.build_grid()
+	if home_screen: home_screen.hide()
+	if level_select_screen: level_select_screen.show()
+	if gameplay_screen: gameplay_screen.hide()
+	if editor_screen: editor_screen.hide()
 
 func show_editor_from_home() -> void:
 	current_screen = Screen.EDITOR
@@ -97,13 +99,13 @@ func show_editor_from_level_select() -> void:
 
 func _on_edit_level_requested(level_id: int) -> void:
 	current_screen = Screen.EDITOR
-	home_screen.hide()
-	level_select_screen.hide()
+	if home_screen: home_screen.hide()
+	if level_select_screen: level_select_screen.hide()
 	# gameplay_screen stays live behind the editor as a "background". Hide it
 	# too so memory-checks on save/release don't leak the puzzle state.
-	gameplay_screen.hide()
-	editor_screen.show()
-	if editor_screen.has_method("setup_editor"):
+	if gameplay_screen: gameplay_screen.hide()
+	if editor_screen: editor_screen.show()
+	if editor_screen and editor_screen.has_method("setup_editor"):
 		editor_screen.setup_editor(level_id)
 
 func show_gameplay(level_id: int) -> void:
@@ -112,11 +114,12 @@ func show_gameplay(level_id: int) -> void:
 		show_level_select()
 		return
 	current_screen = Screen.GAMEPLAY
-	home_screen.hide()
-	level_select_screen.hide()
-	gameplay_screen.show()
-	if not gameplay_screen.load_level_by_id(level_id):
-		show_level_select()
+	if home_screen: home_screen.hide()
+	if level_select_screen: level_select_screen.hide()
+	if gameplay_screen:
+		gameplay_screen.show()
+		if not gameplay_screen.load_level_by_id(level_id):
+			show_level_select()
 
 func show_debug_gameplay(level_id: int) -> void:
 	if not OS.is_debug_build():

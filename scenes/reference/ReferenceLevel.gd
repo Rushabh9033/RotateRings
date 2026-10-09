@@ -91,13 +91,13 @@ func _draw_ring(cx: float, cy: float, start_angle_deg: float, is_orange: bool) -
 	var c_dark: Color
 	var c_hi: Color
 	if is_orange:
-		c_main = Database.REF_L1_ORANGE_COLOR
-		c_dark = Database.REF_L1_ORANGE_DARK
-		c_hi   = Database.REF_L1_ORANGE_HI
+		c_main = RingVisuals.REF_L1_ORANGE_COLOR
+		c_dark = RingVisuals.REF_L1_ORANGE_DARK
+		c_hi   = RingVisuals.REF_L1_ORANGE_HI
 	else:
-		c_main = Database.REF_L1_PINK_COLOR
-		c_dark = Database.REF_L1_PINK_DARK
-		c_hi   = Database.REF_L1_PINK_HI
+		c_main = RingVisuals.REF_L1_PINK_COLOR
+		c_dark = RingVisuals.REF_L1_PINK_DARK
+		c_hi   = RingVisuals.REF_L1_PINK_HI
 
 	# The visible arc spans (gap center - half) to (gap center + half) going
 	# around the LONG way (so the visible arc covers 360 - gap_deg).

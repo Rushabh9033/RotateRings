@@ -32,3 +32,13 @@ const SHADOW_COLOR: Color = Color(0.165, 0.137, 0.114, 0.18)
 const HIGHLIGHT_DELTA: float = 0.16       # +L shift for top highlight
 const SHADE_DELTA: float = 0.16          # -L shift for bottom shade
 const SHADOW_OFFSET: Vector2 = Vector2(0, 4.0)
+
+# Level 1 reference palette (cyan + orange, sampled from the 2.jpeg image).
+# Used by scenes/reference/ReferenceLevel.gd to draw the level-1 reference
+# rings and by tools/ref_compare/_capture.gd for pixel diffing.
+const REF_L1_PINK_COLOR: Color = Color("#32ADDA")  # blue/cyan C-ring
+const REF_L1_PINK_DARK:  Color = Color("#1F5A82")
+const REF_L1_PINK_HI:    Color = Color("#A8E0F2")
+const REF_L1_ORANGE_COLOR: Color = Color("#EA7829")
+const REF_L1_ORANGE_DARK:  Color = Color("#7A3A14")
+const REF_L1_ORANGE_HI:    Color = Color("#FFC8A0")
