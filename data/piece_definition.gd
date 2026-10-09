@@ -74,6 +74,10 @@ enum PieceType {
 @export var z_index: int = 1
 @export var initially_locked: bool = false
 @export var locked: bool = false                          # runtime editor state (saved)
+# Per-property lock map (Section 4). Keys: position, size, rotation, gaps,
+# motion, visual, connectors. Values: true = locked. Stored as a plain dict
+# (not @export Dictionary because Godot 4 doesn't expose them cleanly).
+var property_locks: Dictionary = {}
 @export var release_direction: Vector2 = Vector2.RIGHT    # gameplay release-axis hint
 
 # ----- Victory target -----
@@ -164,6 +168,7 @@ func to_dict() -> Dictionary:
 		"z_index": int(z_index),
 		"initially_locked": bool(initially_locked),
 		"locked": bool(locked),
+		"property_locks": property_locks.duplicate(true),
 		"release_direction": {"x": float(release_direction.x), "y": float(release_direction.y)},
 		"target_exit_angle_deg": float(target_exit_angle_deg),
 		"gaps": gap_ary,
@@ -290,6 +295,9 @@ func apply_dict(d: Dictionary) -> void:
 	z_index = int(d.get("z_index", d.get("z", 1)))
 	initially_locked = bool(d.get("initially_locked", false))
 	locked = bool(d.get("locked", false))
+	property_locks.clear()
+	for k in d.get("property_locks", {}):
+		property_locks[String(k)] = (d["property_locks"] as Dictionary)[k]
 	if d.has("release_direction"):
 		var rd: Variant = d["release_direction"]
 		if rd is Dictionary:
@@ -329,3 +337,21 @@ func apply_dict(d: Dictionary) -> void:
 			push_warning("PieceDefinition.load: id=%s claims CLOSED_CIRCLE but has %d gap(s)" % [String(id), gap_count_now])
 	# piece_type was already set from d.piece_type if present. No mirroring
 	# to preserve authored values per Section 11.
+
+# ==============================================================================
+# Per-property lock helpers (Section 4)
+# ==============================================================================
+
+func is_property_locked(property: String) -> bool:
+	return bool(property_locks.get(property, false))
+
+func set_property_lock_value(property: String, locked: bool) -> void:
+	property_locks[property] = locked
+
+func toggle_property_lock(property: String) -> bool:
+	var before := is_property_locked(property)
+	property_locks[property] = not before
+	return not before
+
+func get_property_locks() -> Dictionary:
+	return property_locks.duplicate(true)

@@ -477,13 +477,17 @@ func _toggle_lock(idx: int) -> void:
 
 func _commit_move(idx: int, drop_pos: Vector2) -> void:
 	var p = _pieces[idx]
+	var pdef = p["def"]
+	# Section 4 lock guard: if 'position' is locked, do not move.
+	if pdef != null and pdef.is_property_locked("position"):
+		if debug_print: print("Piece %s position locked; move ignored" % p["id"])
+		return
 	var snapped = Vector2(_snap(drop_pos.x - _drag_offset.x), _snap(drop_pos.y - _drag_offset.y))
 	# Auto-align guides if near them
 	var viewport_size := get_viewport_rect().size
 	snapped = _auto_align(snapped, viewport_size)
 	p["piece"].global_position = snapped
 	p["center"] = snapped
-	var pdef = p["def"]
 	if pdef != null:
 		pdef.position = snapped
 	emit_signal("piece_moved", p["id"], snapped)
@@ -502,6 +506,10 @@ func _begin_resize_radius(idx: int, local_pos: Vector2) -> void:
 
 func _apply_resize_radius(idx: int, local_pos: Vector2) -> void:
 	var p = _pieces[idx]
+	# Section 4 size lock guard.
+	if p["def"] != null and p["def"].is_property_locked("size"):
+		if debug_print: print("Piece %s size locked; resize ignored" % p["id"])
+		return
 	var start_dist: float = float(p["resize_start_dist"])
 	var start_rad: float = float(p["resize_start_radius"])
 	if start_dist < 1.0: return
@@ -577,6 +585,10 @@ func _begin_resize_axis(idx: int, local_axis: Vector2, local_pos: Vector2) -> vo
 
 func _apply_resize_axis(idx: int, local_pos: Vector2) -> void:
 	var p = _pieces[idx]
+	# Section 4 size lock guard.
+	if p["def"] != null and p["def"].is_property_locked("size"):
+		if debug_print: print("Piece %s size locked; axis resize ignored" % p["id"])
+		return
 	var def: Resource = p["def"]
 	var shape: int = int(def.shape_type) if def != null and "shape_type" in def else 0
 	var routing: Dictionary = SHAPE_AXIS_FIELDS.get(shape, {"x": "radius", "y": "radius"})
@@ -650,6 +662,10 @@ func _begin_rotate(idx: int, local_pos: Vector2) -> void:
 
 func _apply_rotate(idx: int, local_pos: Vector2) -> void:
 	var p = _pieces[idx]
+	# Section 4 rotation lock guard.
+	if p["def"] != null and p["def"].is_property_locked("rotation"):
+		if debug_print: print("Piece %s rotation locked; rotate ignored" % p["id"])
+		return
 	var cur_mouse_angle: float = (local_pos - p["center"]).angle()
 	var delta_deg: float = rad_to_deg(cur_mouse_angle - _rotate_start_mouse_angle)
 	if snap_enabled:
@@ -692,6 +708,10 @@ func _apply_resize_connector(local_pos: Vector2) -> void:
 	var link_node = _puzzle.active_links[_resizing_link_idx]
 	var from_p_v = PuzzleRulesScript.get_piece_by_id(link_node.def.from_piece_id, _puzzle.active_pieces)
 	if not is_instance_valid(from_p_v): return
+	# Section 4 connectors lock guard on the parent piece.
+	if from_p_v.def != null and from_p_v.def.is_property_locked("connectors"):
+		if debug_print: print("Connector on %s locked; resize ignored" % from_p_v.def.id)
+		return
 	var from_p: Node2D = from_p_v
 	# Use from_p.global_position (consistent with begin), so projection stays
 	# anchored on the parent's current world position even if Node2D parent
