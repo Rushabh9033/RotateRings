@@ -341,8 +341,11 @@ static func clamp_slide_step(piece: Node2D, step_delta: Vector2, all_pieces: Arr
 static func clamp_rotation_step(piece: Node2D, step_delta_deg: float, all_pieces: Array, links: Array) -> Dictionary:
 	if not is_instance_valid(piece):
 		return { "allowed_delta": 0.0, "hit_stopper": false, "contact_point": Vector2.ZERO, "contact_color": Color.WHITE }
-	if not is_piece_rotatable(piece, all_pieces, links):
-		return { "allowed_delta": 0.0, "hit_stopper": true, "contact_point": piece.position, "contact_color": Color.WHITE }
+	# Note: do NOT early-exit on is_piece_rotatable. A parent with live
+	# children can still rotate as long as the rotation doesn't physically
+	# collide with anything — that's what _overlap_contact below checks.
+	# The old early-exit made every parent-piece un-draggable, which
+	# deadlocked every level whose root has a child link.
 	var saved := piece.rotation_degrees
 	var delta := step_delta_deg
 	if absf(delta) < 0.001:
