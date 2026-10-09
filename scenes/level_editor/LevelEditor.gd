@@ -282,7 +282,6 @@ func _on_color_btn(_pressed: bool, _t: bool, btn: Button) -> void:
 # ============= Input =============
 func _input(event: InputEvent) -> void:
 	if not (event is InputEventMouseButton or event is InputEventMouseMotion): return
-	if event is InputEventMouseMotion: return  # handled in _process for now
 	# Translate pointer to puzzle-space (offset by PuzzlePreview position)
 	var pos = puzzle_preview.get_local_mouse_position()
 
@@ -293,17 +292,23 @@ func _input(event: InputEvent) -> void:
 		_rotating_gap = false
 
 	if event is InputEventMouseMotion:
-		if _tool == Tool.MOVE and _dragging:
+		if _tool == Tool.MOVE and _dragging and _selected_piece_idx >= 0 and _selected_piece_idx < _placed_pieces.size():
 			var p = _placed_pieces[_selected_piece_idx]
-			p["x"] = pos.x - _drag_offset.x
-			p["y"] = pos.y - _drag_offset.y
+			var new_x: float = pos.x - _drag_offset.x
+			var new_y: float = pos.y - _drag_offset.y
+			if snap_enabled:
+				new_x = _round_to_grid(new_x)
+				new_y = _round_to_grid(new_y)
+			p["x"] = new_x
+			p["y"] = new_y
 			puzzle_preview.queue_redraw()
-		elif _tool == Tool.GAP and _rotating_gap:
+			_update_pixel_label()
+		elif _tool == Tool.GAP and _rotating_gap and _selected_piece_idx >= 0 and _selected_piece_idx < _placed_pieces.size():
 			# Compute angle from selected piece center to mouse and store as gap_deg.
 			var p = _placed_pieces[_selected_piece_idx]
-			var cx = p["x"]; var cy = p["y"]
-			var dx = pos.x - cx; var dy = pos.y - cy
-			var ang = rad_to_deg(atan2(dy, dx))
+			var cx: float = float(p["x"]); var cy: float = float(p["y"])
+			var dx: float = pos.x - cx; var dy: float = pos.y - cy
+			var ang: float = rad_to_deg(atan2(dy, dx))
 			if ang < 0: ang += 360.0
 			p["gap_deg"] = ang
 			puzzle_preview.queue_redraw()
