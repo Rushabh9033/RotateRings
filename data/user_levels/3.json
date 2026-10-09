@@ -27,8 +27,8 @@
       "gaps": [
         {
           "center_angle_deg": 270.0,
-          "width_deg": 100.0,
-          "tolerance_deg": 16.0
+          "width_deg": 130.0,
+          "tolerance_deg": 20.0
         }
       ]
     },
@@ -43,8 +43,8 @@
       "slide_max": 1000.0,
       "role": 0,
       "piece_type": 1,
-      "x": 279.0,
-      "y": 625.0,
+      "x": 250.0,
+      "y": 660.0,
       "start_angle_deg": 0.0,
       "radius": 58,
       "radius_y": 58,
@@ -56,8 +56,8 @@
       "gaps": [
         {
           "center_angle_deg": 180.0,
-          "width_deg": 100.0,
-          "tolerance_deg": 16.0
+          "width_deg": 130.0,
+          "tolerance_deg": 20.0
         }
       ]
     },
@@ -72,8 +72,8 @@
       "slide_max": 1000.0,
       "role": 0,
       "piece_type": 1,
-      "x": 437.0,
-      "y": 623.0,
+      "x": 466.0,
+      "y": 660.0,
       "start_angle_deg": 0.0,
       "radius": 58,
       "radius_y": 58,
@@ -85,8 +85,8 @@
       "gaps": [
         {
           "center_angle_deg": 0.0,
-          "width_deg": 100.0,
-          "tolerance_deg": 16.0
+          "width_deg": 130.0,
+          "tolerance_deg": 20.0
         }
       ]
     },
@@ -102,7 +102,7 @@
       "role": 0,
       "piece_type": 1,
       "x": 358.0,
-      "y": 746.0,
+      "y": 820.0,
       "start_angle_deg": 0.0,
       "radius": 75,
       "radius_y": 75,
@@ -114,8 +114,8 @@
       "gaps": [
         {
           "center_angle_deg": 90.0,
-          "width_deg": 100.0,
-          "tolerance_deg": 16.0
+          "width_deg": 130.0,
+          "tolerance_deg": 20.0
         }
       ]
     }

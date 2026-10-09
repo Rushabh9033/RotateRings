@@ -556,32 +556,86 @@ func _read_user_level_json(n: int) -> Variant:
 	return null
 
 func _serialize(level_id: int) -> Dictionary:
+	# Round-trip the FULL modern schema (matches data/piece_definition.gd +
+	# data/link_definition.gd) so saving from the editor doesn't strip
+	# fields the runtime needs (motion_model, slide_*, role, piece_type,
+	# release_direction, target_exit_angle_deg, gaps as objects with
+	# center_angle_deg/width_deg/tolerance_deg, link collar/stem/etc.).
+	# The runtime overwrites runtime-recomputed fields (collar_angle_deg,
+	# stem_dist, runtime_current_stem_dist) on load anyway, so writing
+	# placeholders here is safe.
 	var pieces_obj: Array = []
 	for p in _placed_pieces:
+		# Normalize the gap_deg into the modern gaps[] format.
+		var width_deg: float = float(p.get("gap_width_deg", 70.0))
+		var tol_deg: float = float(p.get("gap_tolerance_deg", 16.0))
+		var closed: bool = bool(p.get("closed", false))
+		var gaps_out: Array = []
+		if not closed:
+			gaps_out.append({
+				"center_angle_deg": float(p.get("gap_deg", 270.0)),
+				"width_deg": width_deg,
+				"tolerance_deg": tol_deg,
+			})
 		pieces_obj.append({
 			"id": p["id"],
-			"color_name": p["color_name"],
-			"color_hex": p["color_hex"],
-			"x": p["x"], "y": p["y"],
+			"color_name": p.get("color_name", "orange"),
+			"color_hex": p.get("color_hex", "#EA7829"),
+			"shape_type": 0,
+			"shape_name": "CIRCLE",
+			"motion_model": 0,
+			"motion_axis": {"x": 1.0, "y": 0.0},
+			"slide_min": -1000.0,
+			"slide_max": 1000.0,
+			"slide_path": [],
+			"special_params": {},
+			"role": 0,
+			"piece_type": 1 if not closed else 0,
+			"x": p["x"],
+			"y": p["y"],
+			"start_angle_deg": 0.0,
 			"radius": p["radius"],
+			"radius_y": p["radius"],
+			"length": 0.0,
+			"length_b": 0.0,
+			"width": 0.0,
+			"height": 0.0,
+			"corner_radius": 0.0,
 			"thickness": p["thickness"],
-			"gap_deg": p["gap_deg"],
-			"shape": p["shape"],
-			"closed": p["closed"],
+			"path_points": [],
+			"z_index": 1,
+			"initially_locked": false,
+			"release_direction": {"x": 1.0, "y": 0.0},
+			"target_exit_angle_deg": 0.0,
+			"gaps": gaps_out,
+			"closed": closed,
 		})
 	var links_obj: Array = []
 	for l in _placed_links:
-		var d := {
+		links_obj.append({
+			"id": "link_%d" % randi(),
 			"from_id": l["from_id"],
 			"to_id": l["to_id"],
-			"cuff_color_name": l["cuff_color_name"],
-		}
-		if l.has("cuff_color_hex"): d["cuff_color_hex"] = l["cuff_color_hex"]
-		links_obj.append(d)
+			"collar_angle_deg": 0.0,
+			"cuff_center_local": {"x": 0.0, "y": 0.0},
+			"cuff_orientation_deg": 0.0,
+			"cuff_width": 32.0,
+			"cuff_depth": 18.0,
+			"cuff_round_radius": 5.0,
+			"stem_length": 0.0,
+			"stem_width": 6.0,
+			"stem_distance_from_piece": 0.0,
+			"stem_dist": 200.0,
+			"joint_color_hex": l.get("cuff_color_hex", "#EA7829"),
+			"joint_color_name": l.get("cuff_color_name", "orange"),
+			"z_index": 0,
+			"clearance_tolerance_deg": 20.0,
+			"is_detached": false,
+		})
 	return {
 		"id": level_id,
 		"title": "Level %d" % level_id,
-		"source": "manual+ai",
+		"source": "in-game-edit-overlay",
 		"pieces": pieces_obj,
 		"links": links_obj,
 	}
@@ -597,6 +651,19 @@ func _load_from_dict(data: Dictionary) -> void:
 		var ch: String = p.get("color_hex", "")
 		if ch == "":
 			ch = _color_to_hex(COLOR_HEX.get(_color_enum_from_name(cn), Color.WHITE))
+		# Read the modern gaps[] format. Fall back to legacy gap_deg field
+		# if the file predates the schema upgrade.
+		var gap_deg_v: float = 270.0
+		var gap_width_v: float = 70.0
+		var gap_tol_v: float = 16.0
+		var closed: bool = bool(p.get("closed", false))
+		if p.has("gaps") and p["gaps"] is Array and (p["gaps"] as Array).size() > 0:
+			var g0: Dictionary = (p["gaps"] as Array)[0]
+			gap_deg_v = float(g0.get("center_angle_deg", 270.0))
+			gap_width_v = float(g0.get("width_deg", 70.0))
+			gap_tol_v = float(g0.get("tolerance_deg", 16.0))
+		elif p.has("gap_deg"):
+			gap_deg_v = float(p["gap_deg"])
 		_placed_pieces.append({
 			"id": p.get("id", "piece_%d" % _next_piece_id),
 			"color_name": cn,
@@ -605,17 +672,21 @@ func _load_from_dict(data: Dictionary) -> void:
 			"y": float(p["y"]),
 			"radius": int(p.get("radius", 80)),
 			"thickness": int(p.get("thickness", 22)),
-			"gap_deg": float(p.get("gap_deg", 270)),
+			"gap_deg": gap_deg_v,
+			"gap_width_deg": gap_width_v,
+			"gap_tolerance_deg": gap_tol_v,
 			"shape": p.get("shape", "CIRCLE"),
-			"closed": bool(p.get("closed", false)),
+			"closed": closed,
 		})
 		_next_piece_id += 1
 	for l in data.get("links", []):
+		var cuff_hex: String = String(l.get("cuff_color_hex", l.get("joint_color_hex", "#EA7829")))
+		var cuff_name: String = String(l.get("cuff_color_name", l.get("joint_color_name", "orange")))
 		_placed_links.append({
 			"from_id": l["from_id"],
 			"to_id": l["to_id"],
-			"cuff_color_name": l.get("cuff_color_name", "orange"),
-			"cuff_color_hex": l.get("cuff_color_hex", "#EA7829"),
+			"cuff_color_name": cuff_name,
+			"cuff_color_hex": cuff_hex,
 		})
 	puzzle_preview.queue_redraw()
 
