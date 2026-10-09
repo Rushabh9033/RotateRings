@@ -8,15 +8,15 @@
       "color_name": "purple",
       "color_hex": "#7B61FF",
       "shape_type": 0,
-      "motion_model": 4,
+      "motion_model": 0,
       "motion_axis": {
         "x": 1.0,
         "y": 0.0
       },
       "slide_min": -1000.0,
       "slide_max": 1000.0,
-      "role": 3,
-      "piece_type": 0,
+      "role": 0,
+      "piece_type": 1,
       "x": 360.0,
       "y": 640.0,
       "start_angle_deg": 0.0,
@@ -24,13 +24,19 @@
       "radius_y": 60,
       "thickness": 16.0,
       "z_index": 1,
-      "initially_locked": true,
+      "initially_locked": false,
       "release_direction": {
         "x": 0.0,
-        "y": 0.0
+        "y": -1.0
       },
       "target_exit_angle_deg": 0.0,
-      "gaps": []
+      "gaps": [
+        {
+          "center_angle_deg": 270.0,
+          "width_deg": 100.0,
+          "tolerance_deg": 16.0
+        }
+      ]
     },
     {
       "id": "ring_green",
