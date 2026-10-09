@@ -9,7 +9,10 @@
       "color_hex": "#EA7829",
       "shape_type": 0,
       "motion_model": 0,
-      "motion_axis": {"x": 1.0, "y": 0.0},
+      "motion_axis": {
+        "x": 1.0,
+        "y": 0.0
+      },
       "slide_min": -1000.0,
       "slide_max": 1000.0,
       "role": 0,
@@ -17,14 +20,23 @@
       "x": 289.0,
       "y": 544.0,
       "start_angle_deg": 0.0,
-      "radius": 96.0,
-      "radius_y": 96.0,
+      "radius": 96,
+      "radius_y": 96,
       "thickness": 18.0,
       "z_index": 1,
       "initially_locked": false,
-      "release_direction": {"x": 1.0, "y": 0.0},
+      "release_direction": {
+        "x": 1.0,
+        "y": 0.0
+      },
       "target_exit_angle_deg": 0.0,
-      "gaps": [{"center_angle_deg": 0.0, "width_deg": 70.0, "tolerance_deg": 16.0}]
+      "gaps": [
+        {
+          "center_angle_deg": 0.0,
+          "width_deg": 70.0,
+          "tolerance_deg": 16.0
+        }
+      ]
     },
     {
       "id": "ring_cyan",
@@ -32,7 +44,10 @@
       "color_hex": "#32ADDA",
       "shape_type": 0,
       "motion_model": 0,
-      "motion_axis": {"x": 1.0, "y": 0.0},
+      "motion_axis": {
+        "x": 1.0,
+        "y": 0.0
+      },
       "slide_min": -1000.0,
       "slide_max": 1000.0,
       "role": 0,
@@ -40,14 +55,23 @@
       "x": 447.0,
       "y": 544.0,
       "start_angle_deg": 0.0,
-      "radius": 77.0,
-      "radius_y": 77.0,
+      "radius": 65,
+      "radius_y": 65,
       "thickness": 18.0,
       "z_index": 1,
       "initially_locked": false,
-      "release_direction": {"x": 1.0, "y": 0.0},
+      "release_direction": {
+        "x": 1.0,
+        "y": 0.0
+      },
       "target_exit_angle_deg": 0.0,
-      "gaps": [{"center_angle_deg": 0.0, "width_deg": 70.0, "tolerance_deg": 16.0}]
+      "gaps": [
+        {
+          "center_angle_deg": 180,
+          "width_deg": 70.0,
+          "tolerance_deg": 16.0
+        }
+      ]
     },
     {
       "id": "ring_purple",
@@ -55,7 +79,10 @@
       "color_hex": "#7B61FF",
       "shape_type": 0,
       "motion_model": 0,
-      "motion_axis": {"x": 1.0, "y": 0.0},
+      "motion_axis": {
+        "x": 1.0,
+        "y": 0.0
+      },
       "slide_min": -1000.0,
       "slide_max": 1000.0,
       "role": 0,
@@ -63,14 +90,23 @@
       "x": 353.0,
       "y": 679.0,
       "start_angle_deg": 0.0,
-      "radius": 78.0,
-      "radius_y": 78.0,
+      "radius": 75,
+      "radius_y": 75,
       "thickness": 18.0,
       "z_index": 1,
       "initially_locked": false,
-      "release_direction": {"x": 0.0, "y": 1.0},
+      "release_direction": {
+        "x": 0.0,
+        "y": 1.0
+      },
       "target_exit_angle_deg": 0.0,
-      "gaps": [{"center_angle_deg": 90.0, "width_deg": 70.0, "tolerance_deg": 16.0}]
+      "gaps": [
+        {
+          "center_angle_deg": 90.0,
+          "width_deg": 70.0,
+          "tolerance_deg": 16.0
+        }
+      ]
     }
   ],
   "links": [
@@ -78,7 +114,10 @@
       "from_id": "ring_orange",
       "to_id": "ring_cyan",
       "collar_angle_deg": 0.0,
-      "cuff_center_local": {"x": 0.0, "y": 0.0},
+      "cuff_center_local": {
+        "x": 0.0,
+        "y": 0.0
+      },
       "cuff_orientation_deg": 0.0,
       "cuff_width": 32.0,
       "cuff_depth": 18.0,
@@ -97,7 +136,10 @@
       "from_id": "ring_orange",
       "to_id": "ring_purple",
       "collar_angle_deg": 0.0,
-      "cuff_center_local": {"x": 0.0, "y": 0.0},
+      "cuff_center_local": {
+        "x": 0.0,
+        "y": 0.0
+      },
       "cuff_orientation_deg": 0.0,
       "cuff_width": 32.0,
       "cuff_depth": 18.0,
