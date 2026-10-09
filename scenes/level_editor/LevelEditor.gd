@@ -66,8 +66,7 @@ const COLOR_HEX := {
 @onready var center_y_btn: Button = $RightPanel/VBox/LayoutSection/CenterRow/CenterYBtn
 @onready var pixel_label: Label = $RightPanel/VBox/LayoutSection/PixelLabel
 @onready var delete_btn: Button = $RightPanel/VBox/DeleteBtn
-@onready var rotate_selected_btn: Button = $RightPanel/VBox/ActionRow/RotateSelectedBtn
-@onready var resize_selected_btn: Button = $RightPanel/VBox/ActionRow/ResizeSelectedBtn
+@onready var panel_toggle_btn: Button = $PanelToggleBtn
 @onready var closed_toggle_btn: CheckButton = $RightPanel/VBox/ClosedToggleBtn
 @onready var right_panel: PanelContainer = $RightPanel
 @onready var back_btn: Button = $TopBar/BackBtn
@@ -83,9 +82,6 @@ var _linking_first_idx: int = -1       # when in LINK mode, first piece clicked
 var _dragging: bool = false
 var _drag_offset: Vector2 = Vector2.ZERO
 var _rotating_gap: bool = false
-var _resizing_by_drag: bool = false
-var _resize_drag_start_pos: Vector2 = Vector2.ZERO
-var _resize_drag_start_radius: float = 60.0
 
 func _ready() -> void:
 	# Always start with a clean working set. No auto-load from level 1 anymore —
@@ -118,8 +114,7 @@ func _ready() -> void:
 	center_y_btn.pressed.connect(_center_y_pressed)
 	level_input.value_changed.connect(_on_level_changed)
 	delete_btn.pressed.connect(_delete_selected)
-	rotate_selected_btn.pressed.connect(_on_rotate_selected_pressed)
-	resize_selected_btn.pressed.connect(_on_resize_selected_pressed)
+	panel_toggle_btn.pressed.connect(_on_panel_toggle)
 	right_panel.visible = true
 	_update_pixel_label()
 
@@ -129,6 +124,10 @@ func _on_level_changed(v: float) -> void:
 
 # Toggle the right panel on/off. Useful on narrow viewports (mobile
 # 720x1280) where the panel covers the puzzle canvas.
+func _on_panel_toggle() -> void:
+	right_panel.visible = not right_panel.visible
+	panel_toggle_btn.text = "Panel" if right_panel.visible else "Show"
+
 func _on_radius_changed(v: float) -> void:
 	radius_label.text = "Radius: %d" % int(v)
 	if _selected_piece_idx >= 0 and _selected_piece_idx < _placed_pieces.size():
@@ -234,42 +233,6 @@ func _snap_on_commit() -> bool:
 func _round_to_grid(v: float) -> float:
 	return round(v / grid_size) * grid_size
 
-func _on_rotate_selected_pressed() -> void:
-	# Rotate the selected piece's gap by 30 degrees.
-	if _selected_piece_idx < 0 or _selected_piece_idx >= _placed_pieces.size():
-		_set_status("Click a ring first to select it, then tap Rotate gap.")
-		return
-	var p: Dictionary = _placed_pieces[_selected_piece_idx]
-	p["gap_deg"] = fposmod(float(p.get("gap_deg", 0.0)) + 30.0, 360.0)
-	puzzle_preview.queue_redraw()
-	_update_pixel_label()
-	_set_status("Rotated %s gap to %.0f deg." % [p.get("id", "?"), float(p["gap_deg"])])
-
-func _on_resize_selected_pressed() -> void:
-	# Cycle the selected piece's radius through 3 sizes.
-	if _selected_piece_idx < 0 or _selected_piece_idx >= _placed_pieces.size():
-		_set_status("Click a ring first to select it, then tap Resize.")
-		return
-	var p: Dictionary = _placed_pieces[_selected_piece_idx]
-	var sizes: Array[float] = [40.0, 60.0, 90.0]
-	var current: float = float(p.get("radius", 60.0))
-	# Find the next size up (or cycle back to smallest)
-	var next_size: float = sizes[0]
-	var found: bool = false
-	for s2 in sizes:
-		if s2 > current + 0.5:
-			next_size = s2
-			found = true
-			break
-	if not found:
-		next_size = sizes[0]  # cycle back if at largest
-	p["radius"] = next_size
-	radius_slider.value = next_size
-	radius_label.text = "Radius: %d" % int(next_size)
-	puzzle_preview.queue_redraw()
-	_update_pixel_label()
-	_set_status("Resized %s to radius %.0f." % [p.get("id", "?"), next_size])
-
 func _update_pixel_label() -> void:
 	if _selected_piece_idx < 0 or _selected_piece_idx >= _placed_pieces.size():
 		pixel_label.text = "Selected: —"
@@ -333,20 +296,6 @@ func _input(event: InputEvent) -> void:
 	# Translate pointer to puzzle-space (offset by PuzzlePreview position)
 	var pos = puzzle_preview.get_local_mouse_position()
 
-	# Right-click + drag on a selected ring: resize by drag distance.
-	# (Matches the gameplay feel: any drag on a ring resizes it.)
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
-		var ridx = _hit_test_piece(pos)
-		if ridx >= 0:
-			_selected_piece_idx = ridx
-			_resizing_by_drag = true
-			_resize_drag_start_pos = pos
-			_resize_drag_start_radius = float(_placed_pieces[ridx].get("radius", 60))
-			radius_slider.value = _resize_drag_start_radius
-			return
-	if event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
-		_resizing_by_drag = false
-
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		_handle_click(pos)
 	elif event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -363,15 +312,6 @@ func _input(event: InputEvent) -> void:
 				new_y = _round_to_grid(new_y)
 			p["x"] = new_x
 			p["y"] = new_y
-			puzzle_preview.queue_redraw()
-			_update_pixel_label()
-		elif _resizing_by_drag and _selected_piece_idx >= 0 and _selected_piece_idx < _placed_pieces.size():
-			var p2 = _placed_pieces[_selected_piece_idx]
-			var delta: float = pos.distance_to(_resize_drag_start_pos)
-			var new_radius: float = _resize_drag_start_radius + delta * 0.3
-			new_radius = clampf(new_radius, 15.0, 250.0)
-			p2["radius"] = new_radius
-			radius_slider.value = new_radius
 			puzzle_preview.queue_redraw()
 			_update_pixel_label()
 		elif _tool == Tool.GAP and _rotating_gap and _selected_piece_idx >= 0 and _selected_piece_idx < _placed_pieces.size():
@@ -402,26 +342,11 @@ func _handle_click(local_pos: Vector2) -> void:
 				_selected_piece_idx = -1
 				puzzle_preview.queue_redraw()
 		Tool.GAP:
-			# Any click on a piece's body starts gap rotation (matches
-			# the gameplay drag-rotation UX). The previous version
-			# required clicking exactly on the small gap-handle dot,
-			# which was hard to hit. Now you can click anywhere on the
-			# ring's body and drag to rotate the gap.
-			var idx = _hit_test_piece(local_pos)
+			var idx = _hit_test_piece(local_pos) if _hit_test_piece(local_pos) >= 0 else _hit_test_gap_handle(local_pos)
 			if idx >= 0:
 				_selected_piece_idx = idx
 				_rotating_gap = true
-				var p = _placed_pieces[idx]
-				_drag_offset = local_pos - Vector2(p["x"], p["y"])
-				radius_slider.value = p["radius"]
-				radius_label.text = "Radius: %d" % int(p["radius"])
 				puzzle_preview.queue_redraw()
-			else:
-				idx = _hit_test_gap_handle(local_pos)
-				if idx >= 0:
-					_selected_piece_idx = idx
-					_rotating_gap = true
-					puzzle_preview.queue_redraw()
 		Tool.LINK:
 			var idx = _hit_test_piece(local_pos)
 			if idx >= 0:
