@@ -14,6 +14,35 @@ func _ready() -> void:
 	position = Vector2(0, 0)
 	set_process_input(true)
 
+# The puzzle is 720x1280 in the game. In the editor on a 720-wide
+# viewport, the right panel covers the right ~290px, so we draw the
+# puzzle at half scale into the left half. The user can toggle the
+# right panel off to see the full puzzle.
+func _process(_delta: float) -> void:
+	# Recompute scale every frame so it adapts to viewport size.
+	var ed: Control = get_parent() as Control
+	if ed == null: return
+	var vp_w: float = ed.size.x
+	var vp_h: float = ed.size.y
+	# Right panel is roughly 290px wide when visible. If panel is hidden,
+	# use the full viewport.
+	var right_panel: Control = ed.get_node_or_null("RightPanel") as Control
+	var right_w: float = 0.0
+	if right_panel and right_panel.visible:
+		right_w = right_panel.size.x + 16.0
+	# Available area for the puzzle.
+	var avail_w: float = maxf(200.0, vp_w - right_w)
+	var avail_h: float = maxf(200.0, vp_h - 60.0)  # leave room for top toggle
+	# Scale so the 720x1280 canvas fits in avail_w x avail_h.
+	var s: float = minf(avail_w / 720.0, avail_h / 1280.0)
+	# Don't scale up beyond 1.0 — keep at 1:1 when there's room.
+	if s > 1.0: s = 1.0
+	scale = Vector2(s, s)
+	# Center the scaled puzzle in the available area.
+	var drawn_w: float = 720.0 * s
+	var drawn_h: float = 1280.0 * s
+	position = Vector2((avail_w - drawn_w) * 0.5, (avail_h - drawn_h) * 0.5)
+
 func _draw() -> void:
 	if editor_ref == null: return
 	# Cream background covering the full 720x1280 canvas.

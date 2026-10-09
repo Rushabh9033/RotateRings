@@ -35,6 +35,14 @@ color = Color(1, 0.96, 0.9, 1)
 script = ExtResource("2_pp_script")
 position = Vector2(0, 0)
 
+[node name="PanelToggleBtn" type="Button" parent="."]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 8.0
+offset_right = 200.0
+offset_bottom = 40.0
+text = "Toggle Panel"
+
 [node name="TopBar" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 12
@@ -84,7 +92,7 @@ layout_mode = 1
 anchors_preset = 11
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -180
+offset_left = -220
 offset_top = 80
 offset_right = -16
 offset_bottom = -120

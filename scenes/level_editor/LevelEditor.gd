@@ -66,6 +66,8 @@ const COLOR_HEX := {
 @onready var center_y_btn: Button = $RightPanel/VBox/LayoutSection/CenterRow/CenterYBtn
 @onready var pixel_label: Label = $RightPanel/VBox/LayoutSection/PixelLabel
 @onready var delete_btn: Button = $RightPanel/VBox/DeleteBtn
+@onready var panel_toggle_btn: Button = $PanelToggleBtn
+@onready var right_panel: PanelContainer = $RightPanel
 @onready var back_btn: Button = $TopBar/BackBtn
 @onready var status_label: Label = $BottomStatus
 
@@ -111,11 +113,19 @@ func _ready() -> void:
 	center_y_btn.pressed.connect(_center_y_pressed)
 	level_input.value_changed.connect(_on_level_changed)
 	delete_btn.pressed.connect(_delete_selected)
+	panel_toggle_btn.pressed.connect(_on_panel_toggle)
+	right_panel.visible = true
 	_update_pixel_label()
 
 func _on_level_changed(v: float) -> void:
 	# Loading on change would clobber work; let user click Load explicitly.
 	_set_status("Level %d selected — click Load." % int(v))
+
+# Toggle the right panel on/off. Useful on narrow viewports (mobile
+# 720x1280) where the panel covers the puzzle canvas.
+func _on_panel_toggle() -> void:
+	right_panel.visible = not right_panel.visible
+	panel_toggle_btn.text = "Panel" if right_panel.visible else "Show"
 
 func _on_radius_changed(v: float) -> void:
 	radius_label.text = "Radius: %d" % int(v)
