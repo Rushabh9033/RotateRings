@@ -129,6 +129,12 @@ func load_level(def) -> void:
 		release_animator.reset_combo()
 
 	for child in pieces_container.get_children():
+		# Kill any tweens on the old piece before freeing it, so the tween
+		# doesn't try to write global_position to a freed node.
+		if child.has_method("kill") and child.get("_state_tween") != null:
+			var st = child.get("_state_tween")
+			if is_instance_valid(st):
+				st.kill()
 		child.queue_free()
 	active_pieces.clear()
 	active_links.clear()
@@ -138,7 +144,7 @@ func load_level(def) -> void:
 
 	var piece_map := {}
 	var drop_delay: float = 0.0
-	
+
 	# Kill any tweens left over from a previous load so freed-piece warnings stop.
 	for t in _active_drop_tweens:
 		if is_instance_valid(t):
@@ -213,6 +219,22 @@ func load_level(def) -> void:
 
 	var initial_releases = PuzzleRulesScript.initialize_puzzle_state(active_pieces, active_links)
 	for p in initial_releases:
+		# Kill any tweens bound to this piece before freeing it. Otherwise
+		# the drop tween (or its state tween) may write global_position to
+		# a freed node on the next frame.
+		if p != null and p.has_method("kill") and p.get("_state_tween") != null:
+			var st = p.get("_state_tween")
+			if is_instance_valid(st):
+				st.kill()
+		# Drop tweens live on the puzzle_controller and bind `p_node` by
+		# reference; the only safe way to stop a tween step from running on
+		# a freed target is to kill the tween entirely. Iterate the list in
+		# reverse so we can remove entries safely.
+		for i in range(_active_drop_tweens.size() - 1, -1, -1):
+			var t = _active_drop_tweens[i]
+			if is_instance_valid(t):
+				t.kill()
+			_active_drop_tweens.remove_at(i)
 		active_pieces.erase(p)
 		p.queue_free()
 	
@@ -349,6 +371,13 @@ func unlock_and_release_piece(piece: Node2D, is_direct: bool = false) -> void:
 	piece.is_interactive = false
 
 	_redraw_connectors()
+	# Kill the piece's own state tween before animate_release queues free,
+	# so it can't write to the freed node after the release animation
+	# calls piece.queue_free().
+	if piece.has_method("kill") and piece.get("_state_tween") != null:
+		var st = piece.get("_state_tween")
+		if is_instance_valid(st):
+			st.kill()
 	release_animator.animate_release(piece, _on_piece_release_completed, is_direct)
 
 func _on_piece_release_completed(piece: Node2D) -> void:
