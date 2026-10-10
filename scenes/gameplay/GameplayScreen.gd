@@ -138,59 +138,30 @@ func _load_definition(lvl_id: int, def) -> bool:
 	return true
 
 func _frame_puzzle() -> void:
+	# Phase 1 of the LOCKED-CANVAS architecture: the puzzle's authored
+	# coordinate space is canonical. The runtime applies ONE uniform
+	# transform (scale + offset) on the PuzzleController. We do NOT
+	# auto-fit or re-center per level.
+	#
+	# The transform is read from the LevelDocument if present; otherwise
+	# it falls back to identity (scale=1, offset=(0,0)) which places the
+	# puzzle at its authored coordinates in the top-left of the viewport.
+	#
+	# The user (or the editor) explicitly sets this transform once per
+	# level via the ReferenceViewer's 'Fit Puzzle' / 'Calibrate' actions.
 	if not is_instance_valid(puzzle_controller): return
-	
-	var bounds = puzzle_controller.get_puzzle_bounds()
-	if bounds.size.x <= 0 or bounds.size.y <= 0: return
-	
-	# Calculate safe area dynamically based on UI nodes
-	var viewport_size = get_viewport().get_visible_rect().size
-	
-	var top_hud = $SafeArea/TopHUD
-	var bottom_hud = $SafeArea/BottomHUD
-	
-	# Use global layout bounds for TopHUD with safe top whitespace
-	var safe_margin_top = 180.0
-	if is_instance_valid(top_hud) and top_hud.size.y > 0:
-		var top_bottom = top_hud.global_position.y + top_hud.size.y
-		if top_bottom > 10.0:
-			safe_margin_top = top_bottom + 48.0
-		
-	# Use global layout bounds for BottomHUD with safe bottom whitespace
-	var safe_margin_bottom = 160.0
-	if is_instance_valid(bottom_hud) and bottom_hud.size.y > 0:
-		var bot_y = bottom_hud.global_position.y
-		if bot_y > 10.0:
-			safe_margin_bottom = viewport_size.y - bot_y + 48.0
-	
-	var safe_margin_x = clampf(viewport_size.x * 0.10, 36.0, 72.0)
-	# Reserve space on the right when the editor dock is shown so the
-	# puzzle pieces don't get hidden under the panel.
-	var safe_margin_right: float = safe_margin_x
-	if editor_toolbar != null and editor_toolbar.is_panel_shown():
-		safe_margin_right = maxf(safe_margin_right, 320.0 + 28.0 + 12.0)
-
-	var safe_width = viewport_size.x - safe_margin_x - safe_margin_right
-	var safe_height = viewport_size.y - safe_margin_top - safe_margin_bottom
-	if safe_height <= 50.0: safe_height = 200.0
-	var safe_rect = Rect2(safe_margin_x, safe_margin_top, safe_width, safe_height)
-	
-	# Calculate required scale to fit within safe_rect
-	var scale_x = safe_rect.size.x / bounds.size.x
-	var scale_y = safe_rect.size.y / bounds.size.y
-	var target_scale = minf(scale_x, scale_y)
-	
-	# Reference maximum scale: keeps simple levels compact and prevents giant ballooning
-	var MAX_REFERENCE_SCALE := 0.88
-	target_scale = minf(target_scale, MAX_REFERENCE_SCALE)
-	
-	# Center visible puzzle content inside safe_rect center
-	var bounds_center = bounds.get_center()
-	var target_pos = safe_rect.get_center() - (bounds_center * target_scale)
-	
-	# Animate the camera framing smoothly
+	if editor_document == null:
+		# No level loaded yet; leave the puzzle at its authored coordinates.
+		return
+	var gs: float = float(editor_document.frame_scale)
+	var gx: float = float(editor_document.frame_offset_x)
+	var gy: float = float(editor_document.frame_offset_y)
+	# Animate to the target transform over 0.4s. Identity is the default
+	# (scale=1, offset=0) so the puzzle sits at its authored location.
+	var target_scale: Vector2 = Vector2(gs, gs)
+	var target_pos: Vector2 = Vector2(gx, gy)
 	var tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.tween_property(puzzle_controller, "scale", Vector2(target_scale, target_scale), 0.4)
+	tween.tween_property(puzzle_controller, "scale", target_scale, 0.4)
 	tween.tween_property(puzzle_controller, "position", target_pos, 0.4)
 
 var total_pieces_in_level: int = 0

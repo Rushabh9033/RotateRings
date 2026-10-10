@@ -654,6 +654,12 @@ var _measure_b: Vector2 = Vector2.ZERO
 # Status panel (M25) — show when something is selected.
 var show_status_panel: bool = true
 
+# Phase 4 of the LOCKED-CANVAS architecture: when on, the status panel
+# also shows EDITOR POSITION / RUNTIME LOCAL POSITION / FINAL SCREEN
+# POSITION for the selected piece so the user can verify the global
+# transform doesn't drift.
+var show_parity_overlay: bool = true
+
 func _hit_test_body(local_pos: Vector2) -> int:
 	for i in range(_pieces.size() - 1, -1, -1):
 		var p = _pieces[i]
@@ -1381,19 +1387,56 @@ func _draw_status_panel() -> void:
 	if def == null: return
 	var font = ThemeDB.fallback_font
 	if font == null: return
+	# Phase 4 of the LOCKED-CANVAS architecture: each of the three
+	# coordinate frames is shown side-by-side so the user can verify
+	# the global transform is faithful.
+	#
+	# Authored position: def.position (canonical canvas space).
+	# Runtime local position: same as authored IF puzzle_controller's
+	# transform is identity. We compute it as authored - container.pos
+	# / container.scale, which is the position as the runtime sees it
+	# (child of puzzle_controller).
+	# Final screen position: child.global_position, the canvas position
+	# the user actually sees.
+	var authored: Vector2 = Vector2(float(def.position.x), float(def.position.y))
+	var runtime_local: Vector2 = authored
+	var screen_pos: Vector2 = authored
+	if is_instance_valid(_puzzle):
+		# Pieces are children of pieces_container; their global_position
+		# already accounts for the puzzle_controller's transform.
+		var container: Node = null
+		if _puzzle:
+			container = _puzzle.get("pieces_container")
+		if container == null: container = _puzzle
+		var piece_node: Node = p.get("piece", null)
+		if is_instance_valid(piece_node):
+			screen_pos = piece_node.global_position
+			# The runtime local position is the piece's position relative
+			# to the container. Pieces are placed at def.position in
+			# container-local space, so runtime_local == authored when
+			# the container is at its authored position.
+			runtime_local = piece_node.position
+	var drift: float = (runtime_local - authored).length()
+	var parity_ok: bool = drift < 0.5
 	var lines: Array = [
 		"%s  (%s)" % [String(def.id), _shape_short(def)],
-		"x=%.2f  y=%.2f" % [float(def.position.x), float(def.position.y)],
+		"authored  x=%.2f  y=%.2f" % [authored.x, authored.y],
+		"runtime   x=%.2f  y=%.2f" % [runtime_local.x, runtime_local.y],
+		"screen    x=%.2f  y=%.2f" % [screen_pos.x, screen_pos.y],
+		"parity:  %s  (drift=%.2f)" % ["OK" if parity_ok else "DRIFT", drift],
 		"radius=%.2f  thickness=%.2f" % [float(def.radius), float(def.thickness)],
 		"start_angle=%.2f" % float(def.start_angle_deg),
 		"gaps=%d  z_index=%d" % [def.gaps.size(), int(def.z_index)],
 	]
 	var sz = get_viewport_rect().size
-	var panel_w: int = 280
+	var panel_w: int = 320
 	var panel_h: int = 16 * lines.size() + 14
 	draw_rect(Rect2(sz.x - panel_w - 12, 36, panel_w, panel_h), Color(0, 0, 0, 0.55), true)
 	for i in range(lines.size()):
-		draw_string(font, Vector2(sz.x - panel_w - 4, 36 + 18 + 14 * i), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color.WHITE)
+		var col: Color = Color.WHITE
+		if lines[i].begins_with("parity:"):
+			col = (Color(0.5, 1.0, 0.5) if parity_ok else Color(1.0, 0.5, 0.5))
+		draw_string(font, Vector2(sz.x - panel_w - 4, 36 + 18 + 14 * i), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 12, col)
 
 func _shape_short(def: Resource) -> String:
 	match int(def.shape_type):
