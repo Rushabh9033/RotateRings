@@ -126,11 +126,31 @@ def author_level(n, dry_run=False):
                 "radius": max(c["w"], c["h"]) * 0.5,
             })
 
-    # Build pieces. One per ring. The first ring (in reading order) is
-    # the closed root anchor; the rest get a default gap.
+    # Compute the puzzle centroid so each ring's gap can face outward
+    # (away from the center). The reference images show the gaps of all
+    # rings pointing away from the puzzle's mass center.
+    if rings:
+        cx = sum(r["cx"] for r in rings) / len(rings)
+        cy = sum(r["cy"] for r in rings) / len(rings)
+    else:
+        cx, cy = 0.0, 0.0
+
+    # Build pieces. One per ring. The puzzle centroid is the reference:
+    # each ring's gap points opposite the centroid. All rings are
+    # OPEN (piece_type=1) so the user can see the C-shape from the
+    # reference. (The closed root / hub pattern is for some levels;
+    # if your reference shows a closed hub, change the i==0 case
+    # to gaps=[] and role=1.)
     pieces = []
     for i, r in enumerate(rings):
-        role = 1 if i == 0 else 0  # ROOT_ANCHOR / NORMAL
+        # Gap angle in world space = atan2(ring - centroid) (in degrees).
+        # Then convert to local frame (subtract start_angle_deg=0 → same).
+        dx_w = r["cx"] - cx
+        dy_w = r["cy"] - cy
+        # The "outward" direction is from centroid to ring; the gap
+        # center sits in that direction. world_angle_deg = atan2(dy, dx).
+        # In Godot screen coords, +x is right and +y is down, so:
+        gap_center_deg = (math.degrees(math.atan2(dy_w, dx_w))) % 360.0
         piece = {
             "id": f"{r['color']}_{i+1}",
             "color_name": r["color"],
@@ -142,11 +162,8 @@ def author_level(n, dry_run=False):
             "radius_y": float(r["radius"]),
             "thickness": 22.0,
             "shape_type": 0,  # CIRCLE
-            "piece_type": 0 if i == 0 else 1,  # CLOSED / OPEN
-            "gaps": [] if i == 0 else [
-                {"center_angle_deg": 90.0, "width_deg": 80.0, "tolerance_deg": 16.0}
-            ],
-            "role": role,
+            "piece_type": 1,  # OPEN (all rings are C-shapes in the reference)
+            "role": 0,  # NORMAL
             "z_index": 1,
             "initially_locked": False,
             "locked": False,
@@ -154,6 +171,13 @@ def author_level(n, dry_run=False):
             "release_direction": {"x": 1.0, "y": 0.0},
             "target_exit_angle_deg": 0.0,
             "motion_model": 0,
+            "gaps": [
+                {
+                    "center_angle_deg": gap_center_deg,
+                    "width_deg": 80.0,
+                    "tolerance_deg": 16.0,
+                }
+            ],
         }
         pieces.append(piece)
 
