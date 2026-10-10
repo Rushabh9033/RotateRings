@@ -174,7 +174,9 @@ func _build_piece_inspector(vbox: VBoxContainer, piece_id: String, p: Dictionary
 		_add_gap_row(vbox, piece_id, i, g)
 
 	_add_section_header(vbox, "Motion")
-	_add_text_field(vbox, "motion_model", String(p.get("motion_model", "ROTATE")), "motion_model", "piece", false)
+	# motion_model is an int (0=ROTATE, 1=SLIDE_AXIS_BIDIRECTIONAL, ...).
+	# Use a num field; the user can edit the integer directly.
+	_add_num_field(vbox, "motion_model", float(int(p.get("motion_model", 0))), "motion_model", "piece")
 	_add_num_field(vbox, "slide_min", float(p.get("slide_min", 0.0)), "slide_min", "piece")
 	_add_num_field(vbox, "slide_max", float(p.get("slide_max", 0.0)), "slide_max", "piece")
 	_add_num_field(vbox, "target_exit_angle_deg", float(p.get("target_exit_angle_deg", 0.0)), "target_exit_angle_deg", "piece")
