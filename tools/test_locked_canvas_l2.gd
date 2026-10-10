@@ -75,11 +75,13 @@ func _test_l2_piece_positions_match_authored() -> void:
 	# global_position == position.
 	var data = UserLevelsScript.build(2)
 	if data == null: return
-	# Expected positions from the reference image at 720x1280:
+	# Expected positions from the reference image mapped into the 720x1280
+	# authored canvas with uniform scale 720/685 ≈ 1.0511 and a
+	# centroid-based offset (puzzle centered in canvas).
 	var expected = {
-		"orange_1": Vector2(317.43, 531.15),
-		"cyan_2":   Vector2(446.72, 595.69),
-		"purple_3": Vector2(353.69, 677.74),
+		"orange_1": Vector2(302.0, 566.0),
+		"cyan_2":   Vector2(437.9, 633.9),
+		"purple_3": Vector2(340.1, 720.1),
 	}
 	for p in data.pieces:
 		var exp = expected.get(String(p.id), Vector2.ZERO)

@@ -42,10 +42,11 @@ func _load_l2() -> Resource:
 	doc.nudge_step = 1.0
 	doc.nudge_shift_multiplier = 10.0
 	doc.nudge_alt_multiplier = 0.1
-	# Same pieces the author produced for L2.
+	# Same pieces the author produced for L2 (calibrated to 720x1280
+	# with the puzzle centroid at the canvas center).
 	doc.pieces.append({
 		"id": "orange_1", "color_name": "orange", "color_hex": "#EA7829",
-		"x": 317.0, "y": 531.0, "radius": 73.1, "radius_y": 73.1,
+		"x": 302.0, "y": 566.0, "radius": 76.8, "radius_y": 76.8,
 		"thickness": 22.0, "start_angle_deg": 0.0,
 		"shape_type": 0, "piece_type": 1, "role": 0, "z_index": 1,
 		"gaps": [{"center_angle_deg": 231.9, "width_deg": 80.0, "tolerance_deg": 16.0}],
@@ -55,7 +56,7 @@ func _load_l2() -> Resource:
 	})
 	doc.pieces.append({
 		"id": "cyan_2", "color_name": "cyan", "color_hex": "#32ADDA",
-		"x": 447.0, "y": 596.0, "radius": 76.2, "radius_y": 76.2,
+		"x": 437.9, "y": 633.9, "radius": 80.1, "radius_y": 80.1,
 		"thickness": 22.0, "start_angle_deg": 0.0,
 		"shape_type": 0, "piece_type": 1, "role": 0, "z_index": 1,
 		"gaps": [{"center_angle_deg": 355.5, "width_deg": 80.0, "tolerance_deg": 16.0}],
@@ -65,7 +66,7 @@ func _load_l2() -> Resource:
 	})
 	doc.pieces.append({
 		"id": "purple_3", "color_name": "purple", "color_hex": "#7B61FF",
-		"x": 354.0, "y": 678.0, "radius": 85.3, "radius_y": 85.3,
+		"x": 340.1, "y": 720.1, "radius": 89.7, "radius_y": 89.7,
 		"thickness": 22.0, "start_angle_deg": 0.0,
 		"shape_type": 0, "piece_type": 1, "role": 0, "z_index": 1,
 		"gaps": [{"center_angle_deg": 103.9, "width_deg": 80.0, "tolerance_deg": 16.0}],
@@ -77,8 +78,8 @@ func _load_l2() -> Resource:
 		"id": "link_0", "from_id": "orange_1", "to_id": "cyan_2",
 		"collar_angle_deg": 27.0, "cuff_center_local": {"x": 0, "y": 0},
 		"cuff_orientation_deg": 0, "cuff_width": 32.0, "cuff_depth": 18.0,
-		"cuff_round_radius": 5.0, "stem_length": 145.0, "stem_width": 6.0,
-		"stem_distance_from_piece": 145.0, "stem_dist": 145.0,
+		"cuff_round_radius": 5.0, "stem_length": 152.0, "stem_width": 6.0,
+		"stem_distance_from_piece": 152.0, "stem_dist": 152.0,
 		"joint_color_hex": "#1F5A82", "joint_color_name": "cuff",
 		"clearance_tolerance_deg": 16.0, "is_detached": false, "z_index": 0,
 	})
@@ -86,8 +87,8 @@ func _load_l2() -> Resource:
 		"id": "link_1", "from_id": "orange_1", "to_id": "purple_3",
 		"collar_angle_deg": 76.0, "cuff_center_local": {"x": 0, "y": 0},
 		"cuff_orientation_deg": 0, "cuff_width": 32.0, "cuff_depth": 18.0,
-		"cuff_round_radius": 5.0, "stem_length": 151.0, "stem_width": 6.0,
-		"stem_distance_from_piece": 151.0, "stem_dist": 151.0,
+		"cuff_round_radius": 5.0, "stem_length": 159.0, "stem_width": 6.0,
+		"stem_distance_from_piece": 159.0, "stem_dist": 159.0,
 		"joint_color_hex": "#1F5A82", "joint_color_name": "cuff",
 		"clearance_tolerance_deg": 16.0, "is_detached": false, "z_index": 0,
 	})
