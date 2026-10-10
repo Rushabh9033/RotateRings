@@ -98,17 +98,27 @@ def author_level(n, dry_run=False):
         return {"level": n, "ok": False, "error": f"missing {ref_path}"}
 
     components, img_size = measure_components(ref_path)
-    # Pick the largest component per non-cuff color → ring.
+    # Pick the rings. Many levels have multiple same-color rings
+    # (mirror, triad, or grid layouts). Take ALL components whose area
+    # is at least 30% of the largest AND whose centroid is more than
+    # 50px away from any already-picked ring (so the cuff-nub artifacts
+    # of one ring don't get a duplicate ring entry next to the real
+    # ring).
     rings = []  # [ {color, cx, cy, radius} ]
     for color in ("orange", "cyan", "purple"):
         comps = components.get(color, [])
         if not comps: continue
-        # Take the largest component. Sometimes the puzzle has two
-        # large pieces of the same color (e.g. two orange rings); take
-        # all components whose area is at least 30% of the largest.
         largest = comps[0]["area"]
         for c in comps:
             if c["area"] < largest * 0.30: break
+            # Dedup: if there's already a ring of the same color
+            # within 50px, skip (it's a fragment of the existing one).
+            is_dup = False
+            for r in rings:
+                if r["color"] == color and math.hypot(r["cx"] - c["cx"], r["cy"] - c["cy"]) < 50.0:
+                    is_dup = True
+                    break
+            if is_dup: continue
             rings.append({
                 "color": color,
                 "cx": c["cx"], "cy": c["cy"],
