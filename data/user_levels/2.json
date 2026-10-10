@@ -1,198 +1,162 @@
 {
   "id": 2,
-  "links": [
-    {
-      "clearance_tolerance_deg": 20.0,
-      "collar_angle_deg": 0.0,
-      "cuff_center_local": {
-        "x": 0.0,
-        "y": 0.0
-      },
-      "cuff_depth": 18.0,
-      "cuff_orientation_deg": 0.0,
-      "cuff_round_radius": 5.0,
-      "cuff_width": 32.0,
-      "from_id": "ring_orange",
-      "id": "link_",
-      "is_detached": false,
-      "joint_color_hex": "#EA7829",
-      "joint_color_name": "orange",
-      "runtime_current_stem_dist": 222.0,
-      "stem_dist": 222.0,
-      "stem_distance_from_piece": 0.0,
-      "stem_length": 0.0,
-      "stem_width": 6.0,
-      "to_id": "ring_cyan",
-      "z_index": 0
-    },
-    {
-      "clearance_tolerance_deg": 20.0,
-      "collar_angle_deg": 67.6937931281321,
-      "cuff_center_local": {
-        "x": 0.0,
-        "y": 0.0
-      },
-      "cuff_depth": 18.0,
-      "cuff_orientation_deg": 0.0,
-      "cuff_round_radius": 5.0,
-      "cuff_width": 32.0,
-      "from_id": "ring_orange",
-      "id": "link_",
-      "is_detached": false,
-      "joint_color_hex": "#EA7829",
-      "joint_color_name": "orange",
-      "runtime_current_stem_dist": 176.042984008789,
-      "stem_dist": 176.042984008789,
-      "stem_distance_from_piece": 0.0,
-      "stem_length": 0.0,
-      "stem_width": 6.0,
-      "to_id": "ring_purple",
-      "z_index": 0
-    }
-  ],
+  "title": "Level 2",
+  "instruction": "",
+  "par_moves": 2,
+  "theme_id": "porcelain",
+  "frame_scale": 1.0,
+  "frame_offset_x": 0.0,
+  "frame_offset_y": 0.0,
+  "frame_anchor": "auto",
+  "grid_size": 20.0,
+  "snap_to_grid": false,
+  "snap_to_piece_centers": false,
+  "snap_to_edges": false,
+  "snap_to_guides": false,
+  "snap_to_connector_points": false,
+  "nudge_step": 1.0,
+  "nudge_shift_multiplier": 10.0,
+  "nudge_alt_multiplier": 0.1,
+  "guides": [],
+  "reference_guides": [],
+  "size_links": {},
+  "locks": {},
   "pieces": [
     {
-      "closed": false,
-      "color_hex": "#EA7829",
+      "id": "orange_1",
       "color_name": "orange",
-      "corner_radius": 0.0,
-      "gap_count": 1,
-      "gaps": [
-        {
-          "center_angle_deg": 270.0,
-          "tolerance_deg": 16.0,
-          "width_deg": 70.0
-        }
-      ],
-      "height": 0.0,
-      "id": "ring_orange",
+      "color_hex": "#EA7829",
+      "x": 317.43065693430657,
+      "y": 531.1452991452992,
+      "start_angle_deg": 0.0,
+      "radius": 73.05109489051095,
+      "radius_y": 73.05109489051095,
+      "thickness": 22.0,
+      "shape_type": 0,
+      "piece_type": 0,
+      "gaps": [],
+      "role": 1,
+      "z_index": 1,
       "initially_locked": false,
-      "length": 0.0,
-      "length_b": 0.0,
       "locked": false,
-      "motion_axis": {
-        "x": 1.0,
-        "y": 0.0
-      },
-      "motion_model": 0,
-      "path_points": [],
-      "piece_type": 1,
-      "radius": 70.0,
-      "radius_y": 70.0,
+      "property_locks": {},
       "release_direction": {
         "x": 1.0,
         "y": 0.0
       },
-      "role": 0,
-      "shape_name": "CIRCLE",
-      "shape_type": 0,
-      "slide_max": 1000.0,
-      "slide_min": -1000.0,
-      "slide_path": [],
-      "special_params": {},
-      "start_angle_deg": 0.0,
       "target_exit_angle_deg": 0.0,
-      "thickness": 14.0,
-      "width": 0.0,
-      "x": 240.0,
-      "y": 520.0,
-      "z_index": 1
+      "motion_model": 0
     },
     {
-      "closed": false,
-      "color_hex": "#32ADDA",
+      "id": "cyan_2",
       "color_name": "cyan",
-      "corner_radius": 0.0,
-      "gap_count": 1,
+      "color_hex": "#32ADDA",
+      "x": 446.7153284671533,
+      "y": 595.6923076923077,
+      "start_angle_deg": 0.0,
+      "radius": 76.2043795620438,
+      "radius_y": 76.2043795620438,
+      "thickness": 22.0,
+      "shape_type": 0,
+      "piece_type": 1,
       "gaps": [
         {
-          "center_angle_deg": 200.0,
-          "tolerance_deg": 16.0,
-          "width_deg": 70.0
+          "center_angle_deg": 90.0,
+          "width_deg": 80.0,
+          "tolerance_deg": 16.0
         }
       ],
-      "height": 0.0,
-      "id": "ring_cyan",
+      "role": 0,
+      "z_index": 1,
       "initially_locked": false,
-      "length": 0.0,
-      "length_b": 0.0,
       "locked": false,
-      "motion_axis": {
-        "x": 1.0,
-        "y": 0.0
-      },
-      "motion_model": 0,
-      "path_points": [],
-      "piece_type": 1,
-      "radius": 52.0,
-      "radius_y": 52.0,
+      "property_locks": {},
       "release_direction": {
         "x": 1.0,
         "y": 0.0
       },
-      "role": 0,
-      "shape_name": "CIRCLE",
-      "shape_type": 0,
-      "slide_max": 1000.0,
-      "slide_min": -1000.0,
-      "slide_path": [],
-      "special_params": {},
-      "start_angle_deg": 0.0,
       "target_exit_angle_deg": 0.0,
-      "thickness": 14.0,
-      "width": 0.0,
-      "x": 447.0,
-      "y": 544.0,
-      "z_index": 1
+      "motion_model": 0
     },
     {
-      "closed": false,
-      "color_hex": "#7B61FF",
+      "id": "purple_3",
       "color_name": "purple",
-      "corner_radius": 0.0,
-      "gap_count": 1,
+      "color_hex": "#7B61FF",
+      "x": 353.6934306569343,
+      "y": 677.7435897435898,
+      "start_angle_deg": 0.0,
+      "radius": 85.33333333333334,
+      "radius_y": 85.33333333333334,
+      "thickness": 22.0,
+      "shape_type": 0,
+      "piece_type": 1,
       "gaps": [
         {
-          "center_angle_deg": 270.0,
-          "tolerance_deg": 16.0,
-          "width_deg": 70.0
+          "center_angle_deg": 90.0,
+          "width_deg": 80.0,
+          "tolerance_deg": 16.0
         }
       ],
-      "height": 0.0,
-      "id": "ring_purple",
+      "role": 0,
+      "z_index": 1,
       "initially_locked": false,
-      "length": 0.0,
-      "length_b": 0.0,
       "locked": false,
-      "motion_axis": {
+      "property_locks": {},
+      "release_direction": {
         "x": 1.0,
         "y": 0.0
       },
-      "motion_model": 0,
-      "path_points": [],
-      "piece_type": 1,
-      "radius": 60.0,
-      "radius_y": 60.0,
-      "release_direction": {
-        "x": 0.0,
-        "y": 1.0
-      },
-      "role": 0,
-      "shape_name": "CIRCLE",
-      "shape_type": 0,
-      "slide_max": 1000.0,
-      "slide_min": -1000.0,
-      "slide_path": [],
-      "special_params": {},
-      "start_angle_deg": 0.0,
       "target_exit_angle_deg": 0.0,
-      "thickness": 14.0,
-      "width": 0.0,
-      "x": 353.0,
-      "y": 700.0,
-      "z_index": 1
+      "motion_model": 0
     }
   ],
-  "source": "in-game-edit-overlay",
-  "title": "Level 2"
+  "links": [
+    {
+      "id": "link_0",
+      "from_id": "orange_1",
+      "to_id": "cyan_2",
+      "collar_angle_deg": 26.531243870923007,
+      "cuff_center_local": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "cuff_orientation_deg": 0.0,
+      "cuff_width": 32.0,
+      "cuff_depth": 18.0,
+      "cuff_round_radius": 5.0,
+      "stem_length": 144.50205052428726,
+      "stem_width": 6.0,
+      "stem_distance_from_piece": 144.50205052428726,
+      "stem_dist": 144.50205052428726,
+      "joint_color_hex": "#1F5A82",
+      "joint_color_name": "cuff",
+      "clearance_tolerance_deg": 16.0,
+      "is_detached": false,
+      "z_index": 0
+    },
+    {
+      "id": "link_1",
+      "from_id": "orange_1",
+      "to_id": "purple_3",
+      "collar_angle_deg": 76.10612665423355,
+      "cuff_center_local": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "cuff_orientation_deg": 0.0,
+      "cuff_width": 32.0,
+      "cuff_depth": 18.0,
+      "cuff_round_radius": 5.0,
+      "stem_length": 151.01671286450176,
+      "stem_width": 6.0,
+      "stem_distance_from_piece": 151.01671286450176,
+      "stem_dist": 151.01671286450176,
+      "joint_color_hex": "#1F5A82",
+      "joint_color_name": "cuff",
+      "clearance_tolerance_deg": 16.0,
+      "is_detached": false,
+      "z_index": 0
+    }
+  ],
+  "source": "author_level.py"
 }

@@ -2,7 +2,7 @@
   "id": 7,
   "title": "Level 7",
   "instruction": "",
-  "par_moves": 8,
+  "par_moves": 11,
   "theme_id": "porcelain",
   "frame_scale": 1.0,
   "frame_offset_x": 0.0,
@@ -48,38 +48,7 @@
       "motion_model": 0
     },
     {
-      "id": "orange_2",
-      "color_name": "orange",
-      "color_hex": "#EA7829",
-      "x": 448.8175182481752,
-      "y": 703.4529914529916,
-      "start_angle_deg": 0.0,
-      "radius": 58.529914529914535,
-      "radius_y": 58.529914529914535,
-      "thickness": 22.0,
-      "shape_type": 0,
-      "piece_type": 1,
-      "gaps": [
-        {
-          "center_angle_deg": 90.0,
-          "width_deg": 80.0,
-          "tolerance_deg": 16.0
-        }
-      ],
-      "role": 0,
-      "z_index": 1,
-      "initially_locked": false,
-      "locked": false,
-      "property_locks": {},
-      "release_direction": {
-        "x": 1.0,
-        "y": 0.0
-      },
-      "target_exit_angle_deg": 0.0,
-      "motion_model": 0
-    },
-    {
-      "id": "cyan_3",
+      "id": "cyan_2",
       "color_name": "cyan",
       "color_hex": "#32ADDA",
       "x": 378.39416058394164,
@@ -110,7 +79,7 @@
       "motion_model": 0
     },
     {
-      "id": "purple_4",
+      "id": "purple_3",
       "color_name": "purple",
       "color_hex": "#7B61FF",
       "x": 437.2554744525548,
@@ -141,7 +110,7 @@
       "motion_model": 0
     },
     {
-      "id": "purple_5",
+      "id": "purple_4",
       "color_name": "purple",
       "color_hex": "#7B61FF",
       "x": 449.3430656934307,
@@ -170,205 +139,13 @@
       },
       "target_exit_angle_deg": 0.0,
       "motion_model": 0
-    },
-    {
-      "id": "purple_6",
-      "color_name": "purple",
-      "color_hex": "#7B61FF",
-      "x": 354.2189781021898,
-      "y": 376.8888888888889,
-      "start_angle_deg": 0.0,
-      "radius": 55.7948717948718,
-      "radius_y": 55.7948717948718,
-      "thickness": 22.0,
-      "shape_type": 0,
-      "piece_type": 1,
-      "gaps": [
-        {
-          "center_angle_deg": 90.0,
-          "width_deg": 80.0,
-          "tolerance_deg": 16.0
-        }
-      ],
-      "role": 0,
-      "z_index": 1,
-      "initially_locked": false,
-      "locked": false,
-      "property_locks": {},
-      "release_direction": {
-        "x": 1.0,
-        "y": 0.0
-      },
-      "target_exit_angle_deg": 0.0,
-      "motion_model": 0
     }
   ],
   "links": [
     {
       "id": "link_0",
       "from_id": "orange_1",
-      "to_id": "orange_2",
-      "collar_angle_deg": 197.25090492232397,
-      "cuff_center_local": {
-        "x": 0.0,
-        "y": 0.0
-      },
-      "cuff_orientation_deg": 0.0,
-      "cuff_width": 32.0,
-      "cuff_depth": 18.0,
-      "cuff_round_radius": 5.0,
-      "stem_length": 99.60478276732117,
-      "stem_width": 6.0,
-      "stem_distance_from_piece": 99.60478276732117,
-      "stem_dist": 99.60478276732117,
-      "joint_color_hex": "#1F5A82",
-      "joint_color_name": "cuff",
-      "clearance_tolerance_deg": 16.0,
-      "is_detached": false,
-      "z_index": 0
-    },
-    {
-      "id": "link_1",
-      "from_id": "orange_1",
-      "to_id": "cyan_3",
-      "collar_angle_deg": 230.25876423463768,
-      "cuff_center_local": {
-        "x": 0.0,
-        "y": 0.0
-      },
-      "cuff_orientation_deg": 0.0,
-      "cuff_width": 32.0,
-      "cuff_depth": 18.0,
-      "cuff_round_radius": 5.0,
-      "stem_length": 258.9424476568405,
-      "stem_width": 6.0,
-      "stem_distance_from_piece": 258.9424476568405,
-      "stem_dist": 258.9424476568405,
-      "joint_color_hex": "#1F5A82",
-      "joint_color_name": "cuff",
-      "clearance_tolerance_deg": 16.0,
-      "is_detached": false,
-      "z_index": 0
-    },
-    {
-      "id": "link_2",
-      "from_id": "orange_1",
-      "to_id": "orange_2",
-      "collar_angle_deg": 197.25090492232397,
-      "cuff_center_local": {
-        "x": 0.0,
-        "y": 0.0
-      },
-      "cuff_orientation_deg": 0.0,
-      "cuff_width": 32.0,
-      "cuff_depth": 18.0,
-      "cuff_round_radius": 5.0,
-      "stem_length": 99.60478276732117,
-      "stem_width": 6.0,
-      "stem_distance_from_piece": 99.60478276732117,
-      "stem_dist": 99.60478276732117,
-      "joint_color_hex": "#1F5A82",
-      "joint_color_name": "cuff",
-      "clearance_tolerance_deg": 16.0,
-      "is_detached": false,
-      "z_index": 0
-    },
-    {
-      "id": "link_3",
-      "from_id": "orange_1",
-      "to_id": "purple_6",
-      "collar_angle_deg": 241.9524141133616,
-      "cuff_center_local": {
-        "x": 0.0,
-        "y": 0.0
-      },
-      "cuff_orientation_deg": 0.0,
-      "cuff_width": 32.0,
-      "cuff_depth": 18.0,
-      "cuff_round_radius": 5.0,
-      "stem_length": 403.4894194845002,
-      "stem_width": 6.0,
-      "stem_distance_from_piece": 403.4894194845002,
-      "stem_dist": 403.4894194845002,
-      "joint_color_hex": "#1F5A82",
-      "joint_color_name": "cuff",
-      "clearance_tolerance_deg": 16.0,
-      "is_detached": false,
-      "z_index": 0
-    },
-    {
-      "id": "link_4",
-      "from_id": "orange_1",
-      "to_id": "orange_2",
-      "collar_angle_deg": 197.25090492232397,
-      "cuff_center_local": {
-        "x": 0.0,
-        "y": 0.0
-      },
-      "cuff_orientation_deg": 0.0,
-      "cuff_width": 32.0,
-      "cuff_depth": 18.0,
-      "cuff_round_radius": 5.0,
-      "stem_length": 99.60478276732117,
-      "stem_width": 6.0,
-      "stem_distance_from_piece": 99.60478276732117,
-      "stem_dist": 99.60478276732117,
-      "joint_color_hex": "#1F5A82",
-      "joint_color_name": "cuff",
-      "clearance_tolerance_deg": 16.0,
-      "is_detached": false,
-      "z_index": 0
-    },
-    {
-      "id": "link_5",
-      "from_id": "orange_1",
-      "to_id": "orange_2",
-      "collar_angle_deg": 197.25090492232397,
-      "cuff_center_local": {
-        "x": 0.0,
-        "y": 0.0
-      },
-      "cuff_orientation_deg": 0.0,
-      "cuff_width": 32.0,
-      "cuff_depth": 18.0,
-      "cuff_round_radius": 5.0,
-      "stem_length": 99.60478276732117,
-      "stem_width": 6.0,
-      "stem_distance_from_piece": 99.60478276732117,
-      "stem_dist": 99.60478276732117,
-      "joint_color_hex": "#1F5A82",
-      "joint_color_name": "cuff",
-      "clearance_tolerance_deg": 16.0,
-      "is_detached": false,
-      "z_index": 0
-    },
-    {
-      "id": "link_6",
-      "from_id": "orange_1",
-      "to_id": "orange_2",
-      "collar_angle_deg": 197.25090492232397,
-      "cuff_center_local": {
-        "x": 0.0,
-        "y": 0.0
-      },
-      "cuff_orientation_deg": 0.0,
-      "cuff_width": 32.0,
-      "cuff_depth": 18.0,
-      "cuff_round_radius": 5.0,
-      "stem_length": 99.60478276732117,
-      "stem_width": 6.0,
-      "stem_distance_from_piece": 99.60478276732117,
-      "stem_dist": 99.60478276732117,
-      "joint_color_hex": "#1F5A82",
-      "joint_color_name": "cuff",
-      "clearance_tolerance_deg": 16.0,
-      "is_detached": false,
-      "z_index": 0
-    },
-    {
-      "id": "link_7",
-      "from_id": "orange_1",
-      "to_id": "purple_4",
+      "to_id": "purple_3",
       "collar_angle_deg": 133.573124549823,
       "cuff_center_local": {
         "x": 0.0,
@@ -389,9 +166,32 @@
       "z_index": 0
     },
     {
-      "id": "link_8_fallback",
+      "id": "link_1",
       "from_id": "orange_1",
-      "to_id": "purple_5",
+      "to_id": "purple_3",
+      "collar_angle_deg": 133.573124549823,
+      "cuff_center_local": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "cuff_orientation_deg": 0.0,
+      "cuff_width": 32.0,
+      "cuff_depth": 18.0,
+      "cuff_round_radius": 5.0,
+      "stem_length": 154.779138807767,
+      "stem_width": 6.0,
+      "stem_distance_from_piece": 154.779138807767,
+      "stem_dist": 154.779138807767,
+      "joint_color_hex": "#1F5A82",
+      "joint_color_name": "cuff",
+      "clearance_tolerance_deg": 16.0,
+      "is_detached": false,
+      "z_index": 0
+    },
+    {
+      "id": "link_2",
+      "from_id": "orange_1",
+      "to_id": "purple_4",
       "collar_angle_deg": 255.8902631408153,
       "cuff_center_local": {
         "x": 0.0,
@@ -405,6 +205,190 @@
       "stem_width": 6.0,
       "stem_distance_from_piece": 388.04908799920383,
       "stem_dist": 388.04908799920383,
+      "joint_color_hex": "#1F5A82",
+      "joint_color_name": "cuff",
+      "clearance_tolerance_deg": 16.0,
+      "is_detached": false,
+      "z_index": 0
+    },
+    {
+      "id": "link_3",
+      "from_id": "orange_1",
+      "to_id": "cyan_2",
+      "collar_angle_deg": 230.25876423463768,
+      "cuff_center_local": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "cuff_orientation_deg": 0.0,
+      "cuff_width": 32.0,
+      "cuff_depth": 18.0,
+      "cuff_round_radius": 5.0,
+      "stem_length": 258.9424476568405,
+      "stem_width": 6.0,
+      "stem_distance_from_piece": 258.9424476568405,
+      "stem_dist": 258.9424476568405,
+      "joint_color_hex": "#1F5A82",
+      "joint_color_name": "cuff",
+      "clearance_tolerance_deg": 16.0,
+      "is_detached": false,
+      "z_index": 0
+    },
+    {
+      "id": "link_4",
+      "from_id": "orange_1",
+      "to_id": "purple_3",
+      "collar_angle_deg": 133.573124549823,
+      "cuff_center_local": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "cuff_orientation_deg": 0.0,
+      "cuff_width": 32.0,
+      "cuff_depth": 18.0,
+      "cuff_round_radius": 5.0,
+      "stem_length": 154.779138807767,
+      "stem_width": 6.0,
+      "stem_distance_from_piece": 154.779138807767,
+      "stem_dist": 154.779138807767,
+      "joint_color_hex": "#1F5A82",
+      "joint_color_name": "cuff",
+      "clearance_tolerance_deg": 16.0,
+      "is_detached": false,
+      "z_index": 0
+    },
+    {
+      "id": "link_5",
+      "from_id": "orange_1",
+      "to_id": "cyan_2",
+      "collar_angle_deg": 230.25876423463768,
+      "cuff_center_local": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "cuff_orientation_deg": 0.0,
+      "cuff_width": 32.0,
+      "cuff_depth": 18.0,
+      "cuff_round_radius": 5.0,
+      "stem_length": 258.9424476568405,
+      "stem_width": 6.0,
+      "stem_distance_from_piece": 258.9424476568405,
+      "stem_dist": 258.9424476568405,
+      "joint_color_hex": "#1F5A82",
+      "joint_color_name": "cuff",
+      "clearance_tolerance_deg": 16.0,
+      "is_detached": false,
+      "z_index": 0
+    },
+    {
+      "id": "link_6",
+      "from_id": "orange_1",
+      "to_id": "cyan_2",
+      "collar_angle_deg": 230.25876423463768,
+      "cuff_center_local": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "cuff_orientation_deg": 0.0,
+      "cuff_width": 32.0,
+      "cuff_depth": 18.0,
+      "cuff_round_radius": 5.0,
+      "stem_length": 258.9424476568405,
+      "stem_width": 6.0,
+      "stem_distance_from_piece": 258.9424476568405,
+      "stem_dist": 258.9424476568405,
+      "joint_color_hex": "#1F5A82",
+      "joint_color_name": "cuff",
+      "clearance_tolerance_deg": 16.0,
+      "is_detached": false,
+      "z_index": 0
+    },
+    {
+      "id": "link_7",
+      "from_id": "orange_1",
+      "to_id": "purple_4",
+      "collar_angle_deg": 255.8902631408153,
+      "cuff_center_local": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "cuff_orientation_deg": 0.0,
+      "cuff_width": 32.0,
+      "cuff_depth": 18.0,
+      "cuff_round_radius": 5.0,
+      "stem_length": 388.04908799920383,
+      "stem_width": 6.0,
+      "stem_distance_from_piece": 388.04908799920383,
+      "stem_dist": 388.04908799920383,
+      "joint_color_hex": "#1F5A82",
+      "joint_color_name": "cuff",
+      "clearance_tolerance_deg": 16.0,
+      "is_detached": false,
+      "z_index": 0
+    },
+    {
+      "id": "link_8",
+      "from_id": "orange_1",
+      "to_id": "cyan_2",
+      "collar_angle_deg": 230.25876423463768,
+      "cuff_center_local": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "cuff_orientation_deg": 0.0,
+      "cuff_width": 32.0,
+      "cuff_depth": 18.0,
+      "cuff_round_radius": 5.0,
+      "stem_length": 258.9424476568405,
+      "stem_width": 6.0,
+      "stem_distance_from_piece": 258.9424476568405,
+      "stem_dist": 258.9424476568405,
+      "joint_color_hex": "#1F5A82",
+      "joint_color_name": "cuff",
+      "clearance_tolerance_deg": 16.0,
+      "is_detached": false,
+      "z_index": 0
+    },
+    {
+      "id": "link_9",
+      "from_id": "orange_1",
+      "to_id": "purple_3",
+      "collar_angle_deg": 133.573124549823,
+      "cuff_center_local": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "cuff_orientation_deg": 0.0,
+      "cuff_width": 32.0,
+      "cuff_depth": 18.0,
+      "cuff_round_radius": 5.0,
+      "stem_length": 154.779138807767,
+      "stem_width": 6.0,
+      "stem_distance_from_piece": 154.779138807767,
+      "stem_dist": 154.779138807767,
+      "joint_color_hex": "#1F5A82",
+      "joint_color_name": "cuff",
+      "clearance_tolerance_deg": 16.0,
+      "is_detached": false,
+      "z_index": 0
+    },
+    {
+      "id": "link_10",
+      "from_id": "orange_1",
+      "to_id": "cyan_2",
+      "collar_angle_deg": 230.25876423463768,
+      "cuff_center_local": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "cuff_orientation_deg": 0.0,
+      "cuff_width": 32.0,
+      "cuff_depth": 18.0,
+      "cuff_round_radius": 5.0,
+      "stem_length": 258.9424476568405,
+      "stem_width": 6.0,
+      "stem_distance_from_piece": 258.9424476568405,
+      "stem_dist": 258.9424476568405,
       "joint_color_hex": "#1F5A82",
       "joint_color_name": "cuff",
       "clearance_tolerance_deg": 16.0,

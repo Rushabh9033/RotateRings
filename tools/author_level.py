@@ -101,9 +101,9 @@ def author_level(n, dry_run=False):
     # Pick the rings. Many levels have multiple same-color rings
     # (mirror, triad, or grid layouts). Take ALL components whose area
     # is at least 30% of the largest AND whose centroid is more than
-    # 50px away from any already-picked ring (so the cuff-nub artifacts
-    # of one ring don't get a duplicate ring entry next to the real
-    # ring).
+    # 120px away from any already-picked ring (so the cuff-nub
+    # artifacts AND the second-arc of a single C-shape ring don't get
+    # a duplicate entry).
     rings = []  # [ {color, cx, cy, radius} ]
     for color in ("orange", "cyan", "purple"):
         comps = components.get(color, [])
@@ -112,10 +112,11 @@ def author_level(n, dry_run=False):
         for c in comps:
             if c["area"] < largest * 0.30: break
             # Dedup: if there's already a ring of the same color
-            # within 50px, skip (it's a fragment of the existing one).
+            # within 120px, skip. The two arcs of a C-shape ring are
+            # typically 80-110px apart, so this collapses them.
             is_dup = False
             for r in rings:
-                if r["color"] == color and math.hypot(r["cx"] - c["cx"], r["cy"] - c["cy"]) < 50.0:
+                if r["color"] == color and math.hypot(r["cx"] - c["cx"], r["cy"] - c["cy"]) < 120.0:
                     is_dup = True
                     break
             if is_dup: continue
