@@ -19,9 +19,10 @@ const LevelDocumentScript = preload("res://data/level_document.gd")
 const PieceDefinitionScript = preload("res://data/piece_definition.gd")
 
 signal test_level_pressed()
+signal open_reference_requested() # open the reference viewer
+signal calibrate_reference_requested()  # enter calibration mode
 signal reference_overlay_changed(visible: bool)
 signal fit_reference_requested()
-signal fit_puzzle_requested()
 signal reference_zoom_changed(zoom: float)
 signal reference_pan_changed(pan: Vector2)
 signal reference_opacity_changed(opacity: float)
@@ -853,6 +854,32 @@ func _build_test_level_strip() -> Control:
 	save_btn.pressed.connect(func(): _save_document())
 	v.add_child(save_btn)
 	_save_btn = save_btn
+	# Reference viewer + calibration controls.
+	var ref_row := HBoxContainer.new()
+	ref_row.add_theme_constant_override("separation", 4)
+	var ref_btn := Button.new()
+	ref_btn.text = "Reference"
+	ref_btn.custom_minimum_size = Vector2(0, 24)
+	ref_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	ref_btn.tooltip_text = "Open the reference viewer (tracing paper)"
+	ref_btn.pressed.connect(func(): emit_signal("open_reference_requested"))
+	ref_row.add_child(ref_btn)
+	var calib_btn := Button.new()
+	calib_btn.text = "Calibrate"
+	calib_btn.custom_minimum_size = Vector2(0, 24)
+	calib_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	calib_btn.tooltip_text = "Enter calibration mode for the reference (4 corners + uniform scale + offset)"
+	calib_btn.pressed.connect(func(): emit_signal("calibrate_reference_requested"))
+	ref_row.add_child(calib_btn)
+	v.add_child(ref_row)
+	# Fit puzzle — explicit ONE uniform global transform.
+	var fit_btn := Button.new()
+	fit_btn.text = "Fit Puzzle"
+	fit_btn.custom_minimum_size = Vector2(0, 24)
+	fit_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	fit_btn.tooltip_text = "Compute ONE uniform global transform so the puzzle fits the safe area. Does NOT auto-rerun on load — only when clicked."
+	fit_btn.pressed.connect(func(): emit_signal("fit_puzzle_requested"))
+	v.add_child(fit_btn)
 	var status := Label.new()
 	status.text = "(editor active)"
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

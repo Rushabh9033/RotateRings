@@ -660,6 +660,11 @@ var show_status_panel: bool = true
 # transform doesn't drift.
 var show_parity_overlay: bool = true
 
+# Phase 9: debug-bounds overlay (canonical / safe / authored / runtime).
+# Each frame draws 4 outlines with labels so coordinate mistakes are
+# immediately visible. Only shown when the user toggles it on.
+var show_debug_bounds: bool = false
+
 func _hit_test_body(local_pos: Vector2) -> int:
 	for i in range(_pieces.size() - 1, -1, -1):
 		var p = _pieces[i]
@@ -1350,6 +1355,40 @@ func _draw() -> void:
 	if show_status_panel and _selected_piece_idx >= 0 and _selected_piece_idx < _pieces.size():
 		_draw_status_panel()
 
+	# Phase 9: debug bounds overlay.
+	if show_debug_bounds:
+		_draw_debug_bounds()
+
+func _draw_debug_bounds() -> void:
+	# Draws 4 outline boxes (canonical canvas, safe area, authored
+	# bbox, runtime screen) so the user can see coordinate mistakes
+	# at a glance. Each is labeled with its own color.
+	var font = ThemeDB.fallback_font
+	# Canonical canvas: top-left origin, viewport size.
+	var sz = get_viewport_rect().size
+	var canonical: Rect2 = Rect2(Vector2.ZERO, sz)
+	draw_rect(canonical, Color(1, 0.6, 0.2, 0.6), false, 1.0)
+	if font: draw_string(font, Vector2(4, 12), "CANONICAL %dx%d" % [int(sz.x), int(sz.y)], HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(1, 0.6, 0.2, 1))
+	# Safe area: account for top + bottom HUD.
+	var safe: Rect2 = Rect2(Vector2(36, 96), Vector2(sz.x - 36 - 36, sz.y - 96 - 200))
+	draw_rect(safe, Color(0.2, 0.8, 0.4, 0.6), false, 1.0)
+	if font: draw_string(font, Vector2(safe.position.x, safe.position.y - 4), "SAFE", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.2, 0.8, 0.4, 1))
+	# Authored bbox: the puzzle's authored bounding box, in canvas space
+	# (i.e. before applying the global transform). Use the puzzle
+	# controller's get_puzzle_bounds.
+	if is_instance_valid(_puzzle):
+		var ab = _puzzle.get_puzzle_bounds()
+		# The puzzle_controller's children are at authored positions,
+		# so get_puzzle_bounds() returns the authored bbox directly.
+		draw_rect(ab, Color(0.4, 0.6, 1.0, 0.6), false, 1.5)
+		if font: draw_string(font, ab.position + Vector2(2, 12), "AUTHORED", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.4, 0.6, 1, 1))
+	# Runtime screen bbox: applied to the puzzle's local bbox.
+		var rs: float = _puzzle.scale.x
+		var rt: Vector2 = _puzzle.position
+		var rb: Rect2 = Rect2(ab.position * rs + rt, ab.size * rs)
+		draw_rect(rb, Color(1.0, 0.4, 0.6, 0.6), false, 1.5)
+		if font: draw_string(font, rb.position + Vector2(2, 12), "RUNTIME", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(1, 0.4, 0.6, 1))
+
 func _draw_measurement() -> void:
 	var font = ThemeDB.fallback_font
 	if font == null: return
@@ -1418,16 +1457,35 @@ func _draw_status_panel() -> void:
 			runtime_local = piece_node.position
 	var drift: float = (runtime_local - authored).length()
 	var parity_ok: bool = drift < 0.5
+	# Phase 10: reference target + reference error. Only meaningful when
+	# the host has populated `document.reference_targets` (typically done
+	# by the reference viewer once a level is calibrated).
+	var ref_target: Vector2 = Vector2.ZERO
+	var has_ref: bool = false
+	if _document != null and _document.reference_targets.has(String(def.id)):
+		var rt: Dictionary = _document.reference_targets[String(def.id)]
+		ref_target = Vector2(float(rt.get("x", 0)), float(rt.get("y", 0)))
+		has_ref = true
+	var ref_error: Vector2 = Vector2.ZERO
+	var ref_ok: bool = false
+	if has_ref:
+		ref_error = authored - ref_target
+		ref_ok = ref_error.length() < 1.5
 	var lines: Array = [
 		"%s  (%s)" % [String(def.id), _shape_short(def)],
 		"authored  x=%.2f  y=%.2f" % [authored.x, authored.y],
 		"runtime   x=%.2f  y=%.2f" % [runtime_local.x, runtime_local.y],
 		"screen    x=%.2f  y=%.2f" % [screen_pos.x, screen_pos.y],
 		"parity:  %s  (drift=%.2f)" % ["OK" if parity_ok else "DRIFT", drift],
-		"radius=%.2f  thickness=%.2f" % [float(def.radius), float(def.thickness)],
-		"start_angle=%.2f" % float(def.start_angle_deg),
-		"gaps=%d  z_index=%d" % [def.gaps.size(), int(def.z_index)],
 	]
+	if has_ref:
+		lines.append("ref tgt   x=%.2f  y=%.2f" % [ref_target.x, ref_target.y])
+		lines.append("ref err:  %s  (%.2f, %.2f)" % ["OK" if ref_ok else "FAIL", ref_error.x, ref_error.y])
+	else:
+		lines.append("ref tgt:   (calibrate to see)")
+	lines.append("radius=%.2f  thickness=%.2f" % [float(def.radius), float(def.thickness)])
+	lines.append("start_angle=%.2f" % float(def.start_angle_deg))
+	lines.append("gaps=%d  z_index=%d" % [def.gaps.size(), int(def.z_index)])
 	var sz = get_viewport_rect().size
 	var panel_w: int = 320
 	var panel_h: int = 16 * lines.size() + 14
@@ -1436,6 +1494,8 @@ func _draw_status_panel() -> void:
 		var col: Color = Color.WHITE
 		if lines[i].begins_with("parity:"):
 			col = (Color(0.5, 1.0, 0.5) if parity_ok else Color(1.0, 0.5, 0.5))
+		elif lines[i].begins_with("ref err:"):
+			col = (Color(0.5, 1.0, 0.5) if ref_ok else Color(1.0, 0.5, 0.5))
 		draw_string(font, Vector2(sz.x - panel_w - 4, 36 + 18 + 14 * i), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 12, col)
 
 func _shape_short(def: Resource) -> String:

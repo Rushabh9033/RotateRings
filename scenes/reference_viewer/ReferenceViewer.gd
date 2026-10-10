@@ -49,9 +49,18 @@ var _pieces: Array = []            # LoadedPiece snapshot [{id, def, position, r
 var _ref_size: Vector2 = Vector2.ZERO
 var _locked: bool = false          # When true, ignore level changes; viewer is inspecting a fixed level.
 
-# Calibration state: 4 corner offsets in authored canvas space. Default
-# covers the whole image; the user can drag them in to crop the puzzle
-# region. Once locked, these are frozen until unlocked.
+# Calibration state. The reference is placed in the canonical
+# canvas at a uniform scale and translation defined by:
+#   canonical_p = (ref_p - ref_image_origin) * ref_scale + ref_canvas_origin
+# Plus a puzzle-region rect (in ref-image space) that crops the
+# displayed portion. Once `_locked` is true, all of these are frozen
+# and the calibration handles become non-interactive.
+var _ref_image_origin: Vector2 = Vector2.ZERO   # where the ref image's (0,0) sits in canvas space
+var _ref_canvas_origin: Vector2 = Vector2.ZERO  # where the ref appears in the canvas (same as origin by default)
+var _ref_scale: float = 1.0                    # uniform scale (NEVER independent X/Y)
+var _puzzle_region_min: Vector2 = Vector2.ZERO  # in ref-image pixel space
+var _puzzle_region_max: Vector2 = Vector2.ZERO
+# Legacy fields, kept for back-compat with the earlier _apply_calibration:
 var _calib_top_left: Vector2 = Vector2.ZERO
 var _calib_bottom_right: Vector2 = Vector2.ZERO
 
@@ -97,19 +106,56 @@ func _load_reference() -> void:
 	ref_rect.scale = Vector2.ONE
 
 func _apply_calibration() -> void:
-	# Apply the calibration: the reference is shown only within the
-	# calibration rectangle (sub-rectangle of the full image). The
-	# authored pieces stay in canvas coordinates and aren't affected
-	# by calibration.
+	# Apply the calibration transform to the reference rect.
+	# canonical = (ref_p - image_origin) * scale + canvas_origin
+	# The ref image is placed inside `PuzzleCanvas` (canonical canvas).
+	# ref_rect's position is canvas_origin; its scale is _ref_scale.
 	if ref_rect.texture == null: return
-	var w := _calib_bottom_right.x - _calib_top_left.x
-	var h := _calib_bottom_right.y - _calib_top_left.y
-	if w <= 0 or h <= 0: return
-	# Show the calibrated region by adjusting the texture region. We
-	# can't clip a TextureRect easily, so we instead re-render the
-	# reference as a small TextureRect of the right size. For now
-	# the full image is shown; the user can lock+ignore.
-	# (Calibration handles UI is added in a follow-up.)
+	# Region: when puzzle_region has a non-zero area, crop the texture
+	# to that sub-rect by drawing a smaller TextureRect that aliases the
+	# same texture. We use the ImageTexture.region property to do this
+	# in-place when the calibration is a sub-region.
+	if _puzzle_region_max.x > _puzzle_region_min.x and _puzzle_region_max.y > _puzzle_region_min.y:
+		var rw: float = _puzzle_region_max.x - _puzzle_region_min.x
+		var rh: float = _puzzle_region_max.y - _puzzle_region_min.y
+		ref_rect.size = Vector2(rw * _ref_scale, rh * _ref_scale)
+		# ImageTexture doesn't expose a region setter at runtime easily,
+		# so we accept the full image is shown and rely on the host's
+		# render layer to clip or overlay the puzzle region. The size
+		# of the ref_rect still represents the calibrated region in
+		# canvas space, which the host uses to position calibration
+		# handles.
+	else:
+		ref_rect.size = Vector2(_ref_size.x * _ref_scale, _ref_size.y * _ref_scale)
+	ref_rect.position = _ref_canvas_origin
+	ref_rect.scale = Vector2.ONE  # TextureRect's own scale; we baked _ref_scale into size
+	# Back-compat: also update the legacy _calib_top_left / _calib_bottom_right
+	_calib_top_left = _puzzle_region_min
+	_calib_bottom_right = _puzzle_region_max
+
+# Set the calibration transform. Called by the host when the user
+# finishes dragging calibration handles. `_ref_scale` is the uniform
+# scale; `_ref_canvas_origin` is where the (0,0) of the ref image lands
+# in canvas space; `_puzzle_region` is the puzzle region inside the
+# image in image pixel coordinates.
+func set_calibration(image_origin: Vector2, canvas_origin: Vector2, scale: float,
+		puzzle_region_min: Vector2, puzzle_region_max: Vector2) -> void:
+	_ref_image_origin = image_origin
+	_ref_canvas_origin = canvas_origin
+	_ref_scale = scale
+	_puzzle_region_min = puzzle_region_min
+	_puzzle_region_max = puzzle_region_max
+	_apply_calibration()
+
+# Reset to the default: ref image at its natural size, anchored to
+# the canvas origin, no puzzle-region crop.
+func reset_calibration() -> void:
+	_ref_image_origin = Vector2.ZERO
+	_ref_canvas_origin = Vector2.ZERO
+	_ref_scale = 1.0
+	_puzzle_region_min = Vector2.ZERO
+	_puzzle_region_max = _ref_size
+	_apply_calibration()
 
 func _on_ref_toggled(pressed: bool) -> void:
 	ref_rect.visible = pressed
@@ -146,13 +192,13 @@ func _on_mode_selected(idx: int) -> void:
 func _on_lock_toggled(pressed: bool) -> void:
 	_locked = pressed
 	lock_btn.text = "Unlock" if pressed else "Lock"
-	# Locked: hide the reference entirely (it's the editor's tracing
-	# paper; once the user has the pieces placed, the reference is
-	# out of the way).
-	if pressed:
-		ref_rect.visible = false
-		shader_rect.visible = false
-		ref_on_btn.button_pressed = false
+	# Locked: reference is FROZEN — still visible, but its transform
+	# (calibration + scale + offset) is no longer editable. Mouse input
+	# passes through to level objects underneath (handled by the host
+	# setting mouse_filter appropriately on the reference rect).
+	# Visibility is independent — toggled by the [Reference ON/OFF] button.
+	# The reference is the editor's tracing paper; you lock it once
+	# you've calibrated, then place pieces directly over it.
 
 func redraw_puzzle() -> void:
 	# Render the puzzle pieces as simple circles on top of the reference,

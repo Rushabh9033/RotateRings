@@ -329,6 +329,9 @@ func _ensure_editor_toolbar() -> void:
 	editor_toolbar.set_document(editor_document)
 	editor_toolbar.set_overlay(edit_overlay)
 	editor_toolbar.test_level_pressed.connect(_on_test_level_pressed)
+	editor_toolbar.fit_puzzle_requested.connect(_on_fit_puzzle_requested)
+	editor_toolbar.open_reference_requested.connect(_on_open_reference_requested)
+	editor_toolbar.calibrate_reference_requested.connect(_on_calibrate_reference_requested)
 	# Re-frame the puzzle when the dock is shown/hidden so pieces
 	# stay draggable.
 	if editor_toolbar.has_signal("editor_panel_shown"):
@@ -371,6 +374,101 @@ func _on_test_level_pressed() -> void:
 	# Keep the level number visible.
 	if has_node("SafeArea/TopHUD"):
 		$SafeArea/TopHUD.visible = true
+
+# Phase 8 wiring: explicit "Fit Puzzle" — compute ONE uniform global
+# transform that fits the puzzle's authored bbox in the safe area,
+# and write it into the document. Does NOT auto-run on load.
+func _on_fit_puzzle_requested() -> void:
+	if editor_document == null: return
+	if puzzle_controller == null: return
+	# Authored bbox in canvas space.
+	var bounds = puzzle_controller.get_puzzle_bounds()
+	if bounds.size.x <= 0 or bounds.size.y <= 0: return
+	var viewport_size = get_viewport().get_visible_rect().size
+	# Reserve space for the editor dock.
+	var safe_margin_right: float = 36.0
+	if editor_toolbar != null and editor_toolbar.is_panel_shown():
+		safe_margin_right = maxf(safe_margin_right, 320.0 + 28.0 + 12.0)
+	var safe_margin_x: float = 36.0
+	var safe_margin_top: float = 96.0
+	var safe_margin_bottom: float = 200.0
+	var safe_w: float = viewport_size.x - safe_margin_x - safe_margin_right
+	var safe_h: float = viewport_size.y - safe_margin_top - safe_margin_bottom
+	if safe_w <= 50 or safe_h <= 50: return
+	# Compute the uniform scale that fits the authored bbox.
+	var sx: float = safe_w / bounds.size.x
+	var sy: float = safe_h / bounds.size.y
+	var s: float = minf(sx, sy)
+	s = minf(s, 0.95)
+	# Center the bbox in the safe area.
+	var bounds_center: Vector2 = bounds.get_center()
+	var safe_center: Vector2 = Vector2(safe_margin_x + safe_w * 0.5, safe_margin_top + safe_h * 0.5)
+	# Apply the transform to the document (single source of truth).
+	# authored * scale + offset = safe_center, so
+	#   offset = safe_center - bounds_center * scale
+	var ox: float = safe_center.x - bounds_center.x * s
+	var oy: float = safe_center.y - bounds_center.y * s
+	editor_document.apply_edit(func():
+		editor_document.frame_scale = s
+		editor_document.frame_offset_x = ox
+		editor_document.frame_offset_y = oy
+	)
+	# Re-frame the puzzle immediately.
+	_frame_puzzle()
+
+# Phase 8: open the reference viewer. The viewer is a separate scene
+# that lives inside the puzzle area; we instantiate it on demand.
+var _ref_viewer: Control = null
+func _on_open_reference_requested() -> void:
+	if _ref_viewer == null:
+		_ref_viewer = preload("res://scenes/reference_viewer/ReferenceViewer.tscn").instantiate()
+		add_child(_ref_viewer)
+		_ref_viewer.closed.connect(_on_reference_closed)
+	if editor_document != null:
+		# Pass the current pieces snapshot so the viewer can render the
+		# puzzle ghost outline.
+		var pieces_snap: Array = []
+		for p in editor_document.pieces:
+			pieces_snap.append({
+				"position": Vector2(float(p.get("x", 0)), float(p.get("y", 0))),
+				"radius": float(p.get("radius", 60)),
+				"color": _puzzle_color(p),
+			})
+		_ref_viewer.setup(editor_document.level_id, pieces_snap)
+		# Forward the fit/calibrate signals.
+		_ref_viewer.fit_puzzle_requested.connect(_on_fit_puzzle_requested)
+		_ref_viewer.calibrate_requested.connect(_on_calibrate_reference_requested)
+		# Calibrate button may have already been pressed; apply state.
+		_ref_viewer.set_calibration(
+			_ref_viewer._ref_image_origin,
+			_ref_viewer._ref_canvas_origin,
+			_ref_viewer._ref_scale,
+			_ref_viewer._puzzle_region_min,
+			_ref_viewer._puzzle_region_max,
+		)
+	_ref_viewer.visible = true
+
+func _on_reference_closed() -> void:
+	if _ref_viewer != null:
+		_ref_viewer.visible = false
+
+# Phase 8: calibration entry point. For now this is a stub that resets
+# the calibration to the default (full image, no crop). A future
+# pass adds 4 drag handles so the user can crop the puzzle region.
+func _on_calibrate_reference_requested() -> void:
+	if _ref_viewer == null:
+		_on_open_reference_requested()
+	if _ref_viewer == null: return
+	_ref_viewer.reset_calibration()
+
+func _puzzle_color(p: Dictionary) -> Color:
+	var hex: String = String(p.get("color_hex", "#EA7829"))
+	if hex.begins_with("#"):
+		var r: int = int("0x" + hex.substr(1, 2))
+		var g: int = int("0x" + hex.substr(3, 2))
+		var b: int = int("0x" + hex.substr(5, 2))
+		return Color(r / 255.0, g / 255.0, b / 255.0, 1.0)
+	return Color("#EA7829")
 
 func _mount_tool(btn: Button, texture: Texture2D, caption: String, locked: bool) -> void:
 	btn.text = ""

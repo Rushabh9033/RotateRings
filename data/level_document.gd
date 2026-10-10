@@ -51,6 +51,16 @@ var links: Array = []
 # gaps, motion, visual, connectors.
 var locks: Dictionary = {}
 
+# Phase 10: per-piece reference target. Editor-only — populated by
+# the reference viewer when a level is loaded. Each entry is a dict
+# { "x": float, "y": float, "radius": float, "thickness": float,
+#   "gap_center_deg": float, "gap_width_deg": float }. NEVER serialized
+# to the on-disk JSON (we exclude it in to_json_dict).
+var reference_targets: Dictionary = {}
+# Phase 15: per-link reference target (cuff center, orientation,
+# width, depth). Same editor-only contract.
+var reference_cuff_targets: Dictionary = {}
+
 # Size-master linking (Section 15). When present, followers are auto-resized
 # when the master changes. Keyed by piece id; value is { "master": "id", "what":
 # "size" | "thickness" | "radius" | ... }.
