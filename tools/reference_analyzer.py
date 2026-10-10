@@ -41,6 +41,7 @@ import json
 import numpy as np
 from PIL import Image
 import scipy.ndimage as ndi
+from gap_detector import measure_gap as _new_measure_gap, Gap as _NewGap
 from dataclasses import dataclass, field, asdict
 from typing import Optional, List, Tuple
 
@@ -315,59 +316,6 @@ def _fit_one_ring(comp_mask, cuff_global, color, calibration):
     )
 
 
-def _measure_gap(ring_mask, cx, cy, calibration):
-    """Polar histogram of ring body pixels. Find the largest missing
-    angular interval; that's the gap. Returns (gap_center, gap_width)
-    in degrees. Handles 0/360 wraparound."""
-    ys, xs = np.where(ring_mask)
-    if len(xs) < 30:
-        return (0.0, 80.0)
-    angles = np.degrees(np.arctan2(ys - cy, xs - cx)) % 360.0
-    # Bin to 2 degrees.
-    bin_w = 2.0
-    n_bins = int(360.0 / bin_w)
-    counts, edges = np.histogram(angles, bins=n_bins, range=(0, 360))
-    # Threshold: < 5% of the max count is "empty" (gap).
-    thresh = counts.max() * 0.05
-    empty = counts < thresh
-    if not empty.any():
-        return (0.0, 80.0)
-    # Find runs of empty bins; pick the longest.
-    best_start = -1; best_len = 0
-    cur_start = -1; cur_len = 0
-    for i, e in enumerate(empty):
-        if e:
-            if cur_start < 0: cur_start = i
-            cur_len += 1
-        else:
-            if cur_len > best_len:
-                best_len = cur_len; best_start = cur_start
-            cur_start = -1; cur_len = 0
-    if cur_len > best_len:
-        best_len = cur_len; best_start = cur_start
-    if best_start < 0 or best_len == 0:
-        return (0.0, 80.0)
-    # Handle wraparound: if the gap spans the 360/0 boundary, the run
-    # we picked may end before the boundary. Expand.
-    center_bin = (best_start + best_len / 2.0) % n_bins
-    width_deg = best_len * bin_w
-    # Extend the run in both directions if the next bin is also empty.
-    i = best_start
-    while empty[(i - 1) % n_bins] and width_deg < 180:
-        i = (i - 1) % n_bins
-        width_deg += bin_w
-    j = (best_start + best_len) % n_bins
-    while empty[(j + 1) % n_bins] and width_deg < 180:
-        j = (j + 1) % n_bins
-        width_deg += bin_w
-    center_bin = ((best_start + best_start + best_len) / 2.0) % n_bins
-    gap_center = (center_bin / n_bins) * 360.0
-    return (gap_center, width_deg)
-
-
-# ============================================================================
-# Cuff measurement: PCA on the cuff mask
-# ============================================================================
 
 def _measure_cuff(comp, calibration):
     """Measure cuff center, width, height, orientation via PCA."""
@@ -459,13 +407,22 @@ class ReferenceAnalyzer:
                 cx_f, cy_f, r_f, _n = _ransac_circle(xs, ys, n_iter=300, tol_px=2.0)
                 if r_f <= 0:
                     cx_f, cy_f = rt.center_x_can, rt.center_y_can
-                gap_c, gap_w = _measure_gap(comp["mask"] & ~cuff_global,
-                                              cx_f, cy_f, cal)
+                cleaned_mask = comp["mask"] & ~cuff_global
+                gap = _new_measure_gap(
+                    cleaned_mask, cuff_global,
+                    cx_f, cy_f,
+                    rt.inner_radius, rt.outer_radius,
+                    bin_deg=5.0, sub_bin_deg=0.5,
+                )
+                rt.gap_center_angle = gap.center_angle_deg
+                rt.gap_width_angle = gap.width_angle_deg
+                rt.gap_confidence = gap.confidence
+                rt.gap_notes = gap.notes
+                rt.gap_visible_edges = gap.visible_edge_count
+                rt.gap_occluded_fraction = gap.occluded_fraction
                 cx_can, cy_can = cal.map_to_canonical(cx_f, cy_f)
                 rt.center_x = cx_can
                 rt.center_y = cy_can
-                rt.gap_center_angle = gap_c
-                rt.gap_width_angle = gap_w
                 rt.piece_id_hint = f"{color}_{piece_counter[color]+1}"
                 piece_counter[color] += 1
                 accepted.append(rt)
@@ -526,9 +483,12 @@ class ReferenceAnalyzer:
                 f"r_in={r.inner_radius:5.1f}  r_out={r.outer_radius:5.1f}  "
                 f"thickness={r.thickness:5.1f}"
             )
+            gap_extra = ""
+            if getattr(r, "gap_confidence", 1.0) < 0.7:
+                gap_extra = f"  conf={r.gap_confidence:.2f}  notes={getattr(r, 'gap_notes', '')}"
             report_lines.append(
                 f"  {'':14} {'':7}  gap_center={r.gap_center_angle:6.1f}  "
-                f"gap_width={r.gap_width_angle:5.1f}  area={r.bbox_count}"
+                f"gap_width={r.gap_width_angle:5.1f}  area={r.bbox_count}{gap_extra}"
             )
         report_lines.append("")
         report_lines.append(f"--- Cuff targets ({len(cuffs)}) ---")
