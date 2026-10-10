@@ -70,6 +70,23 @@ def measure_reference(path):
             c["h"] *= s
     return components, (W, H), (s, off_x, off_y)
 
+# Phase 15: cuff reference targets. Each cuff component in the ref image
+# becomes a target dict { "x", "y", "width", "height", "orientation" }.
+# We can't reliably know which authored link each cuff corresponds to,
+# so we report per-cuff measurements and let the human associate.
+def cuff_targets(components: dict) -> list:
+    targets = []
+    for i, c in enumerate(components.get("cuff", [])):
+        targets.append({
+            "index": i,
+            "x": float(c["cx"]),
+            "y": float(c["cy"]),
+            "w": float(c["w"]),
+            "h": float(c["h"]),
+            "area": int(c["area"]),
+        })
+    return targets
+
 def main():
     level_id = 2
     ref_path = os.path.join(REF_DIR, f"{level_id}.jpeg")
@@ -140,6 +157,16 @@ def main():
         print(f"  {link['from_id']} -> {link['to_id']}  dist={dist:.1f}  angle={angle:.1f}  "
               f"collar={float(link.get('collar_angle_deg', 0)):.1f}  "
               f"stem={float(link.get('stem_distance_from_piece', 0)):.1f}")
+
+    # Phase 15: cuff reference targets. These are the actual cuff blobs
+    # in the reference image. The human (or the snap action) maps each
+    # authored link to one of these.
+    print("\n--- Cuff reference targets (in canvas space) ---")
+    cuffs = cuff_targets(measured)
+    if not cuffs:
+        print("  (no cuff components detected in reference)")
+    for c in cuffs:
+        print(f"  cuff[{c['index']}]  ({c['x']:.1f}, {c['y']:.1f})  size {c['w']:.0f}x{c['h']:.0f}  area={c['area']}")
 
     print("\n--- Global transform ---")
     fs = float(authored.get("frame_scale", 1.0))

@@ -571,6 +571,47 @@ func _snap_angle(deg: float, step: float) -> float:
 	if step <= 0.0: return deg
 	return round(deg / step) * step
 
+# Phase 14: snap the SELECTED piece to its reference target (center
+# + radius). The target is in _document.reference_targets, populated
+# by the reference viewer when calibrated. Returns true if a snap
+# happened, false if there's no selection or no target.
+func snap_selected_to_reference_target() -> bool:
+	if _document == null: return false
+	if _selected_piece_idx < 0 or _selected_piece_idx >= _pieces.size(): return false
+	var p = _pieces[_selected_piece_idx]
+	var id: String = String(p["def"].id)
+	if not _document.reference_targets.has(id): return false
+	var rt: Dictionary = _document.reference_targets[id]
+	var new_x: float = float(rt.get("x", p["def"].position.x))
+	var new_y: float = float(rt.get("y", p["def"].position.y))
+	var new_r: float = float(rt.get("radius", float(p["def"].radius)))
+	var captured_id: String = id
+	var captured_x: float = new_x
+	var captured_y: float = new_y
+	var captured_r: float = new_r
+	_document.apply_edit(func():
+		var piece = _document.find_piece(captured_id)
+		if piece.is_empty(): return
+		piece["x"] = captured_x
+		piece["y"] = captured_y
+		piece["radius"] = captured_r
+		piece["radius_y"] = captured_r
+		# Sync the runtime piece node + dict
+		var p2 = _pieces[_selected_piece_idx]
+		p2["center"] = Vector2(captured_x, captured_y)
+		if p2["def"] != null:
+			p2["def"].position = Vector2(captured_x, captured_y)
+			p2["def"].radius = captured_r
+			p2["def"].radius_y = captured_r
+		if p2["piece"] != null and "radius" in p2["piece"]:
+			p2["piece"].radius = captured_r
+			p2["piece"].position = Vector2(captured_x, captured_y)
+	)
+	# Live-save so the snap is durable.
+	_save_all_pieces()
+	queue_redraw()
+	return true
+
 # Optional LevelDocument binding so Ctrl+Z / Ctrl+Y can use it directly. The
 # overlay still works for pieces that live in the runtime without a doc.
 var _document: Resource = null
@@ -664,6 +705,12 @@ var show_parity_overlay: bool = true
 # Each frame draws 4 outlines with labels so coordinate mistakes are
 # immediately visible. Only shown when the user toggles it on.
 var show_debug_bounds: bool = false
+
+# Phase 13: ghost target overlay. When on, the status panel's reference
+# target (the calibrated position) is drawn as a thin outline on the
+# canvas so the user can see where the piece should be vs where it is.
+# Never serialized — this is editor-only.
+var show_ghost_targets: bool = false
 
 func _hit_test_body(local_pos: Vector2) -> int:
 	for i in range(_pieces.size() - 1, -1, -1):
@@ -1358,6 +1405,9 @@ func _draw() -> void:
 	# Phase 9: debug bounds overlay.
 	if show_debug_bounds:
 		_draw_debug_bounds()
+	# Phase 13: ghost target overlay.
+	if show_ghost_targets:
+		_draw_ghost_targets()
 
 func _draw_debug_bounds() -> void:
 	# Draws 4 outline boxes (canonical canvas, safe area, authored
@@ -1388,6 +1438,29 @@ func _draw_debug_bounds() -> void:
 		var rb: Rect2 = Rect2(ab.position * rs + rt, ab.size * rs)
 		draw_rect(rb, Color(1.0, 0.4, 0.6, 0.6), false, 1.5)
 		if font: draw_string(font, rb.position + Vector2(2, 12), "RUNTIME", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(1, 0.4, 0.6, 1))
+
+func _draw_ghost_targets() -> void:
+	# Phase 13: for each piece with a reference target in
+	# _document.reference_targets, draw a thin outline at the
+	# target location. The ghost is editor-only (never serialized).
+	# The outline is in CYAN with a faint fill so the user sees
+	# "this is where the piece SHOULD be" without confusing it with
+	# the actual rendered piece.
+	if _document == null: return
+	for p in _pieces:
+		var id: String = String(p["def"].id)
+		if not _document.reference_targets.has(id): continue
+		var rt: Dictionary = _document.reference_targets[id]
+		var pos: Vector2 = Vector2(float(rt.get("x", 0)), float(rt.get("y", 0)))
+		var radius: float = float(rt.get("radius", float(p["def"].radius)))
+		# Ghost outline: cyan ring at the target position.
+		draw_arc(pos, radius, 0, TAU, 64, Color(0.4, 0.95, 1.0, 0.7), 1.5, true)
+		# Center cross.
+		draw_line(pos + Vector2(-6, 0), pos + Vector2(6, 0), Color(0.4, 0.95, 1.0, 0.6), 1.0)
+		draw_line(pos + Vector2(0, -6), pos + Vector2(0, 6), Color(0.4, 0.95, 1.0, 0.6), 1.0)
+		# Line from current to target.
+		var cur: Vector2 = Vector2(float(p["def"].position.x), float(p["def"].position.y))
+		draw_line(cur, pos, Color(0.4, 0.95, 1.0, 0.4), 1.0)
 
 func _draw_measurement() -> void:
 	var font = ThemeDB.fallback_font

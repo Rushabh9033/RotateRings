@@ -27,6 +27,7 @@ signal reference_zoom_changed(zoom: float)
 signal reference_pan_changed(pan: Vector2)
 signal reference_opacity_changed(opacity: float)
 signal size_link_requested(follower_id: String, master_id: String)
+signal snap_to_reference_requested()  # snap the selected piece to its reference target
 signal editor_panel_shown(shown: bool)
 
 var document: Resource = null
@@ -880,6 +881,14 @@ func _build_test_level_strip() -> Control:
 	fit_btn.tooltip_text = "Compute ONE uniform global transform so the puzzle fits the safe area. Does NOT auto-rerun on load — only when clicked."
 	fit_btn.pressed.connect(func(): emit_signal("fit_puzzle_requested"))
 	v.add_child(fit_btn)
+	# Phase 14: snap selected piece to its reference target.
+	var snap_btn := Button.new()
+	snap_btn.text = "Snap → Ref Target"
+	snap_btn.custom_minimum_size = Vector2(0, 24)
+	snap_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	snap_btn.tooltip_text = "Snap the SELECTED piece to its reference target (center + radius). Explicit per-piece action — never auto-snaps the whole level."
+	snap_btn.pressed.connect(func(): emit_signal("snap_to_reference_requested"))
+	v.add_child(snap_btn)
 	var status := Label.new()
 	status.text = "(editor active)"
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

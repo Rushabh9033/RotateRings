@@ -332,6 +332,7 @@ func _ensure_editor_toolbar() -> void:
 	editor_toolbar.fit_puzzle_requested.connect(_on_fit_puzzle_requested)
 	editor_toolbar.open_reference_requested.connect(_on_open_reference_requested)
 	editor_toolbar.calibrate_reference_requested.connect(_on_calibrate_reference_requested)
+	editor_toolbar.snap_to_reference_requested.connect(_on_snap_to_reference_requested)
 	# Re-frame the puzzle when the dock is shown/hidden so pieces
 	# stay draggable.
 	if editor_toolbar.has_signal("editor_panel_shown"):
@@ -460,6 +461,14 @@ func _on_calibrate_reference_requested() -> void:
 		_on_open_reference_requested()
 	if _ref_viewer == null: return
 	_ref_viewer.reset_calibration()
+
+# Phase 14: snap the selected piece to its reference target. The
+# overlay holds the per-piece reference_targets dict; we delegate
+# to its public method.
+func _on_snap_to_reference_requested() -> void:
+	if edit_overlay == null: return
+	if edit_overlay.has_method("snap_selected_to_reference_target"):
+		edit_overlay.snap_selected_to_reference_target()
 
 func _puzzle_color(p: Dictionary) -> Color:
 	var hex: String = String(p.get("color_hex", "#EA7829"))
