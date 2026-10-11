@@ -43,7 +43,7 @@ func _init() -> void:
 	print("\n--- Pieces ---")
 	for p in def.pieces:
 		var pid: String = String(p.id)
-		var exp_radius: float = 90.0
+		var exp_radius: float = 80.0
 		if abs(p.radius - exp_radius) < 5.0:
 			_ok("%s radius=%.1f" % [pid, p.radius])
 		else:
