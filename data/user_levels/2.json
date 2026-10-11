@@ -1,6 +1,6 @@
 {
   "id": 2,
-  "title": "Level 2 (rings-clips, larger geometry)",
+  "title": "Level 2 (rings-clips, equilateral triangle)",
   "instruction": "",
   "par_moves": 3,
   "theme_id": "porcelain",
@@ -26,33 +26,7 @@
       "id": "orange_ring",
       "color_name": "orange",
       "color_hex": "#EA7829",
-      "x": 290.0, "y": 530.0,
-      "start_angle_deg": 0.0,
-      "radius": 70.0, "radius_y": 70.0, "thickness": 22.0,
-      "shape_type": 0, "piece_type": 1, "role": 0, "z_index": 1,
-      "initially_locked": false, "locked": false, "property_locks": {},
-      "release_direction": {"x": 1, "y": 0},
-      "target_exit_angle_deg": 0.0, "motion_model": 0,
-      "gaps": [{"center_angle_deg": 225.0, "width_deg": 70.0, "tolerance_deg": 16.0}]
-    },
-    {
-      "id": "blue_ring",
-      "color_name": "cyan",
-      "color_hex": "#32ADDA",
-      "x": 430.0, "y": 530.0,
-      "start_angle_deg": 0.0,
-      "radius": 70.0, "radius_y": 70.0, "thickness": 22.0,
-      "shape_type": 0, "piece_type": 1, "role": 0, "z_index": 1,
-      "initially_locked": false, "locked": false, "property_locks": {},
-      "release_direction": {"x": 1, "y": 0},
-      "target_exit_angle_deg": 0.0, "motion_model": 0,
-      "gaps": [{"center_angle_deg": 315.0, "width_deg": 70.0, "tolerance_deg": 16.0}]
-    },
-    {
-      "id": "purple_ring",
-      "color_name": "purple",
-      "color_hex": "#7B61FF",
-      "x": 360.0, "y": 720.0,
+      "x": 280.0, "y": 530.0,
       "start_angle_deg": 0.0,
       "radius": 70.0, "radius_y": 70.0, "thickness": 22.0,
       "shape_type": 0, "piece_type": 1, "role": 0, "z_index": 1,
@@ -60,49 +34,75 @@
       "release_direction": {"x": 1, "y": 0},
       "target_exit_angle_deg": 0.0, "motion_model": 0,
       "gaps": [{"center_angle_deg": 180.0, "width_deg": 70.0, "tolerance_deg": 16.0}]
+    },
+    {
+      "id": "blue_ring",
+      "color_name": "cyan",
+      "color_hex": "#32ADDA",
+      "x": 440.0, "y": 530.0,
+      "start_angle_deg": 0.0,
+      "radius": 70.0, "radius_y": 70.0, "thickness": 22.0,
+      "shape_type": 0, "piece_type": 1, "role": 0, "z_index": 1,
+      "initially_locked": false, "locked": false, "property_locks": {},
+      "release_direction": {"x": 1, "y": 0},
+      "target_exit_angle_deg": 0.0, "motion_model": 0,
+      "gaps": [{"center_angle_deg": 180.0, "width_deg": 70.0, "tolerance_deg": 16.0}]
+    },
+    {
+      "id": "purple_ring",
+      "color_name": "purple",
+      "color_hex": "#7B61FF",
+      "x": 360.0, "y": 670.0,
+      "start_angle_deg": 0.0,
+      "radius": 70.0, "radius_y": 70.0, "thickness": 22.0,
+      "shape_type": 0, "piece_type": 1, "role": 0, "z_index": 1,
+      "initially_locked": false, "locked": false, "property_locks": {},
+      "release_direction": {"x": 1, "y": 0},
+      "target_exit_angle_deg": 0.0, "motion_model": 0,
+      "gaps": [{"center_angle_deg": 90.0, "width_deg": 70.0, "tolerance_deg": 16.0}]
     }
   ],
   "links": [
     {
       "id": "link_orange_to_blue",
       "from_id": "orange_ring", "to_id": "blue_ring",
-      "collar_angle_deg": 315.0,
+      "collar_angle_deg": 35.0,
       "cuff_center_local": {"x": 0.0, "y": 0.0},
-      "cuff_orientation_deg": 315.0,
+      "cuff_orientation_deg": 35.0,
       "cuff_width": 32.0, "cuff_depth": 18.0, "cuff_round_radius": 5.0,
       "stem_length": 20.0, "stem_width": 6.0,
       "stem_distance_from_piece": 20.0, "stem_dist": 20.0,
-      "joint_color_hex": "#4A8FC8", "joint_color_name": "cuff",
+      "joint_color_hex": "#EA7829", "joint_color_name": "orange",
       "clearance_tolerance_deg": 16.0, "is_detached": false, "z_index": 0
     },
     {
       "id": "link_purple_to_orange",
       "from_id": "purple_ring", "to_id": "orange_ring",
-      "collar_angle_deg": 70.0,
+      "collar_angle_deg": 225.0,
       "cuff_center_local": {"x": 0.0, "y": 0.0},
-      "cuff_orientation_deg": 70.0,
+      "cuff_orientation_deg": 225.0,
       "cuff_width": 32.0, "cuff_depth": 18.0, "cuff_round_radius": 5.0,
       "stem_length": 20.0,
       "stem_width": 6.0,
       "stem_distance_from_piece": 20.0,
       "stem_dist": 20.0,
-      "joint_color_hex": "#4A8FC8", "joint_color_name": "cuff",
+      "joint_color_hex": "#7B61FF", "joint_color_name": "purple",
       "clearance_tolerance_deg": 16.0, "is_detached": false, "z_index": 0
     },
     {
       "id": "link_purple_to_blue",
       "from_id": "purple_ring", "to_id": "blue_ring",
-      "collar_angle_deg": 290.0,
+      "collar_angle_deg": 315.0,
       "cuff_center_local": {"x": 0.0, "y": 0.0},
-      "cuff_orientation_deg": 290.0,
+      "cuff_orientation_deg": 315.0,
       "cuff_width": 32.0, "cuff_depth": 18.0, "cuff_round_radius": 5.0,
       "stem_length": 20.0,
       "stem_width": 6.0,
       "stem_distance_from_piece": 20.0,
       "stem_dist": 20.0,
-      "joint_color_hex": "#4A8FC8", "joint_color_name": "cuff",
+      "joint_color_hex": "#7B61FF", "joint_color_name": "purple",
       "clearance_tolerance_deg": 16.0, "is_detached": false, "z_index": 0
     }
   ],
-  "source": "Phase 11 - larger rings, three-link triangle"
+  "source": "Phase 11 - equilateral triangle, parent-color connectors"
 }
