@@ -473,6 +473,15 @@ func _on_stems_layer_draw(ci: CanvasItem) -> void:
 			continue
 		if float(link.current_stem_dist) <= 1.0:
 			continue
+		# FIX #3: if this link's child has released, the link is DETACHED
+		# (see puzzle_rules.gd on_piece_released). Draw a faded broken
+		# stub instead of the full stem so it doesn't look "still attached".
+		# ConnectorRuntime.State: ENGAGED=0, CLEARING=1, DETACHED=2
+		var is_detached := int(link.state) == 2
+		if is_detached:
+			# Skip full stem; draw only a short faded stub at the parent edge.
+			_draw_detached_stem_stub(ci, link, from_p)
+			continue
 
 		var world_angle_rad := deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
 		var dir := Vector2.from_angle(world_angle_rad)
@@ -516,6 +525,14 @@ func _on_cuffs_layer_draw(ci: CanvasItem) -> void:
 			continue
 		if float(link.current_stem_dist) <= 1.0:
 			continue
+		# FIX #3+#4: if the link is DETACHED (child released), don't draw
+		# the cuff at all — only the stem stub from the stem layer
+		# remains. This makes "the cuff is gone" visible immediately,
+		# so the player doesn't think the parent is still connected.
+		# ConnectorRuntime.State: ENGAGED=0, CLEARING=1, DETACHED=2
+		var is_detached := int(link.state) == 2
+		if is_detached:
+			continue
 
 		var world_angle_rad := deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
 		var dir := Vector2.from_angle(world_angle_rad)
@@ -550,6 +567,28 @@ func _on_cuffs_layer_draw(ci: CanvasItem) -> void:
 		_draw_rounded_rect(ci, Rect2(-half_st + 1.5, -half_rd - 1.0, sleeve_tangent_span - 3.0, sleeve_radial_depth - 4.0), c_light, cuff_corner_r * 0.8)
 
 		ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+# FIX #3 + #4: when a link's child has released (state == DETACHED),
+# draw a SHORT faded stem stub at the parent edge instead of the full
+# stem + cuff. This makes the "broken link" visible immediately.
+func _draw_detached_stem_stub(ci: CanvasItem, link, from_p) -> void:
+	var world_angle_rad: float = deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
+	var dir := Vector2.from_angle(world_angle_rad)
+	var parent_shape: int = from_p.def.shape_type if from_p.get("def") and "shape_type" in from_p.def else 0
+	# Anchor at the parent's outer edge.
+	var pos_stem_start: Vector2 = from_p.position + dir * PieceGeometry.get_boundary_distance(
+		parent_shape, from_p.radius, deg_to_rad(link.def.collar_angle_deg))
+	# Short stub: 18px long (vs. typical stem_dist of 60-240).
+	var stub_length: float = 18.0
+	var pos_stub_end: Vector2 = pos_stem_start + dir * stub_length
+	# Faded color: lighter than the main stem so it reads as "broken/leftover".
+	var faded: Color = from_p.ring_color if link.def.joint_color == Color.TRANSPARENT else link.def.joint_color
+	faded = faded.darkened(0.4)
+	faded.a = 0.45
+	# A thin, short line.
+	ci.draw_line(pos_stem_start, pos_stub_end, faded, 4.0, true)
+	# A small "frayed end" circle so it doesn't look like a connector arm.
+	ci.draw_circle(pos_stub_end, 3.0, faded)
 
 func _draw_rounded_rect(ci: CanvasItem, rect: Rect2, color: Color, radius: float) -> void:
 	var r := minf(radius, minf(rect.size.x * 0.5, rect.size.y * 0.5))
