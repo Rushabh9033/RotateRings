@@ -209,7 +209,11 @@ func _on_piece_count_updated(remaining: int) -> void:
 		)
 
 func _on_moves_updated(moves: int, par_moves: int) -> void:
-	score_lbl.text = "%d / %d" % [moves, par_moves]
+	# Show "X / par" when on or under par, "X over par" when over par.
+	if moves <= par_moves:
+		score_lbl.text = "%d / %d" % [moves, par_moves]
+	else:
+		score_lbl.text = "%d (over %d)" % [moves, par_moves]
 
 	var pill = get_node_or_null("SafeArea/TopHUD/CenterHUD/ScorePill")
 	if pill and moves > 0:
@@ -217,6 +221,11 @@ func _on_moves_updated(moves: int, par_moves: int) -> void:
 		pill.pivot_offset = pill.size / 2.0
 		ptween.tween_property(pill, "scale", Vector2(1.15, 1.15), 0.1)
 		ptween.tween_property(pill, "scale", Vector2.ONE, 0.4)
+		# Color the pill red when the player has exceeded par.
+		if moves > par_moves:
+			score_lbl.add_theme_color_override("font_color", Color("#E53935"))
+		else:
+			score_lbl.remove_theme_color_override("font_color")
 
 func _on_level_completed(moves: int, par_moves: int, used_hint: bool) -> void:
 	var result: Dictionary = { "is_perfect": false, "best_moves": moves }

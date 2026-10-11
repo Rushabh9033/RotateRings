@@ -54,9 +54,11 @@ func _spawn_aggregated_praise() -> void:
 	if praise_text != "":
 		var float_lbl := FloatingTextScript.new()
 		var spawn_pos = _pending_praise_pos + Vector2(0, -20)
-		# Clamp to screen bounds
+		# Clamp only the X axis (keep the Y so the star appears AT the
+		# released piece, not snapped to the screen top). The Y will
+		# still be visible because the floating text drifts upward and
+		# fades out naturally.
 		spawn_pos.x = clampf(spawn_pos.x, 80.0, _viewport_rect.size.x - 80.0)
-		spawn_pos.y = clampf(spawn_pos.y, 80.0, _viewport_rect.size.y - 80.0)
 		float_lbl.setup(spawn_pos, praise_text, praise_color)
 		
 		# Find a parent
