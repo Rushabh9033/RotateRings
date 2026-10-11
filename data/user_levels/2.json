@@ -33,7 +33,7 @@
       "initially_locked": false, "locked": false, "property_locks": {},
       "release_direction": {"x": 1, "y": 0},
       "target_exit_angle_deg": 0.0, "motion_model": 0,
-      "gaps": [{"center_angle_deg": 180.0, "width_deg": 70.0, "tolerance_deg": 16.0}]
+      "gaps": [{"center_angle_deg": 315.0, "width_deg": 70.0, "tolerance_deg": 16.0}]
     },
     {
       "id": "blue_ring",
@@ -46,7 +46,7 @@
       "initially_locked": false, "locked": false, "property_locks": {},
       "release_direction": {"x": 1, "y": 0},
       "target_exit_angle_deg": 0.0, "motion_model": 0,
-      "gaps": [{"center_angle_deg": 180.0, "width_deg": 70.0, "tolerance_deg": 16.0}]
+      "gaps": [{"center_angle_deg": 45.0, "width_deg": 70.0, "tolerance_deg": 16.0}]
     },
     {
       "id": "purple_ring",
@@ -66,9 +66,9 @@
     {
       "id": "link_orange_to_blue",
       "from_id": "orange_ring", "to_id": "blue_ring",
-      "collar_angle_deg": 35.0,
+      "collar_angle_deg": 315.0,
       "cuff_center_local": {"x": 0.0, "y": 0.0},
-      "cuff_orientation_deg": 35.0,
+      "cuff_orientation_deg": 315.0,
       "cuff_width": 32.0, "cuff_depth": 18.0, "cuff_round_radius": 5.0,
       "stem_length": 20.0, "stem_width": 6.0,
       "stem_distance_from_piece": 20.0, "stem_dist": 20.0,
@@ -78,9 +78,9 @@
     {
       "id": "link_purple_to_orange",
       "from_id": "purple_ring", "to_id": "orange_ring",
-      "collar_angle_deg": 225.0,
+      "collar_angle_deg": 240.0,
       "cuff_center_local": {"x": 0.0, "y": 0.0},
-      "cuff_orientation_deg": 225.0,
+      "cuff_orientation_deg": 240.0,
       "cuff_width": 32.0, "cuff_depth": 18.0, "cuff_round_radius": 5.0,
       "stem_length": 20.0,
       "stem_width": 6.0,
@@ -92,9 +92,9 @@
     {
       "id": "link_purple_to_blue",
       "from_id": "purple_ring", "to_id": "blue_ring",
-      "collar_angle_deg": 315.0,
+      "collar_angle_deg": 300.0,
       "cuff_center_local": {"x": 0.0, "y": 0.0},
-      "cuff_orientation_deg": 315.0,
+      "cuff_orientation_deg": 300.0,
       "cuff_width": 32.0, "cuff_depth": 18.0, "cuff_round_radius": 5.0,
       "stem_length": 20.0,
       "stem_width": 6.0,
