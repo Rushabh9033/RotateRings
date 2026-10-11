@@ -33,7 +33,7 @@
       "initially_locked": false, "locked": false, "property_locks": {},
       "release_direction": {"x": 1, "y": 0},
       "target_exit_angle_deg": 0.0, "motion_model": 0,
-      "gaps": [{"center_angle_deg": 270.0, "width_deg": 80.0, "tolerance_deg": 16.0}]
+      "gaps": [{"center_angle_deg": 90.0, "width_deg": 80.0, "tolerance_deg": 16.0}]
     },
     {
       "id": "orange_ring",
@@ -59,7 +59,7 @@
       "initially_locked": false, "locked": false, "property_locks": {},
       "release_direction": {"x": 1, "y": 0},
       "target_exit_angle_deg": 0.0, "motion_model": 0,
-      "gaps": [{"center_angle_deg": 90.0, "width_deg": 80.0, "tolerance_deg": 16.0}]
+      "gaps": [{"center_angle_deg": 180.0, "width_deg": 80.0, "tolerance_deg": 16.0}]
     },
     {
       "id": "red_ring",
