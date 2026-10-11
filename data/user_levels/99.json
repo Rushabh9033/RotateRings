@@ -1,0 +1,39 @@
+{
+  "level": 99,
+  "title": "L99 (rings-clips test)",
+  "theme_id": "porcelain",
+  "par_moves": 3,
+  "rings": [
+    {
+      "id": "orange_ring",
+      "color": "#F08C3A",
+      "x": -60, "y": -40,
+      "radius": 50,
+      "gap": { "start": 140, "end": 220 },
+      "rotation": 0,
+      "clips": [
+        { "target_id": "blue_ring", "anchor_angle": 0 }
+      ]
+    },
+    {
+      "id": "blue_ring",
+      "color": "#28A5E7",
+      "x": 60, "y": -40,
+      "radius": 50,
+      "gap": { "start": 315, "end": 45 },
+      "rotation": 0,
+      "clips": []
+    },
+    {
+      "id": "purple_ring",
+      "color": "#8B3DED",
+      "x": 0, "y": 60,
+      "radius": 50,
+      "gap": { "start": 225, "end": 315 },
+      "rotation": 0,
+      "clips": [
+        { "target_id": "orange_ring", "anchor_angle": 235 }
+      ]
+    }
+  ]
+}
