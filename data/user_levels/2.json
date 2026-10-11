@@ -1,6 +1,6 @@
 {
   "id": 2,
-  "title": "Level 2 (manual visual benchmark)",
+  "title": "Level 2 (rings-clips schema, converted)",
   "instruction": "",
   "par_moves": 3,
   "theme_id": "porcelain",
@@ -23,14 +23,14 @@
   "locks": {},
   "pieces": [
     {
-      "id": "orange_1",
+      "id": "orange_ring",
       "color_name": "orange",
       "color_hex": "#EA7829",
-      "x": 317.0,
-      "y": 510.0,
+      "x": 300.0,
+      "y": 600.0,
       "start_angle_deg": 0.0,
-      "radius": 73.6,
-      "radius_y": 73.6,
+      "radius": 50.0,
+      "radius_y": 50.0,
       "thickness": 21.0,
       "shape_type": 0,
       "piece_type": 1,
@@ -43,18 +43,18 @@
       "target_exit_angle_deg": 0.0,
       "motion_model": 0,
       "gaps": [
-        {"center_angle_deg": 315.0, "width_deg": 80.0, "tolerance_deg": 16.0}
+        {"center_angle_deg": 180.0, "width_deg": 80.0, "tolerance_deg": 16.0}
       ]
     },
     {
-      "id": "cyan_2",
+      "id": "blue_ring",
       "color_name": "cyan",
       "color_hex": "#32ADDA",
-      "x": 467.0,
-      "y": 510.0,
+      "x": 420.0,
+      "y": 600.0,
       "start_angle_deg": 0.0,
-      "radius": 73.6,
-      "radius_y": 73.6,
+      "radius": 50.0,
+      "radius_y": 50.0,
       "thickness": 21.0,
       "shape_type": 0,
       "piece_type": 1,
@@ -67,18 +67,18 @@
       "target_exit_angle_deg": 0.0,
       "motion_model": 0,
       "gaps": [
-        {"center_angle_deg": 45.0, "width_deg": 80.0, "tolerance_deg": 16.0}
+        {"center_angle_deg": 0.0, "width_deg": 90.0, "tolerance_deg": 16.0}
       ]
     },
     {
-      "id": "purple_3",
+      "id": "purple_ring",
       "color_name": "purple",
       "color_hex": "#7B61FF",
-      "x": 392.0,
-      "y": 683.0,
+      "x": 360.0,
+      "y": 700.0,
       "start_angle_deg": 0.0,
-      "radius": 73.6,
-      "radius_y": 73.6,
+      "radius": 50.0,
+      "radius_y": 50.0,
       "thickness": 21.0,
       "shape_type": 0,
       "piece_type": 1,
@@ -91,51 +91,51 @@
       "target_exit_angle_deg": 0.0,
       "motion_model": 0,
       "gaps": [
-        {"center_angle_deg": 90.0, "width_deg": 80.0, "tolerance_deg": 16.0}
+        {"center_angle_deg": 270.0, "width_deg": 90.0, "tolerance_deg": 16.0}
       ]
     }
   ],
   "links": [
     {
-      "id": "link_0",
-      "from_id": "orange_1",
-      "to_id": "cyan_2",
-      "collar_angle_deg": 26.5,
-      "cuff_center_local": {"x": 0, "y": 0},
-      "cuff_orientation_deg": 26.5,
-      "cuff_width": 32,
-      "cuff_depth": 18,
-      "cuff_round_radius": 5,
-      "stem_length": 165.0,
-      "stem_width": 6,
-      "stem_distance_from_piece": 80.0,
-      "stem_dist": 80.0,
+      "id": "link_orange_to_blue",
+      "from_id": "orange_ring",
+      "to_id": "blue_ring",
+      "collar_angle_deg": 0.0,
+      "cuff_center_local": {"x": 0.0, "y": 0.0},
+      "cuff_orientation_deg": 0.0,
+      "cuff_width": 32.0,
+      "cuff_depth": 18.0,
+      "cuff_round_radius": 5.0,
+      "stem_length": 120.0,
+      "stem_width": 6.0,
+      "stem_distance_from_piece": 60.0,
+      "stem_dist": 60.0,
       "joint_color_hex": "#1F5A82",
       "joint_color_name": "cuff",
-      "clearance_tolerance_deg": 16,
+      "clearance_tolerance_deg": 16.0,
       "is_detached": false,
       "z_index": 0
     },
     {
-      "id": "link_1",
-      "from_id": "orange_1",
-      "to_id": "purple_3",
-      "collar_angle_deg": 153.0,
-      "cuff_center_local": {"x": 0, "y": 0},
-      "cuff_orientation_deg": 153.0,
-      "cuff_width": 32,
-      "cuff_depth": 18,
-      "cuff_round_radius": 5,
-      "stem_length": 188.0,
-      "stem_width": 6,
-      "stem_distance_from_piece": 88.0,
-      "stem_dist": 88.0,
+      "id": "link_purple_to_orange",
+      "from_id": "purple_ring",
+      "to_id": "orange_ring",
+      "collar_angle_deg": 235.0,
+      "cuff_center_local": {"x": 0.0, "y": 0.0},
+      "cuff_orientation_deg": 235.0,
+      "cuff_width": 32.0,
+      "cuff_depth": 18.0,
+      "cuff_round_radius": 5.0,
+      "stem_length": 110.0,
+      "stem_width": 6.0,
+      "stem_distance_from_piece": 55.0,
+      "stem_dist": 55.0,
       "joint_color_hex": "#1F5A82",
       "joint_color_name": "cuff",
-      "clearance_tolerance_deg": 16,
+      "clearance_tolerance_deg": 16.0,
       "is_detached": false,
       "z_index": 0
     }
   ],
-  "source": "manual visual benchmark from reference screenshot (Phase 11)"
+  "source": "converted from rings-clips schema (Phase 11)"
 }
