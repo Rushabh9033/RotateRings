@@ -46,18 +46,18 @@ func _init() -> void:
 		# all colors (palette has "#xxx" keys, c.to_html(false) returns
 		# "xxx" without "#"). Use the piece id directly.
 		colors[String(p.id)] = p
-	if colors.has("orange_1"):
-		_ok("orange_1 present")
+	if colors.has("orange_ring") or colors.has("orange_1"):
+		_ok("orange piece present")
 	else:
-		_fail("orange_1 missing")
-	if colors.has("cyan_2"):
-		_ok("cyan_2 present")
+		_fail("orange piece missing")
+	if colors.has("blue_ring") or colors.has("cyan_2"):
+		_ok("blue piece present")
 	else:
-		_fail("cyan_2 missing")
-	if colors.has("purple_3"):
-		_ok("purple_3 present")
+		_fail("blue piece missing")
+	if colors.has("purple_ring") or colors.has("purple_3"):
+		_ok("purple piece present")
 	else:
-		_fail("purple_3 missing")
+		_fail("purple piece missing")
 
 	# 2. Gap geometry
 	print("\n--- Gap geometry ---")

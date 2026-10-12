@@ -11,9 +11,14 @@ var save_data: Dictionary = {
 	"settings": {
 		"sound": true,
 		"haptics": true,
-		"reduced_motion": false
-	}
+		"reduced_motion": false,
+		"tutorial_seen": false
+	},
+	"hints_remaining": 3
 }
+
+const MAX_HINTS: int = 3
+const HINTS_PER_LEVEL_REWARD: int = 1
 
 func _ready() -> void:
 	load_data()
@@ -37,7 +42,8 @@ func load_data() -> void:
 			save_data["settings"] = data.get("settings", {
 				"sound": true,
 				"haptics": true,
-				"reduced_motion": false
+				"reduced_motion": false,
+		"tutorial_seen": false
 			})
 			_sanitize_progression()
 
@@ -107,7 +113,10 @@ func record_level_completion(lvl_num: int, moves: int, par_moves: int, used_hint
 		"best_moves": best
 	}
 	save_data["levels"] = levels
-	
+
+	# Reward a hint for clearing a level so the player doesn't run out by mid-game.
+	refill_hints_on_level_complete()
+
 	# Unlock only the next production level. Experimental ids do not advance the map.
 	if LevelDatabaseScript.is_level_playable(lvl_num):
 		var current_highest := get_highest_unlocked_level()
@@ -140,4 +149,31 @@ func set_setting(key: String, val: Variant) -> void:
 func reset_all_progress() -> void:
 	save_data["highest_unlocked_level"] = 1
 	save_data["levels"] = {}
+	save_data["hints_remaining"] = MAX_HINTS
+	save_data_to_disk()
+
+func get_hints_remaining() -> int:
+	return int(save_data.get("hints_remaining", MAX_HINTS))
+
+func consume_hint() -> bool:
+	var remaining: int = get_hints_remaining()
+	if remaining <= 0:
+		return false
+	save_data["hints_remaining"] = remaining - 1
+	save_data_to_disk()
+	return true
+
+func refill_hints_on_level_complete() -> void:
+	# Reward the player with +1 hint per level cleared, capped at MAX_HINTS.
+	var remaining: int = get_hints_remaining()
+	save_data["hints_remaining"] = mini(remaining + HINTS_PER_LEVEL_REWARD, MAX_HINTS)
+	save_data_to_disk()
+
+func has_seen_tutorial() -> bool:
+	return save_data.get("settings", {}).get("tutorial_seen", false)
+
+func mark_tutorial_seen() -> void:
+	if not save_data.has("settings"):
+		save_data["settings"] = {}
+	save_data["settings"]["tutorial_seen"] = true
 	save_data_to_disk()

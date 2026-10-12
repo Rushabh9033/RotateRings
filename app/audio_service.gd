@@ -6,18 +6,15 @@ var save_service: Node = null
 var ui_player: AudioStreamPlayer
 var click_player: AudioStreamPlayer
 var release_player: AudioStreamPlayer
-var win_player: AudioStreamPlayer
 
 func _ready() -> void:
 	ui_player = AudioStreamPlayer.new()
 	click_player = AudioStreamPlayer.new()
 	release_player = AudioStreamPlayer.new()
-	win_player = AudioStreamPlayer.new()
-	
+
 	add_child(ui_player)
 	add_child(click_player)
 	add_child(release_player)
-	add_child(win_player)
 
 func setup(save_svc: Node) -> void:
 	save_service = save_svc

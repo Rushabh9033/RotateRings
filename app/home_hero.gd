@@ -5,11 +5,12 @@ var _rings: Array = []
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	custom_minimum_size = Vector2(0, 320)
+	# A beautiful static geometric layout that rotates like a puzzle lock
 	_rings = [
-		{ "color": Color("3EBEFF"), "orbit": 92.0, "speed": 0.55, "phase": 0.2, "spin": 0.8, "radius": 74.0, "thick": 28.0, "bob": 10.0 },
-		{ "color": Color("FF7A3C"), "orbit": 108.0, "speed": -0.42, "phase": 2.1, "spin": -1.1, "radius": 80.0, "thick": 30.0, "bob": 14.0 },
-		{ "color": Color("7B61FF"), "orbit": 36.0, "speed": 0.9, "phase": 4.0, "spin": 1.4, "radius": 58.0, "thick": 24.0, "bob": 8.0 },
-		{ "color": Color("3DDC97"), "orbit": 132.0, "speed": 0.33, "phase": 1.2, "spin": 0.6, "radius": 46.0, "thick": 18.0, "bob": 16.0 },
+		{ "color": Color("7B61FF"), "pos": Vector2(0, 0), "speed": 0.4, "radius": 74.0, "thick": 24.0, "gap": 0.0 },
+		{ "color": Color("3EBEFF"), "pos": Vector2(-80, -60), "speed": -0.6, "radius": 48.0, "thick": 18.0, "gap": 1.2 },
+		{ "color": Color("FF7A3C"), "pos": Vector2(80, -60), "speed": -0.5, "radius": 48.0, "thick": 18.0, "gap": 3.4 },
+		{ "color": Color("3DDC97"), "pos": Vector2(0, 95), "speed": -0.7, "radius": 54.0, "thick": 20.0, "gap": 4.5 },
 	]
 
 func _process(_delta: float) -> void:
@@ -18,22 +19,29 @@ func _process(_delta: float) -> void:
 func _draw() -> void:
 	var t := float(Time.get_ticks_msec()) / 1000.0
 	var origin := Vector2(size.x * 0.5, size.y * 0.56)
-	draw_circle(origin + Vector2(0, 78), 120.0, Color(0.45, 0.28, 0.16, 0.08))
-	draw_circle(origin + Vector2(0, 86), 78.0, Color(0.45, 0.28, 0.16, 0.06))
+	
+	# Base shadow / backdrop
+	draw_circle(origin + Vector2(0, 20), 140.0, Color(0.45, 0.28, 0.16, 0.06))
+	
+	# Draw the rings
 	for i in _rings.size():
 		var ring: Dictionary = _rings[i]
-		var ang := float(ring.phase) + t * float(ring.speed)
-		var bob := sin(t * 1.7 + float(i)) * float(ring.bob)
-		var pulse := 1.0 + sin(t * 2.2 + float(i) * 0.7) * 0.035
-		var pos := origin + Vector2(cos(ang), sin(ang) * 0.42) * float(ring.orbit) + Vector2(0, bob)
-		var gap := t * float(ring.spin) + float(ring.phase)
-		_toy_ring(pos, float(ring.radius) * pulse, float(ring.thick), ring.color, gap)
+		# Breathe effect
+		var pulse := 1.0 + sin(t * 1.5 + float(i)) * 0.04
+		var hover := sin(t * 2.0 + float(i) * 1.2) * 6.0
+		var rpos: Vector2 = ring.pos
+		var pos := origin + (rpos * pulse) + Vector2(0, hover)
+		var gap := t * float(ring.speed) + float(ring.gap)
+		_toy_ring(pos, float(ring.radius) * pulse, float(ring.thick) * pulse, ring.color, gap)
+		
+	# Ambient floating sparks
 	for s in 8:
-		var spark_ang := t * 1.3 + float(s) * TAU / 8.0
-		var spark := origin + Vector2(cos(spark_ang), sin(spark_ang) * 0.55) * (150.0 + sin(t + s) * 8.0)
+		var spark_ang := t * 0.5 + float(s) * TAU / 8.0
+		var spark_dist := 120.0 + sin(t * 1.2 + s) * 20.0
+		var spark := origin + Vector2(cos(spark_ang), sin(spark_ang)) * spark_dist
 		var spark_color := Color("F0B429")
-		spark_color.a = 0.35 + 0.45 * absf(sin(t * 3.0 + s))
-		draw_circle(spark, 3.5 + sin(t * 4.0 + s), spark_color)
+		spark_color.a = 0.2 + 0.4 * absf(sin(t * 2.5 + s))
+		draw_circle(spark, 3.0 + sin(t * 3.0 + s), spark_color)
 
 func _toy_ring(center: Vector2, radius: float, thickness: float, color: Color, gap_rot: float) -> void:
 	var start := gap_rot

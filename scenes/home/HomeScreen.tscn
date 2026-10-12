@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://home_screen_scene"]
+[gd_scene format=3 uid="uid://ddu8ks8b3i7lm"]
 
-[ext_resource type="Script" path="res://scenes/home/HomeScreen.gd" id="1_home_script"]
+[ext_resource type="Script" uid="uid://hn0xasxqglli" path="res://scenes/home/HomeScreen.gd" id="1_home_script"]
 
-[node name="HomeScreen" type="Control"]
+[node name="HomeScreen" type="Control" unique_id=591812680]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_home_script")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=1184545443]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,7 +20,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.0705882, 0.0862745, 0.109804, 1)
 
-[node name="SafeArea" type="MarginContainer" parent="."]
+[node name="SafeArea" type="MarginContainer" parent="." unique_id=328563052]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -32,62 +32,64 @@ theme_override_constants/margin_top = 72
 theme_override_constants/margin_right = 32
 theme_override_constants/margin_bottom = 40
 
-[node name="VBox" type="VBoxContainer" parent="SafeArea"]
+[node name="VBox" type="VBoxContainer" parent="SafeArea" unique_id=1586225029]
 layout_mode = 2
-alignment = 1
 theme_override_constants/separation = 40
+alignment = 1
 
-[node name="Header" type="VBoxContainer" parent="SafeArea/VBox"]
+[node name="Header" type="VBoxContainer" parent="SafeArea/VBox" unique_id=1446996591]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Logo" type="Label" parent="SafeArea/VBox/Header"]
+[node name="Logo" type="Label" parent="SafeArea/VBox/Header" unique_id=1580684405]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.909804, 0.894118, 0.854902, 1)
 theme_override_font_sizes/font_size = 40
 text = "Rotate Rings"
 horizontal_alignment = 1
 
-[node name="Rule" type="ColorRect" parent="SafeArea/VBox/Header"]
+[node name="Rule" type="ColorRect" parent="SafeArea/VBox/Header" unique_id=441505462]
 custom_minimum_size = Vector2(48, 2)
 layout_mode = 2
 size_flags_horizontal = 4
 color = Color(0.768627, 0.639216, 0.415686, 1)
 
-[node name="Tagline" type="Label" parent="SafeArea/VBox/Header"]
+[node name="Tagline" type="Label" parent="SafeArea/VBox/Header" unique_id=886333556]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.552941, 0.592157, 0.643137, 1)
 theme_override_font_sizes/font_size = 16
 text = "Untangle the rings."
 horizontal_alignment = 1
 
-[node name="MenuBtns" type="VBoxContainer" parent="SafeArea/VBox"]
+[node name="MenuBtns" type="VBoxContainer" parent="SafeArea/VBox" unique_id=291434549]
 layout_mode = 2
 theme_override_constants/separation = 18
 
-[node name="ContinueBtn" type="Button" parent="SafeArea/VBox/MenuBtns"]
+[node name="ContinueBtn" type="Button" parent="SafeArea/VBox/MenuBtns" unique_id=355157259]
 custom_minimum_size = Vector2(0, 68)
 layout_mode = 2
 text = "Play"
 
-[node name="ContinueSubtitle" type="Label" parent="SafeArea/VBox/MenuBtns"]
+[node name="ContinueSubtitle" type="Label" parent="SafeArea/VBox/MenuBtns" unique_id=1329266210]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.552941, 0.592157, 0.643137, 1)
 theme_override_font_sizes/font_size = 14
 text = "Level 1"
 horizontal_alignment = 1
 
-[node name="LevelsBtn" type="Button" parent="SafeArea/VBox/MenuBtns"]
+[node name="LevelsBtn" type="Button" parent="SafeArea/VBox/MenuBtns" unique_id=645083019]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 text = "Level map"
 
-[node name="SettingsBtn" type="Button" parent="SafeArea/VBox/MenuBtns"]
+[node name="SettingsBtn" type="Button" parent="SafeArea/VBox/MenuBtns" unique_id=1152785164]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 text = "Settings"
 
-[node name="EditorBtn" type="Button" parent="SafeArea/VBox/MenuBtns"]
+[node name="EditorBtn" type="Button" parent="SafeArea/VBox/MenuBtns" unique_id=381764014]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 text = "Level Editor"
+
+[node name="Node" type="Node" parent="." unique_id=1185478370]

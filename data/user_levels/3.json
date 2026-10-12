@@ -1,50 +1,202 @@
 {
-  "level": 3,
-  "rings": [
+  "id": 3,
+  "title": "Level 3",
+  "instruction": "",
+  "par_moves": 3,
+  "theme_id": "porcelain",
+  "frame_anchor": "auto",
+  "frame_offset_x": 0.0,
+  "frame_offset_y": 0.0,
+  "frame_scale": 1.0,
+  "grid_size": 20.0,
+  "snap_to_grid": false,
+  "snap_to_piece_centers": false,
+  "snap_to_edges": false,
+  "snap_to_guides": false,
+  "snap_to_connector_points": false,
+  "nudge_step": 1.0,
+  "nudge_shift_multiplier": 10.0,
+  "nudge_alt_multiplier": 0.1,
+  "guides": [],
+  "reference_guides": [],
+  "size_links": {},
+  "locks": {},
+  "pieces": [
     {
       "id": "blue_ring",
-      "color": "#28A5E7",
-      "x": 0,
-      "y": -85,
-      "radius": 50,
-      "gap": { "start": 225, "end": 315 },
-      "rotation": 0,
-      "clips": [
-        { "target_id": "orange_ring", "anchor_angle": 135 },
-        { "target_id": "purple_ring", "anchor_angle": 45 }
+      "color_name": "cyan",
+      "color_hex": "#32ADDA",
+      "x": 360.0,
+      "y": 480.0,
+      "start_angle_deg": 0.0,
+      "radius": 70.0,
+      "radius_y": 70.0,
+      "thickness": 22.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {"x": 1, "y": 0},
+      "target_exit_angle_deg": 0.0,
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 270.0,
+          "width_deg": 80.0,
+          "tolerance_deg": 16.0
+        }
       ]
     },
     {
       "id": "orange_ring",
-      "color": "#F08C3A",
-      "x": -85,
-      "y": 0,
-      "radius": 50,
-      "gap": { "start": 135, "end": 225 },
-      "rotation": 0,
-      "clips": []
+      "color_name": "orange",
+      "color_hex": "#EA7829",
+      "x": 270.0,
+      "y": 600.0,
+      "start_angle_deg": 0.0,
+      "radius": 70.0,
+      "radius_y": 70.0,
+      "thickness": 22.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {"x": 1, "y": 0},
+      "target_exit_angle_deg": 0.0,
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 180.0,
+          "width_deg": 80.0,
+          "tolerance_deg": 16.0
+        }
+      ]
     },
     {
       "id": "purple_ring",
-      "color": "#8B3DED",
-      "x": 85,
-      "y": 0,
-      "radius": 50,
-      "gap": { "start": 315, "end": 45 },
-      "rotation": 0,
-      "clips": []
+      "color_name": "purple",
+      "color_hex": "#7B61FF",
+      "x": 450.0,
+      "y": 600.0,
+      "start_angle_deg": 0.0,
+      "radius": 70.0,
+      "radius_y": 70.0,
+      "thickness": 22.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {"x": 1, "y": 0},
+      "target_exit_angle_deg": 0.0,
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 0.0,
+          "width_deg": 80.0,
+          "tolerance_deg": 16.0
+        }
+      ]
     },
     {
       "id": "red_ring",
-      "color": "#E23131",
-      "x": 0,
-      "y": 85,
-      "radius": 50,
-      "gap": { "start": 45, "end": 135 },
-      "rotation": 0,
-      "clips": [
-        { "target_id": "orange_ring", "anchor_angle": 225 }
+      "color_name": "red",
+      "color_hex": "#E63946",
+      "x": 360.0,
+      "y": 750.0,
+      "start_angle_deg": 0.0,
+      "radius": 70.0,
+      "radius_y": 70.0,
+      "thickness": 22.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {"x": 1, "y": 0},
+      "target_exit_angle_deg": 0.0,
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 90.0,
+          "width_deg": 80.0,
+          "tolerance_deg": 16.0
+        }
       ]
     }
-  ]
+  ],
+  "links": [
+    {
+      "id": "link_blue_to_orange",
+      "from_id": "blue_ring",
+      "to_id": "orange_ring",
+      "collar_angle_deg": 126.87,
+      "cuff_center_local": {"x": 0.0, "y": 0.0},
+      "cuff_orientation_deg": 126.87,
+      "cuff_width": 32.0,
+      "cuff_depth": 18.0,
+      "cuff_round_radius": 5.0,
+      "stem_length": 20.0,
+      "stem_width": 6.0,
+      "stem_distance_from_piece": 150.0,
+      "stem_dist": 150.0,
+      "joint_color_hex": "#32ADDA",
+      "joint_color_name": "cyan",
+      "clearance_tolerance_deg": 16.0,
+      "is_detached": false,
+      "z_index": 0
+    },
+    {
+      "id": "link_blue_to_purple",
+      "from_id": "blue_ring",
+      "to_id": "purple_ring",
+      "collar_angle_deg": 53.13,
+      "cuff_center_local": {"x": 0.0, "y": 0.0},
+      "cuff_orientation_deg": 53.13,
+      "cuff_width": 32.0,
+      "cuff_depth": 18.0,
+      "cuff_round_radius": 5.0,
+      "stem_length": 20.0,
+      "stem_width": 6.0,
+      "stem_distance_from_piece": 150.0,
+      "stem_dist": 150.0,
+      "joint_color_hex": "#32ADDA",
+      "joint_color_name": "cyan",
+      "clearance_tolerance_deg": 16.0,
+      "is_detached": false,
+      "z_index": 0
+    },
+    {
+      "id": "link_red_to_orange",
+      "from_id": "red_ring",
+      "to_id": "orange_ring",
+      "collar_angle_deg": 239.04,
+      "cuff_center_local": {"x": 0.0, "y": 0.0},
+      "cuff_orientation_deg": 239.04,
+      "cuff_width": 32.0,
+      "cuff_depth": 18.0,
+      "cuff_round_radius": 5.0,
+      "stem_length": 20.0,
+      "stem_width": 6.0,
+      "stem_distance_from_piece": 174.93,
+      "stem_dist": 174.93,
+      "joint_color_hex": "#E63946",
+      "joint_color_name": "red",
+      "clearance_tolerance_deg": 16.0,
+      "is_detached": false,
+      "z_index": 0
+    }
+  ],
+  "source": "Phase 12 - Level 3 reference aligned"
 }
+

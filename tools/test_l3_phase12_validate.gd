@@ -34,16 +34,16 @@ func _init() -> void:
 		_ok("4 pieces")
 	else:
 		_bad("expected 4 pieces, got %d" % def.pieces.size())
-	if def.links.size() == 4:
-		_ok("4 links")
+	if def.links.size() == 3:
+		_ok("3 links")
 	else:
-		_bad("expected 4 links, got %d" % def.links.size())
+		_bad("expected 3 links, got %d" % def.links.size())
 
 	# 2. Pieces
 	print("\n--- Pieces ---")
 	for p in def.pieces:
 		var pid: String = String(p.id)
-		var exp_radius: float = 80.0
+		var exp_radius: float = 70.0
 		if abs(p.radius - exp_radius) < 5.0:
 			_ok("%s radius=%.1f" % [pid, p.radius])
 		else:
