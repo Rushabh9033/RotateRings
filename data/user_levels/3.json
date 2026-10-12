@@ -5,56 +5,45 @@
       "id": "blue_ring",
       "color": "#28A5E7",
       "x": 0,
-      "y": -100,
-      "radius": 70,
-      "thickness": 22,
-      "gap": { "start": 55, "end": 125 },
+      "y": -85,
+      "radius": 50,
+      "gap": { "start": 225, "end": 315 },
       "rotation": 0,
       "clips": [
-        { "target_id": "orange_ring", "anchor_angle": 110 },
-        { "target_id": "purple_ring", "anchor_angle": 70 }
+        { "target_id": "orange_ring", "anchor_angle": 135 },
+        { "target_id": "purple_ring", "anchor_angle": 45 }
       ]
     },
     {
       "id": "orange_ring",
       "color": "#F08C3A",
-      "x": -100,
+      "x": -85,
       "y": 0,
-      "radius": 70,
-      "thickness": 22,
-      "gap": { "start": 55, "end": 125 },
+      "radius": 50,
+      "gap": { "start": 135, "end": 225 },
       "rotation": 0,
-      "clips": [
-        { "target_id": "blue_ring", "anchor_angle": 70 },
-        { "target_id": "red_ring", "anchor_angle": 110 }
-      ]
+      "clips": []
     },
     {
       "id": "purple_ring",
       "color": "#8B3DED",
-      "x": 100,
+      "x": 85,
       "y": 0,
-      "radius": 70,
-      "thickness": 22,
-      "gap": { "start": 55, "end": 125 },
+      "radius": 50,
+      "gap": { "start": 315, "end": 45 },
       "rotation": 0,
-      "clips": [
-        { "target_id": "blue_ring", "anchor_angle": 110 },
-        { "target_id": "red_ring", "anchor_angle": 70 }
-      ]
+      "clips": []
     },
     {
       "id": "red_ring",
       "color": "#E23131",
       "x": 0,
-      "y": 100,
-      "radius": 70,
-      "thickness": 22,
-      "gap": { "start": 55, "end": 125 },
+      "y": 85,
+      "radius": 50,
+      "gap": { "start": 45, "end": 135 },
       "rotation": 0,
       "clips": [
-        { "target_id": "orange_ring", "anchor_angle": 110 },
-        { "target_id": "purple_ring", "anchor_angle": 70 }
+        { "target_id": "orange_ring", "anchor_angle": 225 }
       ]
     }
   ]
