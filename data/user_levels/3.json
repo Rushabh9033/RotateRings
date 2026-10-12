@@ -5,49 +5,56 @@
       "id": "blue_ring",
       "color": "#28A5E7",
       "x": 0,
-      "y": -90,
-      "radius": 70,
-      "thickness": 22,
-      "gap": { "start": 235, "end": 305 },
-      "rotation": 0,
-      "clips": [
-        { "target_id": "orange_ring", "anchor_angle": 135 },
-        { "target_id": "purple_ring", "anchor_angle": 45 }
-      ]
-    },
-    {
-      "id": "orange_ring",
-      "color": "#F08C3A",
-      "x": -90,
-      "y": 0,
-      "radius": 70,
-      "thickness": 22,
-      "gap": { "start": 325, "end": 35 },
-      "rotation": 0,
-      "clips": []
-    },
-    {
-      "id": "purple_ring",
-      "color": "#8B3DED",
-      "x": 90,
-      "y": 0,
-      "radius": 70,
-      "thickness": 22,
-      "gap": { "start": 145, "end": 215 },
-      "rotation": 0,
-      "clips": []
-    },
-    {
-      "id": "red_ring",
-      "color": "#E23131",
-      "x": 0,
-      "y": 90,
+      "y": -100,
       "radius": 70,
       "thickness": 22,
       "gap": { "start": 55, "end": 125 },
       "rotation": 0,
       "clips": [
-        { "target_id": "orange_ring", "anchor_angle": 225 }
+        { "target_id": "orange_ring", "anchor_angle": 110 },
+        { "target_id": "purple_ring", "anchor_angle": 70 }
+      ]
+    },
+    {
+      "id": "orange_ring",
+      "color": "#F08C3A",
+      "x": -100,
+      "y": 0,
+      "radius": 70,
+      "thickness": 22,
+      "gap": { "start": 55, "end": 125 },
+      "rotation": 0,
+      "clips": [
+        { "target_id": "blue_ring", "anchor_angle": 70 },
+        { "target_id": "red_ring", "anchor_angle": 110 }
+      ]
+    },
+    {
+      "id": "purple_ring",
+      "color": "#8B3DED",
+      "x": 100,
+      "y": 0,
+      "radius": 70,
+      "thickness": 22,
+      "gap": { "start": 55, "end": 125 },
+      "rotation": 0,
+      "clips": [
+        { "target_id": "blue_ring", "anchor_angle": 110 },
+        { "target_id": "red_ring", "anchor_angle": 70 }
+      ]
+    },
+    {
+      "id": "red_ring",
+      "color": "#E23131",
+      "x": 0,
+      "y": 100,
+      "radius": 70,
+      "thickness": 22,
+      "gap": { "start": 55, "end": 125 },
+      "rotation": 0,
+      "clips": [
+        { "target_id": "orange_ring", "anchor_angle": 110 },
+        { "target_id": "purple_ring", "anchor_angle": 70 }
       ]
     }
   ]
