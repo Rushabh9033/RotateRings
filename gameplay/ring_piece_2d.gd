@@ -48,19 +48,22 @@ var _state_tween: Tween = null
 # Original z_index from def — restored on IDLE so author-set layering survives state cycles.
 var _default_z_index: int = 0
 
-# --- PERFORMANCE: precomputed colors (avoids Color math every draw call) ---
-var _c_shadow := Color(0.20, 0.14, 0.10, 0.12)
+var _c_shadow_soft := Color(0.12, 0.08, 0.06, 0.08)
+var _c_shadow_mid := Color(0.12, 0.08, 0.06, 0.16)
 var _c_dark := Color.WHITE
 var _c_main := Color.WHITE
 var _c_light := Color.WHITE
+var _c_specular := Color(1.0, 1.0, 1.0, 0.38)
 var _c_inner_dark := Color.WHITE
 
 func _precompute_colors() -> void:
-	_c_shadow = Color(0.42, 0.26, 0.16, 0.2)
+	_c_shadow_soft = Color(0.12, 0.08, 0.06, 0.08)
+	_c_shadow_mid = Color(0.12, 0.08, 0.06, 0.16)
 	_c_dark = ring_color.darkened(0.28)
-	_c_main = ring_color.lightened(0.04)
-	_c_light = ring_color.lightened(0.34)
-	_c_light.a = 0.75
+	_c_main = ring_color.lightened(0.02)
+	_c_light = ring_color.lightened(0.36)
+	_c_light.a = 0.65
+	_c_specular = Color(1.0, 1.0, 1.0, 0.38)
 	_c_inner_dark = ring_color.darkened(0.22)
 	_c_inner_dark.a = 0.7
 
@@ -214,36 +217,61 @@ func _draw_ring_arc(center: Vector2, r: float, a_start: float, a_end: float, seg
 		draw_colored_polygon(hl_pts, _c_light)
 		return
 
-	var shadow_off1 := Vector2(0, 6.0) * shadow_offset_mult
-	var off_dark := Vector2(0, 2.5)
+	# 1. Soft multi-layer drop shadow (ambient contact + diffused outer shadow)
+	var shadow_mult := shadow_offset_mult
+	var shadow_off_soft := Vector2(0, 7.5) * shadow_mult
+	var shadow_off_mid := Vector2(0, 4.0) * shadow_mult
 
-	_draw_poly_arc(center + shadow_off1, r, a_start, a_end, segs, _c_shadow, thickness + 2.0, shape_type)
+	_draw_poly_arc(center + shadow_off_soft, r, a_start, a_end, segs, _c_shadow_soft, thickness + 6.0, shape_type)
 	if not is_closed:
-		var p_start = center + shadow_off1 + Vector2.from_angle(a_start) * _b(a_start)
-		var p_end = center + shadow_off1 + Vector2.from_angle(a_end) * _b(a_end)
-		draw_circle(p_start, cap_r + 1.0, _c_shadow)
-		draw_circle(p_end, cap_r + 1.0, _c_shadow)
+		var p_start_s := center + shadow_off_soft + Vector2.from_angle(a_start) * _b(a_start)
+		var p_end_s := center + shadow_off_soft + Vector2.from_angle(a_end) * _b(a_end)
+		draw_circle(p_start_s, cap_r + 3.0, _c_shadow_soft)
+		draw_circle(p_end_s, cap_r + 3.0, _c_shadow_soft)
 
+	_draw_poly_arc(center + shadow_off_mid, r, a_start, a_end, segs, _c_shadow_mid, thickness + 2.0, shape_type)
+	if not is_closed:
+		var p_start_m := center + shadow_off_mid + Vector2.from_angle(a_start) * _b(a_start)
+		var p_end_m := center + shadow_off_mid + Vector2.from_angle(a_end) * _b(a_end)
+		draw_circle(p_start_m, cap_r + 1.0, _c_shadow_mid)
+		draw_circle(p_end_m, cap_r + 1.0, _c_shadow_mid)
+
+	# 2. Darker bottom bevel / under-shading
+	var off_dark := Vector2(0, 2.0)
 	_draw_poly_arc(center + off_dark, r, a_start, a_end, segs, _c_dark, thickness, shape_type)
 	if not is_closed:
-		var p_start = center + off_dark + Vector2.from_angle(a_start) * _b(a_start)
-		var p_end = center + off_dark + Vector2.from_angle(a_end) * _b(a_end)
-		draw_circle(p_start, cap_r, _c_dark)
-		draw_circle(p_end, cap_r, _c_dark)
+		var p_start_d := center + off_dark + Vector2.from_angle(a_start) * _b(a_start)
+		var p_end_d := center + off_dark + Vector2.from_angle(a_end) * _b(a_end)
+		draw_circle(p_start_d, cap_r, _c_dark)
+		draw_circle(p_end_d, cap_r, _c_dark)
 
-	_draw_poly_arc(center, r, a_start, a_end, segs, _c_main, thickness, shape_type)
+	# 3. Main body (rich vibrant porcelain/plastic core)
+	_draw_poly_arc(center, r, a_start, a_end, segs, _c_main, thickness - 0.5, shape_type)
 	if not is_closed:
-		var p_start = center + Vector2.from_angle(a_start) * _b(a_start)
-		var p_end = center + Vector2.from_angle(a_end) * _b(a_end)
-		draw_circle(p_start, cap_r, _c_main)
-		draw_circle(p_end, cap_r, _c_main)
+		var p_start := center + Vector2.from_angle(a_start) * _b(a_start)
+		var p_end := center + Vector2.from_angle(a_end) * _b(a_end)
+		draw_circle(p_start, cap_r - 0.25, _c_main)
+		draw_circle(p_end, cap_r - 0.25, _c_main)
 
-	var off_hl := Vector2(-1.5, -2.5)
-	var hl_w = thickness * 0.4
+	# 4. Soft diffuse upper highlight (cylindrical light wrap)
+	var off_hl := Vector2(-1.2, -1.8)
+	var hl_w := thickness * 0.48
 	_draw_poly_arc(center + off_hl, r, a_start, a_end, segs, _c_light, hl_w, shape_type)
-	var hole_edge := ring_color.darkened(0.35)
-	hole_edge.a = 0.55
-	_draw_poly_arc(center, r - thickness * 0.28, a_start, a_end, segs, hole_edge, 3.0, shape_type)
+	if not is_closed:
+		var p_start_hl := center + off_hl * 0.7 + Vector2.from_angle(a_start) * _b(a_start)
+		var p_end_hl := center + off_hl * 0.7 + Vector2.from_angle(a_end) * _b(a_end)
+		draw_circle(p_start_hl, cap_r * 0.55, _c_light)
+		draw_circle(p_end_hl, cap_r * 0.55, _c_light)
+
+	# 5. Crisp specular gleam along crest
+	var off_spec := Vector2(-1.6, -2.4)
+	var spec_w := thickness * 0.20
+	_draw_poly_arc(center + off_spec, r, a_start, a_end, segs, _c_specular, spec_w, shape_type)
+	if not is_closed:
+		var p_start_sp := center + off_spec * 0.8 + Vector2.from_angle(a_start) * _b(a_start)
+		var p_end_sp := center + off_spec * 0.8 + Vector2.from_angle(a_end) * _b(a_end)
+		draw_circle(p_start_sp, cap_r * 0.26, _c_specular)
+		draw_circle(p_end_sp, cap_r * 0.26, _c_specular)
 
 func _draw_poly_arc(center: Vector2, r: float, a_start: float, a_end: float, segs: int, color: Color, line_width: float, shape_type: int) -> void:
 	# Build a closed filled band: outer edge (r + half_t) and inner edge (r - half_t)
