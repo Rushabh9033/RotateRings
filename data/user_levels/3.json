@@ -5,8 +5,8 @@
       "id": "blue_ring",
       "color": "#28A5E7",
       "x": 0,
-      "y": -90,
-      "radius": 70,
+      "y": -85,
+      "radius": 50,
       "gap": { "start": 225, "end": 315 },
       "rotation": 0,
       "clips": [
@@ -17,9 +17,9 @@
     {
       "id": "orange_ring",
       "color": "#F08C3A",
-      "x": -90,
+      "x": -85,
       "y": 0,
-      "radius": 70,
+      "radius": 50,
       "gap": { "start": 135, "end": 225 },
       "rotation": 0,
       "clips": []
@@ -27,9 +27,9 @@
     {
       "id": "purple_ring",
       "color": "#8B3DED",
-      "x": 90,
+      "x": 85,
       "y": 0,
-      "radius": 70,
+      "radius": 50,
       "gap": { "start": 315, "end": 45 },
       "rotation": 0,
       "clips": []
@@ -38,8 +38,8 @@
       "id": "red_ring",
       "color": "#E23131",
       "x": 0,
-      "y": 90,
-      "radius": 70,
+      "y": 85,
+      "radius": 50,
       "gap": { "start": 45, "end": 135 },
       "rotation": 0,
       "clips": [
