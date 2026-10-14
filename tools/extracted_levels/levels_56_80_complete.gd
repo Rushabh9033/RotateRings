@@ -1229,7 +1229,7 @@ static func level_76() -> Dictionary:
 		])]
 	])
 	
-	// Top-right red circle with marker
+	# Top-right red circle with marker
 	var top_right := _n(68.0, C, 1, 135.0, 0, [])
 	
 	# Middle-left structures
@@ -1440,7 +1440,7 @@ static func level_79() -> Dictionary:
 	var upper_cyan := _n(66.0, C, 1, 140.0, 0, [])
 	var upper_orange := _n(68.0, C, 1, 145.0, 0, [])
 	
-	// Middle green T-bar
+	# Middle green T-bar
 	var green_t := _n(70.0, T, 0, 0.0, 0, [
 		[-90.0, _n(62.0, C, 1, 150.0, 0, [
 			[-85.0, _leaf(58.0, 135.0)]  # Orange L
@@ -1459,10 +1459,10 @@ static func level_79() -> Dictionary:
 	
 	var left_blue_T := _n(66.0, T, 0, 0.0, 0, [
 		[-90.0, _leaf(60.0, 140.0)],  # Orange bar
-		[90.0, _leaf(62.0, 135.0)]  // Red bar
+		[90.0, _leaf(62.0, 135.0)]  # Red bar
 	])
 	
-	// Right side structures
+	# Right side structures
 	var right_green := _n(64.0, C, 1, 150.0, 0, [
 		[85.0, _n(68.0, C, 1, 145.0, 0, [  # Cyan
 			[80.0, _leaf(62.0, 140.0)]
@@ -1470,7 +1470,7 @@ static func level_79() -> Dictionary:
 	])
 	
 	var right_red_T := _n(70.0, T, 0, 0.0, 0, [
-		[0.0, _leaf(64.0, 135.0)]  // Red bar
+		[0.0, _leaf(64.0, 135.0)]  # Red bar
 	])
 	
 	# Bottom structures
@@ -1480,8 +1480,8 @@ static func level_79() -> Dictionary:
 		])]
 	])
 	
-	var bottom_mid_cyan := _n(66.0, C, 0, 0.0, 0, [  // Cyan circle
-		[0.0, _leaf(60.0, 150.0)]  // Green curve
+	var bottom_mid_cyan := _n(66.0, C, 0, 0.0, 0, [  # Cyan circle
+		[0.0, _leaf(60.0, 150.0)]  # Green curve
 	])
 	
 	var bottom_right := _n(64.0, C, 1, 135.0, 0, [
@@ -1536,20 +1536,20 @@ static func level_80() -> Dictionary:
 		[-90.0, _n(68.0, C, 1, 145.0, 0, [  # Purple curve
 			[-85.0, _leaf(62.0, 140.0)]  # Purple/green piece
 		])],
-		[0.0, _leaf(60.0, 135.0)]  // Orange bar
+		[0.0, _leaf(60.0, 135.0)]  # Orange bar
 	])
 	
 	var right_wing := _n(64.0, C, 1, 0.0, 0, [
 		[90.0, _n(66.0, C, 1, 150.0, 0, [  # Purple/cyan curve
-			[85.0, _leaf(60.0, 145.0)]  // Orange piece
+			[85.0, _leaf(60.0, 145.0)]  # Orange piece
 		])],
-		[0.0, _leaf(58.0, 140.0)]  // Red bar
+		[0.0, _leaf(58.0, 140.0)]  # Red bar
 	])
 	
 	# Lower body - red bar with green structure
 	var lower_red := _n(68.0, S, 0, 0.0, 0, [
 		[0.0, _n(62.0, C, 1, 90.0, 0, [  # Green bar vertical
-			[-90.0, _leaf(58.0, 145.0)]  // Blue/green
+			[-90.0, _leaf(58.0, 145.0)]  # Blue/green
 		])]
 	])
 	

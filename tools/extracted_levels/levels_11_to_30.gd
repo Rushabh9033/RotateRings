@@ -28,8 +28,8 @@ static func _leaf(r: float, turn: float, gaps: int = 1) -> Dictionary:
 static func _k(angle: float, radius: float, turn: float, children: Array = [], gaps: int = 1) -> Array:
 	return [angle, _n(radius, C, gaps, turn, 0, children.duplicate())]
 
-static func _closed(radius: float, shape: int, children: Array, bridge: bool = false) -> Dictionary:
-	return _n(radius, shape, 0, 0.0, 0, children, bridge, [])
+static func _closed(radius: float, shape: int, children: Array, bridge: bool = false, extra: Array = []) -> Dictionary:
+	return _n(radius, shape, 0, 0.0, 0, children, bridge, extra)
 
 static func _open_root(radius: float, turn: float, children: Array) -> Dictionary:
 	return _n(radius, C, 1, turn, 0, children)

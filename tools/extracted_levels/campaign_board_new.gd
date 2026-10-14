@@ -38,6 +38,14 @@ const _AIR := 34.0
 static var _cache: Dictionary = {}
 static var _defer_solve: bool = true
 
+static func _paint(_node: Dictionary, _color: int, _parent_color: int) -> void: pass
+static func _walk(_node: Dictionary, _pos: Vector2, _flat: Array, _edges: Array) -> void: pass
+static func _fit(_flat: Array) -> void: pass
+static func _pieces_from(_flat: Array) -> Array: return []
+static func _links_from(_flat: Array, _edges: Array) -> Array: return []
+static func _set_rest_angles(_def: Resource) -> void: pass
+static func _stamp_solution(_def: Resource) -> void: pass
+
 static func build(level_id: int):
 	if _cache.has(level_id):
 		return _cache[level_id]
