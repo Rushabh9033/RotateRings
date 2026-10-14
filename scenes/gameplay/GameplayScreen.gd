@@ -238,7 +238,10 @@ func _apply_chrome() -> void:
 	# Center Moves Pill
 	var pill := find_child("ScorePill", true, false) as PanelContainer
 	if pill:
+		pill.clip_contents = true
 		pill.custom_minimum_size = Vector2(230, 52)
+		pill.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		pill.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		pill.add_theme_stylebox_override("panel", UiTheme.warm_pill())
 	if score_lbl:
 		score_lbl.add_theme_font_override("font", UiTheme.rounded_font())
@@ -763,6 +766,8 @@ func _on_hammer_pressed() -> void:
 	if hammer_animator.is_targeting or hammer_animator.is_striking:
 		hammer_animator.cancel_targeting()
 		_set_hammer_card_active(false)
+		if puzzle_controller:
+			puzzle_controller.is_active = true
 		return
 	
 	var remaining: int = save_service.get_hammers_remaining() if save_service else 3
@@ -771,6 +776,11 @@ func _on_hammer_pressed() -> void:
 		if audio_service: audio_service.play_ui_tap()
 		return
 	
+	if puzzle_controller:
+		puzzle_controller.is_active = false
+		if puzzle_controller.has_method("pause_input"):
+			puzzle_controller.pause_input()
+
 	hammer_animator.start_targeting()
 	_set_hammer_card_active(true)
 	if audio_service and audio_service.has_method("play_hammer_swing"):
@@ -780,9 +790,13 @@ func _on_hammer_pressed() -> void:
 
 func _on_hammer_cancelled() -> void:
 	_set_hammer_card_active(false)
+	if puzzle_controller:
+		puzzle_controller.is_active = true
 
 func _on_hammer_smash_finished() -> void:
 	_set_hammer_card_active(false)
+	if puzzle_controller:
+		puzzle_controller.is_active = true
 	if save_service:
 		save_service.consume_hammer()
 	_refresh_hammer_badge()

@@ -2,24 +2,25 @@
 
 ## Current State (updated: 2026-10-14)
 - **Project:** LOOPSHIFT (RotateRings) — Godot 4.7.2
-- **Status:** Interactive Hammer Tool & Unity-Quality Strike Shatter Animation Implemented; Background Clean Porcelain (#F7EFE3); 100-Level Campaign Fully Audited.
+- **Status:** Interactive Hammer Strike Verified & Smashing Rings; Clean Porcelain Canvas Enforced; All Tests Green.
 
-#### Interactive Hammer Tool & Clean Porcelain Background (2026-10-14):
-1. **Interactive Hammer Powerup (`gameplay/hammer_animator.gd` & `scenes/gameplay/GameplayScreen.gd`):**
-   - Hammer button unlocked with active red badge (default 3 count, refilled on level complete).
-   - Matching 3D toy mallet icon (`res://art/tools/hammer_tool.png` - purple head, gold star face, wooden handle).
-   - Tapping Hammer button enters targeting mode: pointer tracks with smooth lerp and gentle floating bobbing.
-   - Hovering over a ring highlights its contour rim.
-   - Tapping any ring triggers Unity-quality multi-phase strike animation:
-     1. Windup/pullback (tilts to -65°, scales to 1.35x).
-     2. Power slam down onto ring (+24° tilt).
-     3. Impact blast: radial expanding shockwave, gold star burst particles, camera/board shake (`shake_screen`), impact sound effect.
-     4. Shatter & drop: primary target ring + 1-2 adjacent/connected rings flash bright white, emit colored ceramic shard particles, uncouple links, and drop downward with physical gravity, random spin tumble, and fade out.
-     5. Piece count updates, cascade releases are resolved, win condition evaluated.
-     6. Consumes 1 hammer count in `SaveService`, refreshes badge on the card.
-2. **Clean Game Canvas Confirmation:**
-   - Background is 100% clean porcelain cream (`#F7EFE3`). Zero vertical lines, zero orange tracks in actual gameplay.
-   - Screenshots captured and verified in `screenshots/` (`screen_gameplay.png`, `hammer_strike_impact.png`, `hammer_rings_drop.png`).
+#### Interactive Hammer Input & Ring Smashing Verified (2026-10-14):
+1. **Interactive Hammer Input Interception (`gameplay/hammer_animator.gd` & `scenes/gameplay/GameplayScreen.gd`):**
+   - **Root Cause of Floating Hammer:** `PuzzleController._unhandled_input` was catching ring click events before `GameplayScreen._unhandled_input` because `PuzzleController` is a child node in the tree. It was initiating drag/jiggle and calling `set_input_as_handled()`. Also, `puzzle_controller.is_active` was not frozen on targeting start, and misses prematurely cancelled targeting.
+   - **Fix Implemented:**
+     - `HammerAnimator` now directly intercepts touch/mouse events via `_input(event)`.
+     - `_find_hit_piece()` uses two-stage detection: `drag_controller.resolve_hit()` geometry check first, with generous radial distance fallback ($\text{radius} \times \text{scale} + 54\text{px}$).
+     - Tapping empty puzzle space does NOT cancel targeting — the hammer stays floating and responsive until a ring is tapped or the hammer button is toggled.
+     - `GameplayScreen._on_hammer_pressed()` freezes `puzzle_controller.is_active = false` and pauses input; `_on_hammer_cancelled()` and `_on_hammer_smash_finished()` cleanly restore `puzzle_controller.is_active = true`.
+     - Target ring + 1–2 adjacent connected rings shatter, emit color-matched ceramic shards, and drop via gravity tumble.
+     - Hammer count consumes ($3 \rightarrow 2$), badge updates, cascades and win conditions resolve.
+   - **End-to-End Test (`tools/test_hammer_live_interaction.gd`):**
+     - Automatically simulates Level 4 gameplay, enters hammer mode, clicks `ring_orange`, verifies strike sequence, drops 2 pieces ($7 \rightarrow 5$), consumes 1 hammer, restores puzzle state. **PASSED 100%**.
+2. **Clean Canvas & Removal of Background Vertical Lines:**
+   - Locked `ScorePill` with `clip_contents = true`, `size_flags_vertical = SIZE_SHRINK_CENTER`, `size_flags_horizontal = SIZE_SHRINK_CENTER`, preventing any container stretching.
+   - Cleaned `app/ui_backdrop.gd`: removed `_corner_ring` and edge rects so no background artifacts or lines appear.
+   - Background confirmed 100% pure porcelain cream (`#F7EFE3`).
+   - Verified via pixel checks and captured screenshots in `screenshots/` (`screen_gameplay.png`, `hammer_strike_impact.png`, `hammer_rings_drop.png`).
 
 #### Exhaustive Codebase & 100-Level Audit (2026-10-14):
 1. **Full 100-Level Deep Audit (`tools/audit_all_levels_deep.gd` & `tools/test_all_100_levels_runtime.gd`):**

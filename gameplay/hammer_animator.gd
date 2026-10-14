@@ -120,6 +120,30 @@ func _clear_hover() -> void:
 		hover_target.set_hold_rim(false)
 	hover_target = null
 
+func _input(event: InputEvent) -> void:
+	if not is_targeting or is_striking:
+		return
+
+	if (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed) or \
+	   (event is InputEventScreenTouch and event.pressed):
+		var click_pos: Vector2 = event.position if event is InputEventScreenTouch else event.global_position
+		
+		# Let taps on top HUD corner buttons (pause/settings or back) or bottom HUD (cards) pass through to UI buttons
+		var vp_rect := get_viewport_rect()
+		if click_pos.y > vp_rect.size.y - 130.0:
+			return
+		if click_pos.y < 110.0 and (click_pos.x > vp_rect.size.x - 110.0 or click_pos.x < 110.0):
+			return
+
+		var hit = _find_hit_piece(click_pos)
+		if hit != null:
+			get_viewport().set_input_as_handled()
+			execute_smash(hit)
+		else:
+			# Clicked empty space in puzzle area: absorb to prevent drag,
+			# but DO NOT cancel targeting! Keep hammer floating for the player.
+			get_viewport().set_input_as_handled()
+
 func handle_input(event: InputEvent) -> bool:
 	if not is_targeting or is_striking:
 		return false
@@ -130,8 +154,6 @@ func handle_input(event: InputEvent) -> bool:
 			execute_smash(hit)
 			return true
 		else:
-			# Clicked outside puzzle pieces: cancel
-			cancel_targeting()
 			return true
 	elif event is InputEventScreenTouch and event.pressed:
 		var hit = _find_hit_piece(event.position)
@@ -139,19 +161,29 @@ func handle_input(event: InputEvent) -> bool:
 			execute_smash(hit)
 			return true
 		else:
-			cancel_targeting()
 			return true
 	return false
 
 func _find_hit_piece(global_pt: Vector2) -> Node2D:
-	if puzzle_controller == null: return null
+	if puzzle_controller == null or puzzle_controller.active_pieces.is_empty():
+		return null
+
+	# Primary: use exact geometry distance calculation from drag_controller if available
+	if puzzle_controller.drag_controller and puzzle_controller.drag_controller.has_method("resolve_hit"):
+		var hit = puzzle_controller.drag_controller.resolve_hit(global_pt, puzzle_controller.active_pieces)
+		if hit != null and is_instance_valid(hit):
+			return hit
+
+	# Fallback: find closest active non-released ring within generous touch radius
 	var best_p: Node2D = null
 	var min_dist: float = INF
 	for p in puzzle_controller.active_pieces:
 		if not is_instance_valid(p): continue
 		if p.state == RingPiece2DScript.State.RELEASED or p.state == RingPiece2DScript.State.RELEASING: continue
+		var p_scale: float = p.global_scale.x if "global_scale" in p else 1.0
+		var r: float = float(p.radius) if "radius" in p else 64.0
 		var d: float = (global_pt - p.global_position).length()
-		var reach: float = float(p.radius) * p.global_scale.x + 36.0
+		var reach: float = r * p_scale + 54.0
 		if d <= reach and d < min_dist:
 			min_dist = d
 			best_p = p
