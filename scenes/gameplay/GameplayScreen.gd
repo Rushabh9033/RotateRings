@@ -141,36 +141,59 @@ func _load_definition(lvl_id: int, def) -> bool:
 	return true
 
 func _frame_puzzle() -> void:
-	# Phase 1 of the LOCKED-CANVAS architecture: the puzzle's authored
-	# coordinate space is canonical. The runtime applies ONE uniform
-	# transform (scale + offset) on the PuzzleController. We do NOT
-	# auto-fit or re-center per level.
-	#
-	# The transform is read from the LevelDocument if present; otherwise
-	# it falls back to identity (scale=1, offset=(0,0)) which places the
-	# puzzle at its authored coordinates in the top-left of the viewport.
-	#
-	# The user (or the editor) explicitly sets this transform once per
-	# level via the ReferenceViewer's 'Fit Puzzle' / 'Calibrate' actions.
 	if not is_instance_valid(puzzle_controller): return
-	if editor_document == null:
-		# No level loaded yet; leave the puzzle at its authored coordinates.
-		return
-	var gs: float = float(editor_document.frame_scale)
-	var gx: float = float(editor_document.frame_offset_x)
-	var gy: float = float(editor_document.frame_offset_y)
-	# Animate to the target transform over 0.4s. Identity is the default
-	# (scale=1, offset=0) so the puzzle sits at its authored location.
-	var target_scale: Vector2 = Vector2(gs, gs)
-	var target_pos: Vector2 = Vector2(gx, gy)
-	var tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.tween_property(puzzle_controller, "scale", target_scale, 0.4)
-	tween.tween_property(puzzle_controller, "position", target_pos, 0.4)
+	
+	var target_scale: Vector2 = Vector2.ONE
+	var target_pos: Vector2 = Vector2.ZERO
+	
+	if editor_document != null and (editor_document.frame_scale != 1.0 or editor_document.frame_offset_x != 0.0 or editor_document.frame_offset_y != 0.0):
+		var gs: float = float(editor_document.frame_scale)
+		target_scale = Vector2(gs, gs)
+		target_pos = Vector2(float(editor_document.frame_offset_x), float(editor_document.frame_offset_y))
+	else:
+		var pieces: Array = puzzle_controller.active_pieces
+		if pieces.is_empty() and puzzle_controller.pieces_container != null:
+			pieces = puzzle_controller.pieces_container.get_children()
+		
+		if not pieces.is_empty():
+			var min_pt := Vector2(1e9, 1e9)
+			var max_pt := Vector2(-1e9, -1e9)
+			for p in pieces:
+				if not (p is Node2D): continue
+				var pos: Vector2 = p.def.position if ("def" in p and p.def != null) else p.position
+				var r: float = 64.0
+				if "radius" in p:
+					r = float(p.radius)
+				elif "radius_x" in p:
+					r = float(p.radius_x)
+				min_pt.x = minf(min_pt.x, pos.x - r - 20.0)
+				min_pt.y = minf(min_pt.y, pos.y - r - 20.0)
+				max_pt.x = maxf(max_pt.x, pos.x + r + 20.0)
+				max_pt.y = maxf(max_pt.y, pos.y + r + 20.0)
+			
+			var puzzle_size := max_pt - min_pt
+			var puzzle_center := (min_pt + max_pt) * 0.5
+			
+			# Target area: X: 60 to 660 (width 600, center 360), Y: 220 to 1040 (height 820, center 630)
+			var target_area_size := Vector2(600.0, 800.0)
+			var target_area_center := Vector2(360.0, 620.0)
+			
+			var fit_scale_x := target_area_size.x / maxf(puzzle_size.x, 100.0)
+			var fit_scale_y := target_area_size.y / maxf(puzzle_size.y, 100.0)
+			var s := clampf(minf(fit_scale_x, fit_scale_y), 0.75, 1.25)
+			
+			target_scale = Vector2(s, s)
+			target_pos = target_area_center - puzzle_center * s
+	
+	puzzle_controller.scale = target_scale
+	puzzle_controller.position = target_pos
 
 var total_pieces_in_level: int = 0
 
 func _apply_chrome() -> void:
-	UiTheme.mount_backdrop(self, true)
+	# Pure porcelain cream canvas for gameplay, matching reference 4.jpeg
+	if has_node("Background"):
+		$Background.color = Color("F7EFE3")
 	if back_btn:
 		UiTheme.squircle_button(back_btn)
 	if pause_btn:
@@ -197,17 +220,18 @@ func _apply_chrome() -> void:
 	# Center Moves Pill
 	var pill := get_node_or_null("SafeArea/TopHUD/CenterHUD/ScorePill") as PanelContainer
 	if pill:
-		pill.custom_minimum_size = Vector2(210, 48)
+		pill.custom_minimum_size = Vector2(230, 52)
 		pill.add_theme_stylebox_override("panel", UiTheme.warm_pill())
 	if score_lbl:
 		score_lbl.add_theme_font_override("font", UiTheme.rounded_font())
-		score_lbl.add_theme_font_size_override("font_size", 28)
+		score_lbl.add_theme_font_size_override("font_size", 30)
 		score_lbl.add_theme_color_override("font_color", UiTheme.WARM_INK)
 		score_lbl.text = "0"
 
 	# CenterHUD Subtitle "Game Rush"
 	var center_hud := get_node_or_null("SafeArea/TopHUD/CenterHUD") as VBoxContainer
 	if center_hud:
+		center_hud.add_theme_constant_override("separation", 10)
 		var sub := center_hud.get_node_or_null("RushSubtitle") as Label
 		if sub == null:
 			sub = Label.new()
@@ -216,13 +240,13 @@ func _apply_chrome() -> void:
 			center_hud.add_child(sub)
 		sub.text = "Game Rush"
 		sub.add_theme_font_override("font", UiTheme.rounded_font())
-		sub.add_theme_font_size_override("font_size", 14)
-		sub.add_theme_color_override("font_color", UiTheme.RUSH_RED)
+		sub.add_theme_font_size_override("font_size", 16)
+		sub.add_theme_color_override("font_color", Color("CC181E"))
 
 	# Bottom HUD Power-up Cards
 	var rocket_card := get_node_or_null("SafeArea/BottomHUD/RocketCard") as PanelContainer
 	if rocket_card and rocket_btn:
-		_mount_powerup_card(rocket_card, rocket_btn, load("res://art/tools/rocket_tool.png"), "5")
+		_mount_powerup_card(rocket_card, rocket_btn, load("res://art/tools/rocket_tool.png"), "Free")
 
 	var hammer_card := get_node_or_null("SafeArea/BottomHUD/HammerCard") as PanelContainer
 	if hammer_card and hammer_btn:
@@ -575,9 +599,15 @@ func _mount_powerup_card(card: PanelContainer, btn: Button, tex: Texture2D, coun
 	badge.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	
 	var is_locked := (count_str == "locked" or count_str == "Locked" or btn.disabled)
+	var is_free := (count_str == "Free" or count_str == "free")
 	if is_locked:
+		badge.custom_minimum_size = Vector2(28, 28)
 		badge.add_theme_stylebox_override("panel", UiTheme.gray_badge())
+	elif is_free:
+		badge.custom_minimum_size = Vector2(46, 22)
+		badge.add_theme_stylebox_override("panel", UiTheme.green_badge())
 	else:
+		badge.custom_minimum_size = Vector2(28, 28)
 		badge.add_theme_stylebox_override("panel", UiTheme.red_badge())
 	
 	var badge_lbl := badge.get_node_or_null("BadgeLbl") as Label
@@ -589,7 +619,7 @@ func _mount_powerup_card(card: PanelContainer, btn: Button, tex: Texture2D, coun
 		badge.add_child(badge_lbl)
 	badge_lbl.text = "🔒" if is_locked else count_str
 	badge_lbl.add_theme_font_override("font", UiTheme.rounded_font())
-	badge_lbl.add_theme_font_size_override("font_size", 13 if is_locked else 16)
+	badge_lbl.add_theme_font_size_override("font_size", 13 if is_locked else (12 if is_free else 16))
 	badge_lbl.add_theme_color_override("font_color", Color.WHITE)
 	
 	# Tactile spring bounce on press
@@ -694,6 +724,8 @@ func _refresh_hint_badge() -> void:
 	if badge == null:
 		badge = get_node_or_null("SafeArea/BottomHUD/RocketCard/RocketBtn/HintBadge")
 	if badge and badge is Label:
+		if badge.text == "Free":
+			return
 		var remaining: int = save_service.get_hints_remaining() if save_service else 5
 		badge.text = str(remaining)
 		badge.get_parent().visible = remaining > 0

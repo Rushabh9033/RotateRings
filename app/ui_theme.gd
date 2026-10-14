@@ -175,9 +175,9 @@ static func squircle_button(btn: Button) -> void:
 static func powerup_card() -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()
 	box.bg_color = CARD_SURFACE
-	box.border_color = GOLD_BORDER
+	box.border_color = Color("EBA263")
 	box.set_border_width_all(3)
-	box.border_width_bottom = 7
+	box.border_width_bottom = 6
 	box.set_corner_radius_all(24)
 	box.shadow_color = Color(0.42, 0.26, 0.14, 0.16)
 	box.shadow_size = 10
@@ -204,6 +204,18 @@ static func gray_badge() -> StyleBoxFlat:
 	box.border_width_bottom = 2
 	box.set_corner_radius_all(14)
 	box.shadow_color = Color(0.1, 0.1, 0.1, 0.24)
+	box.shadow_size = 5
+	box.shadow_offset = Vector2(0, 2)
+	return box
+
+
+static func green_badge() -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color("00A859")
+	box.border_color = Color("008043")
+	box.border_width_bottom = 2
+	box.set_corner_radius_all(14)
+	box.shadow_color = Color(0.0, 0.4, 0.15, 0.28)
 	box.shadow_size = 5
 	box.shadow_offset = Vector2(0, 2)
 	return box

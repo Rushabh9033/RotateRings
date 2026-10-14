@@ -67,7 +67,7 @@ func _init() -> void:
 	var gp = load("res://scenes/gameplay/GameplayScreen.tscn").instantiate()
 	await capture.call(gp, func():
 		gp.setup(save_svc, audio_svc, haptic_svc)
-		gp.load_level_by_id(2)
+		gp.load_level_by_id(4)
 		var pc = gp.puzzle_controller
 		if pc:
 			for ch in pc.pieces_container.get_children():
