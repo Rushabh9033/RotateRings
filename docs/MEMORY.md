@@ -2,7 +2,44 @@
 
 ## Current State (updated: 2026-10-14)
 - **Project:** LOOPSHIFT (RotateRings) — Godot 4.7.2
-- **Status:** Levels 1 to 26 Pixel-Perfect Recreation & Full Simulation Passing (100% Winnable); Premium Casual Mobile "Game Look" UI Implemented.
+- **Status:** Levels 1 to 26 Pixel-Perfect & 100% Winnable; Complete Screen UI Overhaul Across All Scenes (Home, Gameplay, Level Select, Victory, Pause, Settings).
+
+#### All Screen UI Overhaul (2026-10-14):
+1. **Home Screen Exact Match (`media_1791964682461_54554d01.png`):**
+   - Built custom `HomeTitleLogo` widget rendering `R [Orange 3D C-Ring] TATE   RINGS` in bold warm chocolate brown (`#543324`), matching the user's reference image typography.
+   - Removed obsolete underline rule and tagline to achieve clean, uncluttered layout.
+   - Centered breathe and spin hero animation, prominent 3D coral primary PLAY button.
+2. **Level Select / Journey Map Exact Match (`media_1791964742447_5e8e52ed.png`):**
+   - Built custom `LevelMapTitle` header rendering `LEVEL [Cyan 3D C-Ring] MAP` and subtitle `✦ X / Y Cleared`.
+   - Replaced old line path in `journey_path_drawer.gd` with two-tone 3D path:
+     - Unlocked/cleared segments rendered as emerald green 3D tubes (`#27AE60`) with double golden bead pairs along each pipe.
+     - Locked segments rendered as ivory/cream rail tracks (`#FAF7F2` / `#E2D6C6`).
+   - Replaced level node UI in `level_node_ui.gd` with true 3D porcelain C-rings:
+     - Cleared levels: Amber/Green C-rings with 3 golden beads inside the gap and level number in cream center disc.
+     - Current frontier level: Vibrant orange C-ring, solid dark terracotta center disc with bold white number, and animated pulsing halo ring.
+     - Locked levels: Frosted silver C-rings with vector padlock icons.
+     - Milestone levels (`lvl % 5 == 0`): Orange circular badge with `+5` connected by a stem line on the right side of the node.
+3. **Settings Button Bug Fix (`GameplayScreen.gd`, `GameplayScreen.tscn`):**
+   - Eliminated the double-rendered emoji cog: removed legacy `text = "⚙"` font emoji and set `text = "settings"` for `squircle_button`.
+   - Rendered single, smooth, 4x supersampled 6-tooth anti-aliased gear icon inside the porcelain squircle.
+4. **Global Theme & Modals (`app/ui_theme.gd`, `VictoryModal.gd`, `SettingsModal.gd`, `PauseModal.gd`):**
+   - Added procedural vector icons: `star`, `star_empty`, `play`, `pause`, `hint`, `settings`, `map`, `replay`, `home`, `lock`, `close`, `check`.
+   - Implemented mobile iOS-style pill toggle switches with green active track and porcelain thumb.
+   - Victory modal with celebratory banner, 3 animated golden stars, moves-vs-par pill, and primary Next Level button.
+4. **Gameplay Screen (`scenes/gameplay/GameplayScreen.gd`):**
+   - Top-left level badge, center score pill with "Game Rush" subtitle.
+   - Squircle Settings button with centered gear icon.
+   - Bottom powerup cards: Rocket booster with count badge (`5`), and Hammer with gray lock badge (`🔒`) matching reference screenshots.
+5. **Victory Modal (`scenes/components/VictoryModal.gd`, `VictoryModal.tscn`):**
+   - Celebratory title ("PERFECT!" or "LEVEL COMPLETE!").
+   - 3-star rating row with sequential pop-in animations (`star_gold` vs `star_empty`).
+   - Moves vs Par summary pill.
+   - Primary "NEXT LEVEL ▶" button and horizontal "Replay" / "Level Map" button row.
+6. **Settings & Pause Modals (`scenes/components/SettingsModal.gd`, `PauseModal.gd`):**
+   - Tactile modal panels with smooth modal entrance animation.
+   - Mobile toggle switches for Sound Effects, Haptics, and Reduced Motion.
+   - Confirmation safety for "Reset Progress" (requires second tap).
+   - Clean action buttons with matching vector icons.
 
 #### Levels 22–26 Completed and Fully Verified (2026-10-14):
 1. **Level 22 (`22.jpeg`):**

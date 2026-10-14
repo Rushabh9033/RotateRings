@@ -157,6 +157,18 @@ static func squircle_button(btn: Button) -> void:
 	btn.add_theme_color_override("font_hover_color", WARM_INK)
 	btn.add_theme_color_override("font_pressed_color", WARM_INK)
 	btn.add_theme_font_override("font", rounded_font())
+
+	if btn.text == "⚙" or btn.text == "settings":
+		btn.text = ""
+		btn.icon = preload("res://app/ui_icons.gd").make("settings", WARM_INK)
+		btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		btn.expand_icon = true
+	elif btn.text == "‹" or btn.text == "back":
+		btn.text = ""
+		btn.icon = preload("res://app/ui_icons.gd").make("back", WARM_INK)
+		btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		btn.expand_icon = true
+
 	_bind_press(btn)
 
 
@@ -184,6 +196,78 @@ static func red_badge() -> StyleBoxFlat:
 	box.shadow_offset = Vector2(0, 2)
 	return box
 
+
+static func gray_badge() -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color("788290")
+	box.border_color = Color("5A6270")
+	box.border_width_bottom = 2
+	box.set_corner_radius_all(14)
+	box.shadow_color = Color(0.1, 0.1, 0.1, 0.24)
+	box.shadow_size = 5
+	box.shadow_offset = Vector2(0, 2)
+	return box
+
+
+static func draw_c_ring(ci: CanvasItem, center: Vector2, radius: float, thickness: float, color: Color, gap_center_ang: float, gap_width_ang: float = 1.1) -> void:
+	var half_gap := gap_width_ang * 0.5
+	var start := gap_center_ang + half_gap
+	var end := gap_center_ang + TAU - half_gap
+	var segs := 48
+	# 1. Base shadow
+	var shadow := Color(0.35, 0.2, 0.12, 0.18)
+	ci.draw_arc(center + Vector2(0, 3.5), radius, start, end, segs, shadow, thickness + 2.0, true)
+	# 2. Darker base bevel
+	ci.draw_arc(center + Vector2(0, 1.8), radius, start, end, segs, color.darkened(0.24), thickness, true)
+	# 3. Main porcelain body
+	ci.draw_arc(center, radius, start, end, segs, color, thickness, true)
+	# 4. Top highlight
+	var hi := Color(1, 1, 1, 0.6)
+	ci.draw_arc(center + Vector2(-1.0, -1.2), radius, start + 0.2, end - 0.2, segs, hi, thickness * 0.3, true)
+	# 5. Rounded end caps
+	for ang in [start, end]:
+		var cap := center + Vector2.from_angle(ang) * radius
+		ci.draw_circle(cap + Vector2(0, 1.5), thickness * 0.5, color.darkened(0.24))
+		ci.draw_circle(cap, thickness * 0.5, color)
+		ci.draw_circle(cap + Vector2(-0.6, -0.6), thickness * 0.22, Color(1, 1, 1, 0.65))
+
+
+static var _toggle_checked: Texture2D
+static var _toggle_unchecked: Texture2D
+
+static func _make_toggle_texture(checked: bool) -> Texture2D:
+	var img := Image.create(56, 32, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var bg_color := CLEARED if checked else Color("D4BCA6")
+	var r := 16.0
+	for y in 32:
+		for x in 56:
+			var p := Vector2(x + 0.5, y + 0.5)
+			var inside := false
+			if p.x >= 16 and p.x <= 40:
+				inside = true
+			elif p.distance_to(Vector2(16, 16)) <= r or p.distance_to(Vector2(40, 16)) <= r:
+				inside = true
+			if inside:
+				if y <= 1:
+					img.set_pixel(x, y, bg_color.darkened(0.16))
+				else:
+					img.set_pixel(x, y, bg_color)
+	var thumb_c := Vector2(39, 16) if checked else Vector2(17, 16)
+	var thumb_r := 11.5
+	var thumb_r2 := thumb_r * thumb_r
+	for y in 32:
+		for x in 56:
+			var p := Vector2(x + 0.5, y + 0.5)
+			var d2 := p.distance_squared_to(thumb_c)
+			if d2 <= thumb_r2:
+				if p.y > 16 + thumb_r - 2.5:
+					img.set_pixel(x, y, Color("EBE3DA"))
+				elif p.y < 16 - thumb_r + 3.0:
+					img.set_pixel(x, y, Color("FFFFFF"))
+				else:
+					img.set_pixel(x, y, Color("FAF7F2"))
+	return ImageTexture.create_from_image(img)
 
 static func paint_button(btn: Button, kind: String, font_size: int = FONT_BODY) -> void:
 	var normal: StyleBoxFlat
@@ -235,7 +319,11 @@ static func paint_button(btn: Button, kind: String, font_size: int = FONT_BODY) 
 	btn.add_theme_font_size_override("font_size", font_size)
 	btn.add_theme_font_override("font", rounded_font())
 	btn.alignment = HORIZONTAL_ALIGNMENT_CENTER
-	btn.icon = null
+	var icon_tex := _icon_for(btn.text, ink)
+	if icon_tex != null:
+		btn.icon = icon_tex
+		btn.expand_icon = true
+		btn.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	_bind_press(btn)
 
 
@@ -246,12 +334,20 @@ static func paint_label(label: Label, size: int, muted: bool = false) -> void:
 
 
 static func paint_check(check: CheckBox) -> void:
+	if _toggle_checked == null:
+		_toggle_checked = _make_toggle_texture(true)
+		_toggle_unchecked = _make_toggle_texture(false)
+	check.add_theme_icon_override("checked", _toggle_checked)
+	check.add_theme_icon_override("checked_disabled", _toggle_checked)
+	check.add_theme_icon_override("unchecked", _toggle_unchecked)
+	check.add_theme_icon_override("unchecked_disabled", _toggle_unchecked)
 	check.add_theme_font_override("font", rounded_font())
 	check.add_theme_font_size_override("font_size", FONT_BODY)
 	check.add_theme_color_override("font_color", TEXT)
 	check.add_theme_color_override("font_hover_color", ACCENT)
 	check.add_theme_color_override("font_pressed_color", TEXT)
 	check.add_theme_color_override("font_focus_color", TEXT)
+	check.add_theme_constant_override("h_separation", 16)
 
 
 static func _bind_press(btn: Button) -> void:
@@ -311,22 +407,28 @@ static func _box(bg: Color, border: Color, border_w: int) -> StyleBoxFlat:
 static func _icon_for(label: String, ink: Color) -> Texture2D:
 	var key := label.strip_edges().to_lower()
 	var kind := ""
-	if key == "back":
+	if key == "back" or key == "‹":
 		kind = "back"
+	elif key == "play" or key.begins_with("play") or key.begins_with("level ") or key == "next level":
+		kind = "play"
 	elif key == "pause":
 		kind = "pause"
 	elif key == "hint":
 		kind = "hint"
-	elif key == "settings":
+	elif key == "settings" or key == "⚙":
 		kind = "settings"
-	elif key == "level map":
+	elif key == "level map" or key == "map":
 		kind = "map"
 	elif key == "replay" or key == "restart":
 		kind = "replay"
-	elif key == "main menu":
+	elif key == "main menu" or key == "home":
 		kind = "home"
-	elif key.begins_with("level ") and key != "level map":
-		kind = ""
+	elif key == "close" or key == "x":
+		kind = "close"
+	elif key == "star":
+		kind = "star"
+	elif key == "level editor" or key == "edit":
+		kind = "settings"
 	if kind == "":
 		return null
 	var cache_key := kind + ":" + ink.to_html(false)

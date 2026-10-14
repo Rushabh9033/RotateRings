@@ -24,14 +24,29 @@ func setup(save_svc: Node, audio_svc: Node) -> void:
 
 func _ready() -> void:
 	UiTheme.mount_backdrop(self)
-	UiTheme.paint_button(back_btn, "secondary", UiTheme.FONT_CAPTION)
-	UiTheme.paint_button(edit_btn, "secondary", UiTheme.FONT_CAPTION)
-	UiTheme.paint_label(chapter_title, UiTheme.FONT_TITLE)
-	UiTheme.paint_label(progress_lbl, UiTheme.FONT_CAPTION, true)
-	_paint_key("SafeArea/VBox/Header/Legend/OpenKey", UiTheme.ACCENT)
-	_paint_key("SafeArea/VBox/Header/Legend/ClearedKey", UiTheme.CLEARED_DARK)
-	_paint_key("SafeArea/VBox/Header/Legend/PerfectKey", UiTheme.PERFECT_DARK)
-	_paint_key("SafeArea/VBox/Header/Legend/LockedKey", UiTheme.TEXT_MUTED)
+	if back_btn:
+		back_btn.custom_minimum_size = Vector2(54, 54)
+		back_btn.text = "back"
+		UiTheme.squircle_button(back_btn)
+	if edit_btn:
+		var spacer = Control.new()
+		spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		$SafeArea/VBox/Header/TopRow.add_child(spacer)
+		$SafeArea/VBox/Header/TopRow.move_child(spacer, 1)
+		edit_btn.custom_minimum_size = Vector2(54, 54)
+		edit_btn.text = "settings"
+		UiTheme.squircle_button(edit_btn)
+		edit_btn.visible = OS.is_debug_build()
+	if chapter_title:
+		chapter_title.visible = false
+	var legend := get_node_or_null("SafeArea/VBox/Header/Legend") as CanvasItem
+	if legend:
+		legend.visible = false
+	var map_title = preload("res://app/level_map_title.gd").new()
+	$SafeArea/VBox/Header.add_child(map_title)
+	$SafeArea/VBox/Header.move_child(map_title, 1)
+	UiTheme.paint_label(progress_lbl, 16, true)
+	progress_lbl.add_theme_color_override("font_color", Color("8A6554"))
 	UiTheme.apply_font(self)
 	var scroll := get_node_or_null("SafeArea/VBox/Scroll") as ScrollContainer
 	if scroll:
@@ -97,8 +112,7 @@ func build_grid() -> void:
 			
 		var card = preload("res://scenes/level_select/level_node_ui.gd").new()
 		card.custom_minimum_size = Vector2(90, 90)
-		card.add_theme_font_size_override("font_size", 22)
-		
+		card.level_number = lvl
 		card.is_unlocked = is_unlocked
 		card.is_cleared = is_cleared
 		card.is_perfect = is_perfect
@@ -106,9 +120,6 @@ func build_grid() -> void:
 		
 		if not is_unlocked:
 			card.disabled = true
-			card.text = ""
-		else:
-			card.text = str(lvl)
 			
 		# S-curve calculation for custom positioning (bottom to top)
 		# map_height - (lvl * vertical_spacing) makes level 1 at the bottom
@@ -132,14 +143,14 @@ func build_grid() -> void:
 		
 		journey_map.add_child(card)
 		
-	# Draw lines connecting the nodes? We can add a custom CanvasItem behind them
+	# Draw lines connecting the nodes behind them
 	var path_drawer = Node2D.new()
 	journey_map.add_child(path_drawer)
 	journey_map.move_child(path_drawer, 0)
 	path_drawer.set_script(preload("res://scenes/level_select/journey_path_drawer.gd"))
-	path_drawer.setup_path(total_levels, vertical_spacing, horizontal_amp, map_height, x_base)
+	path_drawer.setup_path(total_levels, vertical_spacing, horizontal_amp, map_height, x_base, frontier)
 		
-	progress_lbl.text = "%d / %d Cleared" % [cleared_count, total_levels]
+	progress_lbl.text = "✦ %d / %d Cleared" % [cleared_count, total_levels]
 	
 	# Scroll to the highest unlocked level
 	var highest_unlocked: int = playable_ids[0]

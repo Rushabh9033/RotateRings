@@ -23,17 +23,17 @@ grow_vertical = 2
 color = Color(0.03, 0.04, 0.06, 0.78)
 
 [node name="Panel" type="Panel" parent="."]
-custom_minimum_size = Vector2(520, 420)
+custom_minimum_size = Vector2(540, 520)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -260.0
-offset_top = -230.0
-offset_right = 260.0
-offset_bottom = 230.0
+offset_left = -270.0
+offset_top = -260.0
+offset_right = 270.0
+offset_bottom = 260.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -42,10 +42,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = 24.0
-offset_right = -24.0
-offset_bottom = -24.0
+offset_left = 28.0
+offset_top = 28.0
+offset_right = -28.0
+offset_bottom = -28.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 16
@@ -53,37 +53,70 @@ alignment = 1
 
 [node name="Title" type="Label" parent="Panel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.909804, 0.894118, 0.854902, 1)
-theme_override_font_sizes/font_size = 28
-text = "You did it"
+theme_override_font_sizes/font_size = 32
+text = "Level Complete!"
 horizontal_alignment = 1
 
-[node name="ScoreLbl" type="Label" parent="Panel/VBox"]
+[node name="StarsRow" type="HBoxContainer" parent="Panel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.909804, 0.894118, 0.854902, 1)
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="Star1" type="TextureRect" parent="Panel/VBox/StarsRow"]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Star2" type="TextureRect" parent="Panel/VBox/StarsRow"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Star3" type="TextureRect" parent="Panel/VBox/StarsRow"]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ScorePill" type="PanelContainer" parent="Panel/VBox"]
+custom_minimum_size = Vector2(280, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="ScoreLbl" type="Label" parent="Panel/VBox/ScorePill"]
+layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Moves: 0 / Par: 0"
+text = "Moves: 0  •  Par: 0"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Subtitle" type="Label" parent="Panel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.552941, 0.592157, 0.643137, 1)
-theme_override_font_sizes/font_size = 16
-text = "The ring is free."
+theme_override_font_sizes/font_size = 15
+text = "The rings are free!"
 horizontal_alignment = 1
 autowrap_mode = 2
 
 [node name="NextBtn" type="Button" parent="Panel/VBox"]
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-text = "Level 2"
+text = "NEXT LEVEL  ▶"
 
-[node name="ReplayBtn" type="Button" parent="Panel/VBox"]
-custom_minimum_size = Vector2(0, 48)
+[node name="BtnRow" type="HBoxContainer" parent="Panel/VBox"]
 layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="ReplayBtn" type="Button" parent="Panel/VBox/BtnRow"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+size_flags_horizontal = 3
 text = "Replay"
 
-[node name="LevelsBtn" type="Button" parent="Panel/VBox"]
-custom_minimum_size = Vector2(0, 48)
+[node name="LevelsBtn" type="Button" parent="Panel/VBox/BtnRow"]
+custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Level map"

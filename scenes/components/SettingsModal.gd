@@ -39,7 +39,19 @@ func _ready() -> void:
 	motion_check.toggled.connect(func(toggled: bool):
 		if save_service: save_service.set_setting("reduced_motion", toggled)
 	)
+	var confirm_reset := false
 	reset_btn.pressed.connect(func():
+		if not confirm_reset:
+			confirm_reset = true
+			reset_btn.text = "Tap again to confirm reset"
+			get_tree().create_timer(3.0).timeout.connect(func():
+				confirm_reset = false
+				if is_instance_valid(reset_btn):
+					reset_btn.text = "Reset progress"
+			)
+			return
+		confirm_reset = false
+		reset_btn.text = "Reset progress"
 		if save_service: save_service.reset_all_progress()
 		if audio_service: audio_service.play_ui_tap()
 		progress_reset.emit()

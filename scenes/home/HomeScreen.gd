@@ -28,26 +28,33 @@ func _ready() -> void:
 	hero.name = "Hero"
 	$SafeArea/VBox.add_child(hero)
 	$SafeArea/VBox.move_child(hero, 0)
-	UiTheme.paint_button(continue_btn, "primary", UiTheme.FONT_HEAD)
+	
+	update_continue_info()
+	UiTheme.paint_button(continue_btn, "primary", UiTheme.FONT_HEAD + 2)
 	UiTheme.paint_button(levels_btn, "secondary", UiTheme.FONT_BODY)
+	UiTheme.paint_button(settings_btn, "secondary", UiTheme.FONT_BODY)
 	UiTheme.paint_button(editor_btn, "secondary", UiTheme.FONT_BODY)
+	
 	editor_btn.pressed.connect(func():
 		if audio_service and audio_service.has_method("play_ui_tap"):
 			audio_service.play_ui_tap()
 		editor_pressed.emit()
 	)
-	UiTheme.paint_button(settings_btn, "secondary", UiTheme.FONT_BODY)
-	UiTheme.paint_label($SafeArea/VBox/Header/Logo, UiTheme.FONT_DISPLAY)
-	UiTheme.paint_label($SafeArea/VBox/Header/Tagline, 18, true)
-	UiTheme.paint_label(continue_subtitle, UiTheme.FONT_CAPTION, true)
-	var rule := get_node_or_null("SafeArea/VBox/Header/Rule") as ColorRect
-	if rule:
-		rule.color = UiTheme.ACCENT
-		rule.custom_minimum_size = Vector2(88, 8)
+	
+	var header = $SafeArea/VBox/Header
+	for ch in header.get_children():
+		ch.visible = false
+	var title_logo = preload("res://app/home_title_logo.gd").new()
+	header.add_child(title_logo)
+	if is_instance_valid(continue_subtitle):
+		UiTheme.paint_label(continue_subtitle, UiTheme.FONT_CAPTION, true)
+		continue_subtitle.visible = false
 	UiTheme.apply_font(self)
+	
 	modulate.a = 0.0
 	var intro := create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	intro.tween_property(self, "modulate:a", 1.0, 0.28)
+	
 	continue_btn.pressed.connect(func():
 		if audio_service: audio_service.play_ui_tap()
 		var target := get_continue_level()
@@ -69,4 +76,7 @@ func get_continue_level() -> int:
 
 func update_continue_info() -> void:
 	var lvl := get_continue_level()
-	continue_subtitle.text = "Level %d" % lvl
+	if is_instance_valid(continue_subtitle):
+		continue_subtitle.text = "Level %d" % lvl
+	if is_instance_valid(continue_btn):
+		continue_btn.text = "PLAY  •  LEVEL %d" % lvl

@@ -48,16 +48,19 @@ func setup(save_svc: Node, audio_svc: Node, haptic_svc: Node) -> void:
 	audio_service = audio_svc
 	haptic_service = haptic_svc
 
-	puzzle_controller.setup(audio_service, haptic_service, save_service)
-	pause_modal.setup(save_service)
-	# Edit overlay is fully inert until toggle(true) is called. Wire the puzzle
-	# controller reference so the overlay can read/write piece data on drag-end.
-	edit_overlay.set_puzzle(puzzle_controller)
-	# Inject the active level id so the overlay's _save_all_pieces() can write
-	# to res://data/user_levels/<n>.json without walking the parent chain.
-	edit_overlay.set_level_id(current_level_id)
+	if puzzle_controller != null and pause_modal != null and edit_overlay != null:
+		puzzle_controller.setup(audio_service, haptic_service, save_service)
+		pause_modal.setup(save_service)
+		edit_overlay.set_puzzle(puzzle_controller)
+		edit_overlay.set_level_id(current_level_id)
 
 func _ready() -> void:
+	if save_service != null and puzzle_controller != null and pause_modal != null and edit_overlay != null:
+		puzzle_controller.setup(audio_service, haptic_service, save_service)
+		pause_modal.setup(save_service)
+		edit_overlay.set_puzzle(puzzle_controller)
+		edit_overlay.set_level_id(current_level_id)
+
 	pause_modal.z_index = 100
 	pause_modal.z_as_relative = false
 	victory_modal.z_index = 100
@@ -171,10 +174,9 @@ func _apply_chrome() -> void:
 	if back_btn:
 		UiTheme.squircle_button(back_btn)
 	if pause_btn:
-		pause_btn.custom_minimum_size = Vector2(54, 54)
+		pause_btn.custom_minimum_size = Vector2(56, 56)
+		pause_btn.text = "settings"
 		UiTheme.squircle_button(pause_btn)
-		pause_btn.text = "⚙"
-		pause_btn.add_theme_font_size_override("font_size", 26)
 	if edit_btn:
 		edit_btn.custom_minimum_size = Vector2(64, 48)
 		UiTheme.squircle_button(edit_btn)
@@ -224,7 +226,7 @@ func _apply_chrome() -> void:
 
 	var hammer_card := get_node_or_null("SafeArea/BottomHUD/HammerCard") as PanelContainer
 	if hammer_card and hammer_btn:
-		_mount_powerup_card(hammer_card, hammer_btn, load("res://art/tools/hammer_tool.png"), "3")
+		_mount_powerup_card(hammer_card, hammer_btn, load("res://art/tools/hammer_tool.png"), "locked")
 
 	UiTheme.apply_font(self)
 
@@ -567,11 +569,16 @@ func _mount_powerup_card(card: PanelContainer, btn: Button, tex: Texture2D, coun
 		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(badge)
 	badge.visible = true
-	badge.custom_minimum_size = Vector2(30, 30)
+	badge.custom_minimum_size = Vector2(28, 28)
 	badge.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	badge.size_flags_horizontal = Control.SIZE_SHRINK_END
 	badge.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	badge.add_theme_stylebox_override("panel", UiTheme.red_badge())
+	
+	var is_locked := (count_str == "locked" or count_str == "Locked" or btn.disabled)
+	if is_locked:
+		badge.add_theme_stylebox_override("panel", UiTheme.gray_badge())
+	else:
+		badge.add_theme_stylebox_override("panel", UiTheme.red_badge())
 	
 	var badge_lbl := badge.get_node_or_null("BadgeLbl") as Label
 	if badge_lbl == null:
@@ -580,9 +587,9 @@ func _mount_powerup_card(card: PanelContainer, btn: Button, tex: Texture2D, coun
 		badge_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		badge_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		badge.add_child(badge_lbl)
-	badge_lbl.text = count_str
+	badge_lbl.text = "🔒" if is_locked else count_str
 	badge_lbl.add_theme_font_override("font", UiTheme.rounded_font())
-	badge_lbl.add_theme_font_size_override("font_size", 16)
+	badge_lbl.add_theme_font_size_override("font_size", 13 if is_locked else 16)
 	badge_lbl.add_theme_color_override("font_color", Color.WHITE)
 	
 	# Tactile spring bounce on press
