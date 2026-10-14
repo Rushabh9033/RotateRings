@@ -14,14 +14,14 @@ signal edit_level_requested(level_id: int)
 
 @onready var puzzle_controller = $PuzzleArea/PuzzleController
 @onready var edit_overlay = $PuzzleArea/PieceEditOverlay
-@onready var pause_btn: Button = $SafeArea/TopHUD/PauseBtn
-@onready var edit_btn: Button = $SafeArea/TopHUD/EditBtn
-@onready var back_btn: Button = $SafeArea/TopHUD/BackBtn
-@onready var level_prefix: Label = $SafeArea/TopHUD/LevelBox/LevelPrefix
-@onready var level_num_lbl: Label = $SafeArea/TopHUD/LevelBox/LevelNum
-@onready var score_lbl: Label = $SafeArea/TopHUD/CenterHUD/ScorePill/ScoreLbl
-@onready var rocket_btn: Button = $SafeArea/BottomHUD/RocketCard/RocketBtn
-@onready var hammer_btn: Button = $SafeArea/BottomHUD/HammerCard/HammerBtn
+@onready var pause_btn: Button = find_child("PauseBtn", true, false) as Button
+@onready var edit_btn: Button = find_child("EditBtn", true, false) as Button
+@onready var back_btn: Button = find_child("BackBtn", true, false) as Button
+@onready var level_prefix: Label = find_child("LevelPrefix", true, false) as Label
+@onready var level_num_lbl: Label = find_child("LevelNum", true, false) as Label
+@onready var score_lbl: Label = find_child("ScoreLbl", true, false) as Label
+@onready var rocket_btn: Button = find_child("RocketBtn", true, false) as Button
+@onready var hammer_btn: Button = find_child("HammerBtn", true, false) as Button
 
 @onready var pause_modal = $PauseModal
 @onready var victory_modal = $VictoryModal
@@ -210,38 +210,34 @@ func _apply_chrome() -> void:
 		level_prefix.text = "Level"
 		level_prefix.add_theme_font_override("font", UiTheme.rounded_font())
 		level_prefix.add_theme_font_size_override("font_size", 16)
-		level_prefix.add_theme_color_override("font_color", UiTheme.WARM_INK)
+		level_prefix.add_theme_color_override("font_color", Color("7E4839"))
+		level_prefix.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if level_num_lbl:
 		level_num_lbl.text = str(current_level_id)
 		level_num_lbl.add_theme_font_override("font", UiTheme.rounded_font())
 		level_num_lbl.add_theme_font_size_override("font_size", 28)
-		level_num_lbl.add_theme_color_override("font_color", UiTheme.WARM_INK)
+		level_num_lbl.add_theme_color_override("font_color", Color("7E4839"))
+		level_num_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 	# Center Moves Pill
-	var pill := get_node_or_null("SafeArea/TopHUD/CenterHUD/ScorePill") as PanelContainer
+	var pill := find_child("ScorePill", true, false) as PanelContainer
 	if pill:
 		pill.custom_minimum_size = Vector2(230, 52)
 		pill.add_theme_stylebox_override("panel", UiTheme.warm_pill())
 	if score_lbl:
 		score_lbl.add_theme_font_override("font", UiTheme.rounded_font())
 		score_lbl.add_theme_font_size_override("font_size", 30)
-		score_lbl.add_theme_color_override("font_color", UiTheme.WARM_INK)
+		score_lbl.add_theme_color_override("font_color", Color("543324"))
 		score_lbl.text = "0"
 
-	# CenterHUD Subtitle "Game Rush"
-	var center_hud := get_node_or_null("SafeArea/TopHUD/CenterHUD") as VBoxContainer
-	if center_hud:
-		center_hud.add_theme_constant_override("separation", 10)
-		var sub := center_hud.get_node_or_null("RushSubtitle") as Label
-		if sub == null:
-			sub = Label.new()
-			sub.name = "RushSubtitle"
-			sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			center_hud.add_child(sub)
+	# Center Subtitle "Game Rush"
+	var sub := find_child("RushSubtitle", true, false) as Label
+	if sub:
 		sub.text = "Game Rush"
 		sub.add_theme_font_override("font", UiTheme.rounded_font())
 		sub.add_theme_font_size_override("font_size", 16)
 		sub.add_theme_color_override("font_color", Color("CC181E"))
+		sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 	# Bottom HUD Power-up Cards
 	var rocket_card := get_node_or_null("SafeArea/BottomHUD/RocketCard") as PanelContainer
@@ -272,7 +268,7 @@ func _on_piece_count_updated(remaining: int) -> void:
 func _on_moves_updated(moves: int, par_moves: int) -> void:
 	score_lbl.text = str(moves)
 
-	var pill = get_node_or_null("SafeArea/TopHUD/CenterHUD/ScorePill")
+	var pill = find_child("ScorePill", true, false)
 	if pill and moves > 0:
 		var ptween = create_tween().set_trans(Tween.TRANS_SPRING).set_ease(Tween.EASE_OUT)
 		pill.pivot_offset = pill.size / 2.0

@@ -94,76 +94,105 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 44
-theme_override_constants/margin_right = 32
+theme_override_constants/margin_left = 44
+theme_override_constants/margin_top = 54
+theme_override_constants/margin_right = 44
 theme_override_constants/margin_bottom = 44
 
-[node name="TopHUD" type="HBoxContainer" parent="SafeArea"]
+[node name="TopHUD" type="VBoxContainer" parent="SafeArea"]
 layout_mode = 2
 size_flags_vertical = 0
 mouse_filter = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 14
 
-[node name="BackBtn" type="Button" parent="SafeArea/TopHUD"]
+[node name="TopRow" type="HBoxContainer" parent="SafeArea/TopHUD"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="LeftCol" type="HBoxContainer" parent="SafeArea/TopHUD/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="BackBtn" type="Button" parent="SafeArea/TopHUD/TopRow/LeftCol"]
 visible = false
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 size_flags_vertical = 4
 text = "‹"
 
-[node name="LevelBox" type="VBoxContainer" parent="SafeArea/TopHUD"]
-custom_minimum_size = Vector2(90, 60)
+[node name="LevelBox" type="VBoxContainer" parent="SafeArea/TopHUD/TopRow/LeftCol"]
+custom_minimum_size = Vector2(72, 56)
 layout_mode = 2
 size_flags_horizontal = 0
+size_flags_vertical = 4
 alignment = 1
-theme_override_constants/separation = -2
+theme_override_constants/separation = 0
 
-[node name="LevelPrefix" type="Label" parent="SafeArea/TopHUD/LevelBox"]
+[node name="LevelPrefix" type="Label" parent="SafeArea/TopHUD/TopRow/LeftCol/LevelBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.62, 0.45, 0.35, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.494118, 0.282353, 0.223529, 1)
+theme_override_font_sizes/font_size = 17
 text = "Level"
+horizontal_alignment = 1
 
-[node name="LevelNum" type="Label" parent="SafeArea/TopHUD/LevelBox"]
+[node name="LevelNum" type="Label" parent="SafeArea/TopHUD/TopRow/LeftCol/LevelBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.3, 0.2, 0.15, 1)
-theme_override_font_sizes/font_size = 32
-text = "3"
+theme_override_colors/font_color = Color(0.494118, 0.282353, 0.223529, 1)
+theme_override_font_sizes/font_size = 28
+text = "4"
+horizontal_alignment = 1
 
-[node name="CenterHUD" type="VBoxContainer" parent="SafeArea/TopHUD"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-
-[node name="ScorePill" type="PanelContainer" parent="SafeArea/TopHUD/CenterHUD"]
-custom_minimum_size = Vector2(210, 50)
+[node name="ScorePill" type="PanelContainer" parent="SafeArea/TopHUD/TopRow"]
+custom_minimum_size = Vector2(230, 52)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("StyleBoxFlat_score_pill")
 
-[node name="ScoreLbl" type="Label" parent="SafeArea/TopHUD/CenterHUD/ScorePill"]
+[node name="ScoreLbl" type="Label" parent="SafeArea/TopHUD/TopRow/ScorePill"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.35, 0.22, 0.12, 1)
-theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.329412, 0.2, 0.141176, 1)
+theme_override_font_sizes/font_size = 30
 text = "0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="PauseBtn" type="Button" parent="SafeArea/TopHUD"]
+[node name="RightCol" type="HBoxContainer" parent="SafeArea/TopHUD/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="RightSpacer" type="Control" parent="SafeArea/TopHUD/TopRow/RightCol"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="PauseBtn" type="Button" parent="SafeArea/TopHUD/TopRow/RightCol"]
 custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 4
 
-[node name="EditBtn" type="Button" parent="SafeArea/TopHUD"]
+[node name="EditBtn" type="Button" parent="SafeArea/TopHUD/TopRow/RightCol"]
 visible = false
 custom_minimum_size = Vector2(72, 52)
 layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 4
 text = "Edit"
+
+[node name="RushSubtitle" type="Label" parent="SafeArea/TopHUD"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.0941176, 0.117647, 1)
+theme_override_font_sizes/font_size = 16
+text = "Game Rush"
+horizontal_alignment = 1
 
 [node name="BottomHUD" type="HBoxContainer" parent="SafeArea"]
 layout_mode = 2

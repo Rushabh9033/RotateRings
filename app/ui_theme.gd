@@ -113,16 +113,16 @@ static func pill() -> StyleBoxFlat:
 
 static func warm_pill() -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()
-	box.bg_color = WARM_PILL_BG
-	box.border_color = WARM_PILL_BORDER
-	box.set_border_width_all(2)
+	box.bg_color = Color("FDE8D0")
+	box.border_color = Color("F0D2B7")
+	box.set_border_width_all(1)
 	box.border_width_bottom = 3
-	box.set_corner_radius_all(24)
-	box.content_margin_left = 28.0
-	box.content_margin_right = 28.0
-	box.content_margin_top = 8.0
-	box.content_margin_bottom = 8.0
-	box.shadow_color = Color(0.42, 0.24, 0.12, 0.10)
+	box.set_corner_radius_all(26)
+	box.content_margin_left = 32.0
+	box.content_margin_right = 32.0
+	box.content_margin_top = 4.0
+	box.content_margin_bottom = 4.0
+	box.shadow_color = Color(0.42, 0.24, 0.12, 0.08)
 	box.shadow_size = 6
 	box.shadow_offset = Vector2(0, 3)
 	return box
