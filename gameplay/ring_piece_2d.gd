@@ -57,14 +57,14 @@ var _c_specular := Color(1.0, 1.0, 1.0, 0.38)
 var _c_inner_dark := Color.WHITE
 
 func _precompute_colors() -> void:
-	_c_shadow_soft = Color(0.12, 0.08, 0.06, 0.08)
-	_c_shadow_mid = Color(0.12, 0.08, 0.06, 0.16)
-	_c_dark = ring_color.darkened(0.28)
+	_c_shadow_soft = Color(0.14, 0.09, 0.06, 0.22)
+	_c_shadow_mid = Color(0.14, 0.09, 0.06, 0.35)
+	_c_dark = ring_color.darkened(0.32)
 	_c_main = ring_color.lightened(0.02)
 	_c_light = ring_color.lightened(0.36)
 	_c_light.a = 0.65
 	_c_specular = Color(1.0, 1.0, 1.0, 0.38)
-	_c_inner_dark = ring_color.darkened(0.22)
+	_c_inner_dark = ring_color.darkened(0.25)
 	_c_inner_dark.a = 0.7
 
 func _on_state_changed(old: State, new: State) -> void:
@@ -216,9 +216,9 @@ func _b(local_angle_rad: float) -> float:
 	return PieceGeometry.get_boundary_distance(shape_type, radius, local_angle_rad)
 
 func _draw_ring_arc(center: Vector2, r: float, a_start: float, a_end: float, segs: int, cap_r: float, is_closed: bool, shape_type: int) -> void:
-	segs = 72
+	segs = 160
 
-	# 1. Soft smooth drop shadow
+	# 1. Richer, deeper contact drop shadow
 	var shadow_mult := shadow_offset_mult
 	var shadow_off := Vector2(0, 5.0) * shadow_mult
 	_draw_poly_arc(center + shadow_off, r, a_start, a_end, segs, _c_shadow_soft, thickness + 4.0, shape_type)
@@ -228,39 +228,58 @@ func _draw_ring_arc(center: Vector2, r: float, a_start: float, a_end: float, seg
 		draw_circle(p_start_s, cap_r + 2.0, _c_shadow_soft)
 		draw_circle(p_end_s, cap_r + 2.0, _c_shadow_soft)
 
-	# 2. Main rich vibrant tube
+	# 2. Darker outer contour rim around the tube for crisp, solid separation
+	_draw_poly_arc(center, r, a_start, a_end, segs, _c_dark, thickness + 2.4, shape_type)
+	if not is_closed:
+		var p_start_d := center + Vector2.from_angle(a_start) * _b(a_start)
+		var p_end_d := center + Vector2.from_angle(a_end) * _b(a_end)
+		draw_circle(p_start_d, cap_r + 1.2, _c_dark)
+		draw_circle(p_end_d, cap_r + 1.2, _c_dark)
+
+	# 3. Main rich vibrant tube
 	_draw_poly_arc(center, r, a_start, a_end, segs, _c_main, thickness, shape_type)
 	if not is_closed:
 		var p_start := center + Vector2.from_angle(a_start) * _b(a_start)
 		var p_end := center + Vector2.from_angle(a_end) * _b(a_end)
 		draw_circle(p_start, cap_r, _c_main)
+		draw_arc(p_start, cap_r, 0, TAU, 36, _c_main, 1.2, true)
 		draw_circle(p_end, cap_r, _c_main)
+		draw_arc(p_end, cap_r, 0, TAU, 36, _c_main, 1.2, true)
 
-	# 3. Soft subtle top light sheen (cylindrical softness, no sharp white specular)
+	# 4. Soft subtle top light sheen (cylindrical softness, no sharp white specular)
 	var off_hl := Vector2(-0.8, -1.2)
-	var hl_w := thickness * 0.50
+	var hl_w := thickness * 0.48
 	_draw_poly_arc(center + off_hl, r, a_start, a_end, segs, _c_light, hl_w, shape_type)
 	if not is_closed:
 		var p_start_hl := center + off_hl * 0.6 + Vector2.from_angle(a_start) * _b(a_start)
 		var p_end_hl := center + off_hl * 0.6 + Vector2.from_angle(a_end) * _b(a_end)
-		draw_circle(p_start_hl, cap_r * 0.55, _c_light)
-		draw_circle(p_end_hl, cap_r * 0.55, _c_light)
+		draw_circle(p_start_hl, cap_r * 0.52, _c_light)
+		draw_circle(p_end_hl, cap_r * 0.52, _c_light)
 
 func _draw_poly_arc(center: Vector2, r: float, a_start: float, a_end: float, segs: int, color: Color, line_width: float, shape_type: int) -> void:
 	# Build a closed filled band: outer edge (r + half_t) and inner edge (r - half_t)
 	var half_t: float = line_width * 0.5
-	var pts = PackedVector2Array()
+	var pts := PackedVector2Array()
+	var outer_pts := PackedVector2Array()
+	var inner_pts := PackedVector2Array()
 	var step: float = (a_end - a_start) / float(segs)
 	for i in range(segs + 1):
 		var theta: float = a_start + step * i
 		var dist: float = _b(theta) + half_t
-		pts.append(center + Vector2(cos(theta), sin(theta)) * dist)
+		var p := center + Vector2(cos(theta), sin(theta)) * dist
+		pts.append(p)
+		outer_pts.append(p)
 	for i in range(segs, -1, -1):
 		var theta2: float = a_start + step * i
 		var dist2: float = maxf(0.0, _b(theta2) - half_t)
-		pts.append(center + Vector2(cos(theta2), sin(theta2)) * dist2)
+		var p := center + Vector2(cos(theta2), sin(theta2)) * dist2
+		pts.append(p)
+		inner_pts.append(p)
 	if pts.size() >= 3:
 		draw_colored_polygon(pts, color)
+		# Smooth anti-aliased edge curves on inner and outer boundaries
+		draw_polyline(outer_pts, color, 1.2, true)
+		draw_polyline(inner_pts, color, 1.2, true)
 
 func _get_l_points() -> PackedVector2Array:
 	var pts := PackedVector2Array()
@@ -330,10 +349,13 @@ func _draw_l_shape() -> void:
 	var pts_shadow := _offset_points(pts_smooth, shadow_off)
 	_draw_polyline_caps(pts_shadow, _c_shadow_soft, thickness + 4.0, cap_r + 2.0)
 
-	# 2. Main smooth tube body
+	# 2. Darker outer contour rim
+	_draw_polyline_caps(pts_smooth, _c_dark, thickness + 2.4, cap_r + 1.2)
+
+	# 3. Main smooth tube body
 	_draw_polyline_caps(pts_smooth, _c_main, thickness, cap_r)
 
-	# 3. Soft upper cylindrical light sheen (no harsh specular line)
+	# 4. Soft upper cylindrical light sheen (no harsh specular line)
 	var off_hl := Vector2(-0.8, -1.2)
 	var pts_hl := _offset_points(pts_smooth, off_hl)
 	_draw_polyline_caps(pts_hl, _c_light, thickness * 0.50, cap_r * 0.55)

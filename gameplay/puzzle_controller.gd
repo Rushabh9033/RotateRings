@@ -588,11 +588,11 @@ func _on_cuffs_layer_draw(ci: CanvasItem) -> void:
 		if is_instance_valid(to_p) and "thickness" in to_p:
 			child_thick = float(to_p.thickness)
 
-		var sleeve_tangent_span: float = 42.0
-		var sleeve_radial_depth: float = maxf(40.0, child_thick + 16.0)
+		var sleeve_tangent_span: float = 34.0
+		var sleeve_radial_depth: float = maxf(29.0, child_thick + 7.0)
 		var half_st := sleeve_tangent_span * 0.5
 		var half_rd := sleeve_radial_depth * 0.5
-		var cuff_corner_r := 7.0
+		var cuff_corner_r := 5.0
 
 		ci.draw_set_transform(pos_cuff, tangent.angle(), Vector2.ONE)
 

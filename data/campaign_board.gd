@@ -3758,6 +3758,8 @@ static func _walk(node: Dictionary, pos: Vector2, flat: Array, edges: Array) -> 
 	for pair in locks:
 		if placed.is_empty():
 			break  # defensive: skip locks for nodes with no placed children
+		if not (pair is Array) or pair.size() < 2:
+			continue
 		var a_idx: int = int(pair[0])
 		var b_idx: int = int(pair[1])
 		if a_idx >= placed.size() or b_idx >= placed.size():
@@ -3767,6 +3769,8 @@ static func _walk(node: Dictionary, pos: Vector2, flat: Array, edges: Array) -> 
 		edges.append([lock_a.idx, lock_b.idx])
 	if not node.extra.is_empty() and not placed.is_empty():
 		for pair in node.extra:
+			if not (pair is Array) or pair.size() < 2:
+				continue
 			var a_idx: int = int(pair[0])
 			var b_idx: int = int(pair[1])
 			if a_idx >= placed.size() or b_idx >= placed.size():
