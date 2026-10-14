@@ -2,6 +2,7 @@ extends SceneTree
 
 const PuzzleRules = preload("res://gameplay/puzzle_rules.gd")
 const PieceGeometry = preload("res://gameplay/piece_geometry.gd")
+const PuzzleStateScript = preload("res://gameplay/puzzle_state.gd")
 
 func _init():
 	var passed := 0
@@ -31,7 +32,7 @@ func _init():
 
 	# Test C: State cloning determinism
 	total += 1
-	var s1 = PuzzleState.new()
+	var s1 = PuzzleStateScript.new()
 	s1.pieces["ring_0"] = {"rotation_deg": 45.0, "released": false}
 	var s2 = s1.clone()
 	s2.pieces["ring_0"]["rotation_deg"] = 90.0

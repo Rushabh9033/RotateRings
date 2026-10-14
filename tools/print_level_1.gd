@@ -1,9 +1,9 @@
 extends SceneTree
-const Board = preload("res://data/campaign_board.gd")
 func _init():
+    var Board = load("res://data/campaign_board.gd")
     var def = Board.build(1)
-    for piece in def.pieces:
-        print(piece.id, " r=", piece.radius, " thick=", piece.thickness, " pos=", piece.position)
-    for link in def.links:
-        print(link.from_piece_id, " to ", link.to_piece_id, " stem_dist=", link.stem_dist)
+    for p in def.pieces:
+        print("PIECE: ", p.id, " gaps=", p.gaps.size(), " shape=", p.shape_type)
+    for l in def.links:
+        print("LINK: ", l.def.from_piece_id, " -> ", l.def.to_piece_id)
     quit()

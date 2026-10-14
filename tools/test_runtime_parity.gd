@@ -37,7 +37,7 @@ func _init():
 		var runtime_links: Array = built.links
 		
 		# Resolve initial releases on spawn
-		PuzzleRules.resolve_releases(runtime_pieces, runtime_links)
+		PuzzleRules.initialize_puzzle_state(runtime_pieces, runtime_links)
 		
 		var runtime_ok := true
 		var step_count := 0
