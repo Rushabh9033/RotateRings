@@ -1,0 +1,814 @@
+{
+  "id": 22,
+  "title": "Level 22",
+  "par_moves": 22,
+  "theme_id": "porcelain",
+  "pieces": [
+    {
+      "id": "red_giant_ring",
+      "color_name": "red",
+      "color_hex": "#EB5757",
+      "x": 351.1,
+      "y": 601.3,
+      "start_angle_deg": 0.0,
+      "radius": 185.0,
+      "radius_y": 185.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 120.0,
+          "width_deg": 48.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "blue_top_hub",
+      "color_name": "blue",
+      "color_hex": "#2F80ED",
+      "x": 350.0,
+      "y": 346.9,
+      "start_angle_deg": 0.0,
+      "radius": 45.0,
+      "radius_y": 45.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 0,
+      "role": 1,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "motion_model": 0,
+      "gaps": [],
+      "blockers": []
+    },
+    {
+      "id": "orange_tl_ring",
+      "color_name": "orange",
+      "color_hex": "#EA7829",
+      "x": 187.1,
+      "y": 288.0,
+      "start_angle_deg": 0.0,
+      "radius": 42.0,
+      "radius_y": 42.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": -1.0,
+        "y": -1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 270.0,
+          "width_deg": 110.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "purple_tl_ring",
+      "color_name": "purple",
+      "color_hex": "#9B51E0",
+      "x": 142.9,
+      "y": 387.9,
+      "start_angle_deg": 0.0,
+      "radius": 44.0,
+      "radius_y": 44.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": -1.0,
+        "y": 0.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 180.0,
+          "width_deg": 110.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "green_inner",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "x": 351.1,
+      "y": 535.0,
+      "start_angle_deg": 0.0,
+      "radius": 49.0,
+      "radius_y": 49.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 2,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 270.0,
+          "width_deg": 110.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "orange_inner",
+      "color_name": "orange",
+      "color_hex": "#EA7829",
+      "x": 289.1,
+      "y": 645.4,
+      "start_angle_deg": 0.0,
+      "radius": 49.0,
+      "radius_y": 49.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 2,
+      "has_acorn": false,
+      "release_direction": {
+        "x": -1.0,
+        "y": 1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 90.0,
+          "width_deg": 110.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": [
+        {
+          "angle_deg": 180.0,
+          "length": 20.0,
+          "width": 14.0
+        }
+      ]
+    },
+    {
+      "id": "cyan_inner",
+      "color_name": "cyan",
+      "color_hex": "#2BBBEF",
+      "x": 415.2,
+      "y": 645.4,
+      "start_angle_deg": 0.0,
+      "radius": 49.0,
+      "radius_y": 49.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 2,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 1.0,
+        "y": 1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 0.0,
+          "width_deg": 110.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "blue_br_ring",
+      "color_name": "blue",
+      "color_hex": "#2F80ED",
+      "x": 503.6,
+      "y": 807.4,
+      "start_angle_deg": 0.0,
+      "radius": 46.0,
+      "radius_y": 46.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 1.0,
+        "y": 1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 45.0,
+          "width_deg": 110.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "red_slider_left",
+      "color_name": "red",
+      "color_hex": "#EB5757",
+      "x": 142.9,
+      "y": 434.1,
+      "start_angle_deg": 0.0,
+      "radius": 45.0,
+      "radius_y": 45.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "release_direction": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 90.0,
+      "path_points": [
+        {
+          "x": 0.0,
+          "y": 0.0
+        },
+        {
+          "x": -64.1,
+          "y": 0.0
+        },
+        {
+          "x": -64.1,
+          "y": 148.2
+        }
+      ],
+      "sleeves": [],
+      "gaps": []
+    },
+    {
+      "id": "orange_slider_left",
+      "color_name": "orange",
+      "color_hex": "#EA7829",
+      "x": 110.4,
+      "y": 645.4,
+      "start_angle_deg": 0.0,
+      "radius": 45.0,
+      "radius_y": 45.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "release_direction": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 120.0,
+      "path_points": [
+        {
+          "x": 36.8,
+          "y": -162.9
+        },
+        {
+          "x": 0.0,
+          "y": -162.9
+        },
+        {
+          "x": 0.0,
+          "y": 162.9
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 110.4,
+          "y": 645.4,
+          "axis": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "cyan_slider_tl",
+      "color_name": "cyan",
+      "color_hex": "#2BBBEF",
+      "x": 257.5,
+      "y": 340.6,
+      "start_angle_deg": 0.0,
+      "radius": 45.0,
+      "radius_y": 45.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "release_direction": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 100.0,
+      "path_points": [
+        {
+          "x": 0.0,
+          "y": -152.4
+        },
+        {
+          "x": 0.0,
+          "y": 0.0
+        },
+        {
+          "x": -42.0,
+          "y": 0.0
+        }
+      ],
+      "sleeves": [],
+      "gaps": []
+    },
+    {
+      "id": "green_slider_tr",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "x": 436.2,
+      "y": 340.6,
+      "start_angle_deg": 0.0,
+      "radius": 45.0,
+      "radius_y": 45.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "release_direction": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 90.0,
+      "path_points": [
+        {
+          "x": 0.0,
+          "y": -94.6
+        },
+        {
+          "x": 0.0,
+          "y": 0.0
+        },
+        {
+          "x": 42.0,
+          "y": 0.0
+        }
+      ],
+      "sleeves": [],
+      "gaps": []
+    },
+    {
+      "id": "blue_slider_tr",
+      "color_name": "blue",
+      "color_hex": "#2F80ED",
+      "x": 512.9,
+      "y": 436.2,
+      "start_angle_deg": 0.0,
+      "radius": 45.0,
+      "radius_y": 45.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "release_direction": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 90.0,
+      "path_points": [
+        {
+          "x": -45.2,
+          "y": -284.8
+        },
+        {
+          "x": -45.2,
+          "y": -169.2
+        },
+        {
+          "x": 0.0,
+          "y": -169.2
+        },
+        {
+          "x": 0.0,
+          "y": 41.0
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 512.9,
+          "y": 436.2,
+          "axis": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "red_slider_tr",
+      "color_name": "red",
+      "color_hex": "#EB5757",
+      "x": 543.4,
+      "y": 395.2,
+      "start_angle_deg": 0.0,
+      "radius": 45.0,
+      "radius_y": 45.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "release_direction": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 90.0,
+      "path_points": [
+        {
+          "x": -54.7,
+          "y": -207.1
+        },
+        {
+          "x": 0.0,
+          "y": -207.1
+        },
+        {
+          "x": 0.0,
+          "y": 166.1
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 543.4,
+          "y": 395.2,
+          "axis": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "green_slider_mr",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "x": 599.1,
+      "y": 465.7,
+      "start_angle_deg": 0.0,
+      "radius": 45.0,
+      "radius_y": 45.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "release_direction": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 90.0,
+      "path_points": [
+        {
+          "x": 0.0,
+          "y": -98.8
+        },
+        {
+          "x": 0.0,
+          "y": 90.4
+        },
+        {
+          "x": -47.3,
+          "y": 90.4
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 599.1,
+          "y": 465.7,
+          "axis": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "green_slider_br",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "x": 559.2,
+      "y": 701.1,
+      "start_angle_deg": 0.0,
+      "radius": 45.0,
+      "radius_y": 45.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "release_direction": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 90.0,
+      "path_points": [
+        {
+          "x": 45.2,
+          "y": -71.5
+        },
+        {
+          "x": 0.0,
+          "y": -71.5
+        },
+        {
+          "x": 0.0,
+          "y": 33.6
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 559.2,
+          "y": 701.1,
+          "axis": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "cyan_slider_bot",
+      "color_name": "cyan",
+      "color_hex": "#2BBBEF",
+      "x": 359.5,
+      "y": 873.5,
+      "start_angle_deg": 0.0,
+      "radius": 45.0,
+      "radius_y": 45.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "release_direction": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 100.0,
+      "path_points": [
+        {
+          "x": -80.9,
+          "y": -133.5
+        },
+        {
+          "x": -80.9,
+          "y": -59.9
+        },
+        {
+          "x": 0.0,
+          "y": -59.9
+        },
+        {
+          "x": 0.0,
+          "y": 145.1
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 359.5,
+          "y": 873.5,
+          "axis": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "orange_slider_bot",
+      "color_name": "orange",
+      "color_hex": "#EA7829",
+      "x": 427.8,
+      "y": 881.9,
+      "start_angle_deg": 0.0,
+      "radius": 45.0,
+      "radius_y": 45.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "release_direction": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 90.0,
+      "path_points": [
+        {
+          "x": -44.1,
+          "y": -63.1
+        },
+        {
+          "x": 0.0,
+          "y": -63.1
+        },
+        {
+          "x": 0.0,
+          "y": 63.1
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 427.8,
+          "y": 881.9,
+          "axis": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        }
+      ],
+      "gaps": []
+    }
+  ],
+  "links": [
+    {
+      "id": "link_blue_hub_giant_red",
+      "from_piece_id": "blue_top_hub",
+      "to_piece_id": "red_giant_ring",
+      "color_name": "blue",
+      "color_hex": "#2F80ED",
+      "anchor_angle_deg": 90.0,
+      "length": 40.0
+    },
+    {
+      "id": "link_blue_hub_cyan_slider",
+      "from_piece_id": "blue_top_hub",
+      "to_piece_id": "cyan_slider_tl",
+      "color_name": "blue",
+      "color_hex": "#2F80ED",
+      "anchor_angle_deg": 180.0,
+      "length": 40.0
+    },
+    {
+      "id": "link_blue_hub_green_slider",
+      "from_piece_id": "blue_top_hub",
+      "to_piece_id": "green_slider_tr",
+      "color_name": "blue",
+      "color_hex": "#2F80ED",
+      "anchor_angle_deg": 0.0,
+      "length": 40.0
+    },
+    {
+      "id": "link_orange_tl_cyan_slider",
+      "from_piece_id": "orange_tl_ring",
+      "to_piece_id": "cyan_slider_tl",
+      "color_name": "orange",
+      "color_hex": "#EA7829",
+      "anchor_angle_deg": 0.0,
+      "length": 25.0
+    },
+    {
+      "id": "link_purple_tl_orange_tl",
+      "from_piece_id": "purple_tl_ring",
+      "to_piece_id": "orange_tl_ring",
+      "color_name": "purple",
+      "color_hex": "#9B51E0",
+      "anchor_angle_deg": 315.0,
+      "length": 35.0
+    },
+    {
+      "id": "link_purple_tl_red_slider",
+      "from_piece_id": "purple_tl_ring",
+      "to_piece_id": "red_slider_left",
+      "color_name": "purple",
+      "color_hex": "#9B51E0",
+      "anchor_angle_deg": 90.0,
+      "length": 25.0
+    },
+    {
+      "id": "link_green_inner_orange_inner",
+      "from_piece_id": "green_inner",
+      "to_piece_id": "orange_inner",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "anchor_angle_deg": 125.0,
+      "length": 35.0
+    },
+    {
+      "id": "link_green_inner_cyan_inner",
+      "from_piece_id": "green_inner",
+      "to_piece_id": "cyan_inner",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "anchor_angle_deg": 55.0,
+      "length": 35.0
+    },
+    {
+      "id": "link_giant_red_blue_br",
+      "from_piece_id": "red_giant_ring",
+      "to_piece_id": "blue_br_ring",
+      "color_name": "blue",
+      "color_hex": "#2F80ED",
+      "anchor_angle_deg": 55.0,
+      "length": 30.0
+    }
+  ]
+}

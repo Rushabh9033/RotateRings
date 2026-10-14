@@ -168,29 +168,64 @@ var total_pieces_in_level: int = 0
 
 func _apply_chrome() -> void:
 	UiTheme.mount_backdrop(self, true)
-	UiTheme.paint_button(back_btn, "secondary", UiTheme.FONT_CAPTION)
-	UiTheme.paint_button(pause_btn, "secondary", UiTheme.FONT_CAPTION)
-	UiTheme.paint_label(level_prefix, UiTheme.FONT_CAPTION, true)
-	UiTheme.paint_label(level_num_lbl, UiTheme.FONT_HEAD)
+	if back_btn:
+		UiTheme.squircle_button(back_btn)
+	if pause_btn:
+		pause_btn.custom_minimum_size = Vector2(54, 54)
+		UiTheme.squircle_button(pause_btn)
+		pause_btn.text = "⚙"
+		pause_btn.add_theme_font_size_override("font_size", 26)
+	if edit_btn:
+		edit_btn.custom_minimum_size = Vector2(64, 48)
+		UiTheme.squircle_button(edit_btn)
+		edit_btn.add_theme_font_size_override("font_size", 14)
+
+	# Top-left Level text
+	if level_prefix:
+		level_prefix.text = "Level"
+		level_prefix.add_theme_font_override("font", UiTheme.rounded_font())
+		level_prefix.add_theme_font_size_override("font_size", 16)
+		level_prefix.add_theme_color_override("font_color", UiTheme.WARM_INK)
+	if level_num_lbl:
+		level_num_lbl.text = str(current_level_id)
+		level_num_lbl.add_theme_font_override("font", UiTheme.rounded_font())
+		level_num_lbl.add_theme_font_size_override("font_size", 28)
+		level_num_lbl.add_theme_color_override("font_color", UiTheme.WARM_INK)
+
+	# Center Moves Pill
 	var pill := get_node_or_null("SafeArea/TopHUD/CenterHUD/ScorePill") as PanelContainer
 	if pill:
-		pill.add_theme_stylebox_override("panel", UiTheme.pill())
-	UiTheme.paint_label(score_lbl, UiTheme.FONT_CAPTION)
-	if rocket_btn:
-		_mount_tool(rocket_btn, null, "Hint", false)
-		# Hint count badge — created in code so no .tscn edit is required.
-		if not rocket_btn.has_node("HintBadge"):
-			var b := Label.new()
-			b.name = "HintBadge"
-			b.text = "3"
-			UiTheme.paint_label(b, UiTheme.FONT_CAPTION)
-			b.position = Vector2(rocket_btn.size.x - 14.0, -6.0)
-			b.pivot_offset = Vector2(10, 10)
-			b.modulate = Color(1, 1, 1, 1)
-			rocket_btn.add_child(b)
-		_refresh_hint_badge()
-	if hammer_btn:
-		_mount_tool(hammer_btn, preload("res://art/tools/hammer_tool.png"), "Hammer", true)
+		pill.custom_minimum_size = Vector2(210, 48)
+		pill.add_theme_stylebox_override("panel", UiTheme.warm_pill())
+	if score_lbl:
+		score_lbl.add_theme_font_override("font", UiTheme.rounded_font())
+		score_lbl.add_theme_font_size_override("font_size", 28)
+		score_lbl.add_theme_color_override("font_color", UiTheme.WARM_INK)
+		score_lbl.text = "0"
+
+	# CenterHUD Subtitle "Game Rush"
+	var center_hud := get_node_or_null("SafeArea/TopHUD/CenterHUD") as VBoxContainer
+	if center_hud:
+		var sub := center_hud.get_node_or_null("RushSubtitle") as Label
+		if sub == null:
+			sub = Label.new()
+			sub.name = "RushSubtitle"
+			sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			center_hud.add_child(sub)
+		sub.text = "Game Rush"
+		sub.add_theme_font_override("font", UiTheme.rounded_font())
+		sub.add_theme_font_size_override("font_size", 14)
+		sub.add_theme_color_override("font_color", UiTheme.RUSH_RED)
+
+	# Bottom HUD Power-up Cards
+	var rocket_card := get_node_or_null("SafeArea/BottomHUD/RocketCard") as PanelContainer
+	if rocket_card and rocket_btn:
+		_mount_powerup_card(rocket_card, rocket_btn, load("res://art/tools/rocket_tool.png"), "5")
+
+	var hammer_card := get_node_or_null("SafeArea/BottomHUD/HammerCard") as PanelContainer
+	if hammer_card and hammer_btn:
+		_mount_powerup_card(hammer_card, hammer_btn, load("res://art/tools/hammer_tool.png"), "3")
+
 	UiTheme.apply_font(self)
 
 func _on_piece_count_updated(remaining: int) -> void:
@@ -209,11 +244,7 @@ func _on_piece_count_updated(remaining: int) -> void:
 		)
 
 func _on_moves_updated(moves: int, par_moves: int) -> void:
-	# Show "X / par" when on or under par, "X over par" when over par.
-	if moves <= par_moves:
-		score_lbl.text = "%d / %d" % [moves, par_moves]
-	else:
-		score_lbl.text = "%d (over %d)" % [moves, par_moves]
+	score_lbl.text = str(moves)
 
 	var pill = get_node_or_null("SafeArea/TopHUD/CenterHUD/ScorePill")
 	if pill and moves > 0:
@@ -488,6 +519,86 @@ func _puzzle_color(p: Dictionary) -> Color:
 		return Color(r / 255.0, g / 255.0, b / 255.0, 1.0)
 	return Color("#EA7829")
 
+func _mount_powerup_card(card: PanelContainer, btn: Button, tex: Texture2D, count_str: String) -> void:
+	if card == null or btn == null:
+		return
+	card.custom_minimum_size = Vector2(104, 104)
+	card.add_theme_stylebox_override("panel", UiTheme.powerup_card())
+	
+	btn.text = ""
+	btn.flat = true
+	btn.set_anchors_preset(Control.PRESET_FULL_RECT)
+	btn.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
+	btn.add_theme_stylebox_override("hover", StyleBoxEmpty.new())
+	btn.add_theme_stylebox_override("pressed", StyleBoxEmpty.new())
+	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	btn.add_theme_stylebox_override("disabled", StyleBoxEmpty.new())
+	
+	# Icon
+	var icon := btn.get_node_or_null("ToolIcon") as TextureRect
+	if icon == null:
+		icon = TextureRect.new()
+		icon.name = "ToolIcon"
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.set_anchors_preset(Control.PRESET_FULL_RECT)
+		icon.offset_left = 12.0
+		icon.offset_top = 12.0
+		icon.offset_right = -12.0
+		icon.offset_bottom = -12.0
+		btn.add_child(icon)
+	icon.texture = tex
+	icon.visible = true
+	
+	# Remove old flat turn mark if any
+	var old_mark = btn.get_node_or_null("TurnMark")
+	if old_mark:
+		old_mark.queue_free()
+	var old_cap = btn.get_node_or_null("ToolCaption")
+	if old_cap:
+		old_cap.queue_free()
+	
+	# Badge
+	var badge := card.get_node_or_null("Badge") as PanelContainer
+	if badge == null:
+		badge = PanelContainer.new()
+		badge.name = "Badge"
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card.add_child(badge)
+	badge.visible = true
+	badge.custom_minimum_size = Vector2(30, 30)
+	badge.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	badge.size_flags_horizontal = Control.SIZE_SHRINK_END
+	badge.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	badge.add_theme_stylebox_override("panel", UiTheme.red_badge())
+	
+	var badge_lbl := badge.get_node_or_null("BadgeLbl") as Label
+	if badge_lbl == null:
+		badge_lbl = Label.new()
+		badge_lbl.name = "BadgeLbl"
+		badge_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		badge_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		badge.add_child(badge_lbl)
+	badge_lbl.text = count_str
+	badge_lbl.add_theme_font_override("font", UiTheme.rounded_font())
+	badge_lbl.add_theme_font_size_override("font_size", 16)
+	badge_lbl.add_theme_color_override("font_color", Color.WHITE)
+	
+	# Tactile spring bounce on press
+	if not card.has_meta("bound_press"):
+		card.set_meta("bound_press", true)
+		card.pivot_offset = Vector2(52, 52)
+		btn.button_down.connect(func():
+			var tw = card.create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			tw.tween_property(card, "scale", Vector2(0.92, 0.92), 0.08)
+		)
+		btn.button_up.connect(func():
+			var tw = card.create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tw.tween_property(card, "scale", Vector2.ONE, 0.2)
+		)
+
+
 func _mount_tool(btn: Button, texture: Texture2D, caption: String, locked: bool) -> void:
 	btn.text = ""
 	btn.flat = false
@@ -572,14 +683,18 @@ func _on_hint_pressed() -> void:
 	_refresh_hint_badge()
 
 func _refresh_hint_badge() -> void:
-	var badge = get_node_or_null("SafeArea/BottomHUD/RocketCard/RocketBtn/HintBadge")
+	var badge = get_node_or_null("SafeArea/BottomHUD/RocketCard/Badge/BadgeLbl")
+	if badge == null:
+		badge = get_node_or_null("SafeArea/BottomHUD/RocketCard/RocketBtn/HintBadge")
 	if badge and badge is Label:
-		var remaining: int = save_service.get_hints_remaining() if save_service else 3
+		var remaining: int = save_service.get_hints_remaining() if save_service else 5
 		badge.text = str(remaining)
-		badge.visible = remaining > 0
+		badge.get_parent().visible = remaining > 0
 
 func _flash_hint_badge() -> void:
-	var badge = get_node_or_null("SafeArea/BottomHUD/RocketCard/RocketBtn/HintBadge")
+	var badge = get_node_or_null("SafeArea/BottomHUD/RocketCard/Badge")
+	if badge == null:
+		badge = get_node_or_null("SafeArea/BottomHUD/RocketCard/RocketBtn/HintBadge")
 	if badge:
 		var t := create_tween().set_loops(2)
 		t.tween_property(badge, "modulate:a", 0.3, 0.1)

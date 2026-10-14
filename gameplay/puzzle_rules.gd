@@ -212,7 +212,41 @@ static func is_piece_releasable(piece, all_pieces: Array, links: Array) -> bool:
 			continue
 		var l_state: int = int(link.state) if "state" in link else (ConnectorRuntimeScript.State.DETACHED if ("is_detached" in link and link.is_detached) else ConnectorRuntimeScript.State.ENGAGED)
 		if l_state != ConnectorRuntimeScript.State.DETACHED:
+			# If this piece is a slider child held by the link and has slid out to slide_max,
+			# it has cleared the cuff and is ready to release.
+			if to_id == p_id and piece != null and "def" in piece and piece.def != null and int(piece.def.motion_model) in [1, 2]:
+				var axis: Vector2 = piece.def.motion_axis.normalized()
+				var disp: float = (piece.position - piece.def.position).dot(axis)
+				var s_max: float = float(piece.def.slide_max)
+				if disp >= s_max - 20.0 and s_max > 0.0:
+					continue
 			return false
+
+
+	# Slider pieces (motion_model in [1, 2]): releasable only when slid out to slide_max
+	if piece != null and "def" in piece and piece.def != null and "motion_model" in piece.def:
+		var mm: int = int(piece.def.motion_model)
+		if mm in [1, 2]:
+			if absf(piece.position.y - float(piece.def.position.y)) > 200.0:
+				return false
+			var axis: Vector2 = piece.def.motion_axis.normalized()
+			var disp: float = (piece.position - piece.def.position).dot(axis)
+			var s_max: float = float(piece.def.slide_max)
+			if disp < s_max - 20.0 or s_max <= 0.0:
+				return false
+
+	# Sleeve holder protection: if this piece holds a slider sleeve via stem_from,
+	# it cannot release until the slider piece itself has been released!
+	for other in all_pieces:
+		if other == piece or _is_gone(other):
+			continue
+		if other != null and "def" in other and other.def != null:
+			var other_def = other.def
+			if "sleeves" in other_def and other_def.sleeves is Array:
+				for slv in other_def.sleeves:
+					if slv is Dictionary and slv.get("stem_from") == p_id:
+						return false
+
 	return true
 
 static func release_reason(piece, _all_pieces: Array, _links: Array) -> int:
@@ -425,6 +459,8 @@ static func _overlap_contact(piece, pieces: Array, links: Array) -> Dictionary:
 	for other in pieces:
 		if other == piece or _is_gone(other):
 			continue
+		if _blockers_hit_ring(piece, other, 0.0) or _blockers_hit_ring(other, piece, 0.0):
+			return { "blocking": true, "point": (piece.position + other.position) * 0.5, "color": other.ring_color if "ring_color" in other else Color.WHITE }
 		if _is_linked_pair(piece, other, links):
 			continue
 		if _tubes_overlap(piece, other, 0.0):
@@ -433,28 +469,39 @@ static func _overlap_contact(piece, pieces: Array, links: Array) -> Dictionary:
 		if not _link_drawn(link, pieces):
 			continue
 		var moves: bool = (link.def.from_piece_id == piece.piece_id)
-		if not moves:
+		if moves:
+			# If link is ENGAGED to an active child, parent is physically locked to that child
+			if link.state != ConnectorRuntimeScript.State.DETACHED:
+				var child = get_piece_by_id(link.def.to_piece_id, pieces)
+				if child != null and not _is_gone(child):
+					return { "blocking": true, "point": _cuff_pose(link, pieces).center, "color": child.ring_color if "ring_color" in child else Color.WHITE }
+			# When rotating, this connector moves and can collide with other connectors
+			for other_link in links:
+				if other_link == link or not _link_drawn(other_link, pieces):
+					continue
+				if other_link.def.from_piece_id == link.def.from_piece_id:
+					continue # Connectors on the same parent ring rotate in rigid lockstep
+				if _cuffs_overlap(link, other_link, pieces, margin) or _stem_hits_cuff(link, other_link, pieces, margin) or _stem_hits_cuff(other_link, link, pieces, margin) or _stems_cross(link, other_link, pieces, margin):
+					return _hit_from_link(other_link, pieces)
+			# When rotating, this connector moves and can collide with other rings
+			for other in pieces:
+				if _is_gone(other):
+					continue
+				if other.piece_id == link.def.from_piece_id:
+					continue
+				if _cuff_hits_ring(link, other, pieces, margin) or _stem_hits_ring(link, other, pieces, margin):
+					return { "blocking": true, "point": _cuff_pose(link, pieces).center, "color": other.ring_color }
+		else:
+			# link is on another ring; piece is rotating
+			# If piece is the active child sliding inside this engaged cuff, it does not block concentric rotation
 			if link.def.to_piece_id == piece.piece_id:
+				if _blockers_hit_cuff(piece, link, pieces, margin):
+					return _hit_from_link(link, pieces)
 				continue
-			if _cuff_hits_ring(link, piece, pieces, margin):
+			if _blockers_hit_cuff(piece, link, pieces, margin):
 				return _hit_from_link(link, pieces)
-			continue
-		for other_link in links:
-			if other_link == link or not _link_drawn(other_link, pieces):
-				continue
-			if other_link.def.from_piece_id == link.def.from_piece_id:
-				continue # Connectors on the same parent ring rotate in rigid lockstep and never collide with each other!
-			if _cuffs_overlap(link, other_link, pieces, margin) or _stem_hits_cuff(link, other_link, pieces, margin):
-				return _hit_from_link(other_link, pieces)
-		for other in pieces:
-			if _is_gone(other):
-				continue
-			if other.piece_id == link.def.from_piece_id:
-				continue
-			if other.piece_id == link.def.to_piece_id:
-				continue
-			if _cuff_hits_ring(link, other, pieces, margin) or _stem_hits_ring(link, other, pieces, margin):
-				return { "blocking": true, "point": _cuff_pose(link, pieces).center, "color": other.ring_color }
+			if _cuff_hits_ring(link, piece, pieces, margin) or _stem_hits_ring(link, piece, pieces, margin):
+				return _hit_from_link(link, pieces)
 	return clear
 
 static func _hit_from_link(link, pieces: Array) -> Dictionary:
@@ -466,8 +513,6 @@ static func _hit_from_link(link, pieces: Array) -> Dictionary:
 	return { "blocking": true, "point": pose.center, "color": color }
 
 static func _link_drawn(link, pieces: Array) -> bool:
-	if link.state == ConnectorRuntimeScript.State.DETACHED:
-		return false
 	if float(link.current_stem_dist) <= 1.0:
 		return false
 	var parent = get_piece_by_id(link.def.from_piece_id, pieces)
@@ -478,7 +523,7 @@ static func _cuff_pose(link, pieces: Array) -> Dictionary:
 	var child = get_piece_by_id(link.def.to_piece_id, pieces)
 	var world := deg_to_rad(parent.rotation_degrees + link.def.collar_angle_deg)
 	var dir := Vector2.from_angle(world)
-	var child_r := 72.0
+	var child_r := float(link.child_radius) if ("child_radius" in link) else 70.0
 	if child != null:
 		child_r = PieceGeometry.get_world_boundary_distance(piece_shape(child), child.radius, child.rotation, dir.angle() + PI)
 	var center: Vector2 = parent.position + dir * (link.current_stem_dist - child_r)
@@ -494,6 +539,21 @@ static func _cuff_pose(link, pieces: Array) -> Dictionary:
 		"parent": parent,
 	}
 
+static func _stems_cross(a, b, pieces: Array, _margin: float) -> bool:
+	var pa: Dictionary = _cuff_pose(a, pieces)
+	var pb: Dictionary = _cuff_pose(b, pieces)
+	var parent_a = get_piece_by_id(a.def.from_piece_id, pieces)
+	var parent_b = get_piece_by_id(b.def.from_piece_id, pieces)
+	if parent_a == null or parent_b == null:
+		return false
+	var local_a := deg_to_rad(a.def.collar_angle_deg)
+	var local_b := deg_to_rad(b.def.collar_angle_deg)
+	var boundary_a := PieceGeometry.get_boundary_distance(piece_shape(parent_a), parent_a.radius, local_a)
+	var boundary_b := PieceGeometry.get_boundary_distance(piece_shape(parent_b), parent_b.radius, local_b)
+	var start_a: Vector2 = parent_a.position + pa.dir * (boundary_a + piece_thickness(parent_a) * 0.5)
+	var start_b: Vector2 = parent_b.position + pb.dir * (boundary_b + piece_thickness(parent_b) * 0.5)
+	return Geometry2D.segment_intersects_segment(start_a, pa.center, start_b, pb.center) != null
+
 static func _cuffs_overlap(a, b, pieces: Array, margin: float) -> bool:
 	var pa: Dictionary = _cuff_pose(a, pieces)
 	var pb: Dictionary = _cuff_pose(b, pieces)
@@ -501,6 +561,21 @@ static func _cuffs_overlap(a, b, pieces: Array, margin: float) -> bool:
 
 static func _cuff_hits_ring(link, ring, pieces: Array, margin: float) -> bool:
 	var pose: Dictionary = _cuff_pose(link, pieces)
+	var shape: int = piece_shape(ring)
+	if shape == PieceGeometry.ShapeType.L_SHAPE or shape == PieceGeometry.ShapeType.PATH:
+		var pts := _get_piece_polyline(ring)
+		if pts.size() >= 2:
+			for i in range(pts.size() - 1):
+				var p1: Vector2 = ring.position + pts[i]
+				var p2: Vector2 = ring.position + pts[i + 1]
+				var seg_len: float = p1.distance_to(p2)
+				var steps: int = maxi(int(seg_len / 6.0), 1)
+				for s in range(steps + 1):
+					var pt: Vector2 = p1.lerp(p2, float(s) / float(steps))
+					if PieceGeometry.point_in_obb(pt, pose.center, pose.tangent, pose.radial, pose.half_x, pose.half_y, margin):
+						return true
+		return false
+
 	var outer: float = ring.radius + piece_thickness(ring) * 0.5
 	if pose.center.distance_to(ring.position) > outer + ConnectorRuntimeScript.TANGENTIAL_WIDTH + margin:
 		return false
@@ -526,6 +601,87 @@ static func _stem_hits_ring(link, ring, pieces: Array, margin: float) -> bool:
 			return true
 	return false
 
+static func _blockers_hit_ring(source, target, margin: float) -> bool:
+	if source == null or target == null:
+		return false
+	var blockers: Array = []
+	if "def" in source and source.def != null and "blockers" in source.def and source.def.blockers is Array:
+		blockers = source.def.blockers
+	if blockers.is_empty():
+		return false
+	var thick := piece_thickness(source)
+	for b in blockers:
+		if not (b is Dictionary): continue
+		var ang_deg: float = float(b.get("angle_deg", 0.0))
+		var len_px: float = float(b.get("length", 40.0))
+		var is_inward: bool = bool(b.get("is_inward", false))
+		var rad: float = float(source.rotation) + deg_to_rad(ang_deg)
+		var dir := Vector2.from_angle(rad)
+		var p_start: Vector2
+		var p_end: Vector2
+		if is_inward:
+			p_start = source.position + dir * (float(source.radius) - thick * 0.5)
+			p_end = source.position + dir * (float(source.radius) - thick * 0.5 - len_px)
+		else:
+			p_start = source.position + dir * (float(source.radius) + thick * 0.5)
+			p_end = source.position + dir * (float(source.radius) + thick * 0.5 + len_px)
+		var steps: int = maxi(int(len_px / 6.0), 1)
+		for s in range(steps + 1):
+			var pt: Vector2 = p_start.lerp(p_end, float(s) / float(steps))
+			if _point_on_tube(target, pt, margin):
+				return true
+		if bool(b.get("has_stopper", false)):
+			var s_size: float = float(b.get("stopper_size", 24.0))
+			var tangent := Vector2(-dir.y, dir.x)
+			var bar_start := p_end - tangent * (s_size * 0.5)
+			var bar_end := p_end + tangent * (s_size * 0.5)
+			for s in range(5):
+				var pt := bar_start.lerp(bar_end, float(s) / 4.0)
+				if _point_on_tube(target, pt, margin):
+					return true
+	return false
+
+static func _blockers_hit_cuff(source, link, pieces: Array, margin: float) -> bool:
+	if source == null or link == null:
+		return false
+	var blockers: Array = []
+	if "def" in source and source.def != null and "blockers" in source.def and source.def.blockers is Array:
+		blockers = source.def.blockers
+	if blockers.is_empty():
+		return false
+	var pose: Dictionary = _cuff_pose(link, pieces)
+	var thick := piece_thickness(source)
+	for b in blockers:
+		if not (b is Dictionary): continue
+		var ang_deg: float = float(b.get("angle_deg", 0.0))
+		var len_px: float = float(b.get("length", 40.0))
+		var is_inward: bool = bool(b.get("is_inward", false))
+		var rad: float = float(source.rotation) + deg_to_rad(ang_deg)
+		var dir := Vector2.from_angle(rad)
+		var p_start: Vector2
+		var p_end: Vector2
+		if is_inward:
+			p_start = source.position + dir * (float(source.radius) - thick * 0.5)
+			p_end = source.position + dir * (float(source.radius) - thick * 0.5 - len_px)
+		else:
+			p_start = source.position + dir * (float(source.radius) + thick * 0.5)
+			p_end = source.position + dir * (float(source.radius) + thick * 0.5 + len_px)
+		var steps: int = maxi(int(len_px / 5.0), 1)
+		for s in range(steps + 1):
+			var pt: Vector2 = p_start.lerp(p_end, float(s) / float(steps))
+			if PieceGeometry.point_in_obb(pt, pose.center, pose.tangent, pose.radial, pose.half_x, pose.half_y, margin):
+				return true
+		if bool(b.get("has_stopper", false)):
+			var s_size: float = float(b.get("stopper_size", 24.0))
+			var tangent := Vector2(-dir.y, dir.x)
+			var bar_start := p_end - tangent * (s_size * 0.5)
+			var bar_end := p_end + tangent * (s_size * 0.5)
+			for s in range(5):
+				var pt := bar_start.lerp(bar_end, float(s) / 4.0)
+				if PieceGeometry.point_in_obb(pt, pose.center, pose.tangent, pose.radial, pose.half_x, pose.half_y, margin):
+					return true
+	return false
+
 static func _stem_samples(link, pieces: Array) -> Array:
 	var parent = get_piece_by_id(link.def.from_piece_id, pieces)
 	var pose: Dictionary = _cuff_pose(link, pieces)
@@ -544,7 +700,52 @@ static func _stem_samples(link, pieces: Array) -> Array:
 		points.append(start.lerp(finish, float(i) / float(steps)))
 	return points
 
+static func _get_piece_polyline(piece) -> PackedVector2Array:
+	if piece == null:
+		return PackedVector2Array()
+	if piece.has_method("_get_l_points"):
+		return piece._get_l_points()
+	if "def" in piece and piece.def != null and "path_points" in piece.def and piece.def.path_points.size() >= 2:
+		return piece.def.path_points
+	return PackedVector2Array()
+
+static func _point_hits_polyline(pts: PackedVector2Array, origin: Vector2, point: Vector2, half_thick: float) -> bool:
+	for i in range(pts.size() - 1):
+		var p1: Vector2 = origin + pts[i]
+		var p2: Vector2 = origin + pts[i + 1]
+		var closest: Vector2 = Geometry2D.get_closest_point_to_segment(point, p1, p2)
+		if point.distance_squared_to(closest) <= half_thick * half_thick:
+			return true
+	return false
+
+static func _polyline_samples_hit(poly_piece, target, margin: float) -> bool:
+	var pts := _get_piece_polyline(poly_piece)
+	if pts.size() < 2:
+		return false
+	for i in range(pts.size() - 1):
+		var p1: Vector2 = poly_piece.position + pts[i]
+		var p2: Vector2 = poly_piece.position + pts[i + 1]
+		var seg_len: float = p1.distance_to(p2)
+		var steps: int = maxi(int(seg_len / 8.0), 1)
+		for s in range(steps + 1):
+			var pt: Vector2 = p1.lerp(p2, float(s) / float(steps))
+			if _point_on_tube(target, pt, margin):
+				return true
+	return false
+
 static func _tubes_overlap(a, b, margin: float) -> bool:
+	var shape_a: int = piece_shape(a)
+	var shape_b: int = piece_shape(b)
+	var a_is_poly: bool = (shape_a == PieceGeometry.ShapeType.L_SHAPE or shape_a == PieceGeometry.ShapeType.PATH)
+	var b_is_poly: bool = (shape_b == PieceGeometry.ShapeType.L_SHAPE or shape_b == PieceGeometry.ShapeType.PATH)
+
+	if a_is_poly and b_is_poly:
+		return false
+	if a_is_poly:
+		return _polyline_samples_hit(a, b, margin)
+	if b_is_poly:
+		return _polyline_samples_hit(b, a, margin)
+
 	var reach: float = a.radius + b.radius + piece_thickness(a) * 0.5 + piece_thickness(b) * 0.5 + margin
 	if a.position.distance_to(b.position) > reach:
 		return false
@@ -588,7 +789,13 @@ static func _ring_samples_hit_obb(ring, pose: Dictionary, margin: float) -> bool
 	return false
 
 static func _point_on_tube(ring, point: Vector2, margin: float) -> bool:
-	return PieceGeometry.point_hits_tube(piece_shape(ring), ring.radius, piece_thickness(ring), ring.rotation, ring.gaps if ring.gaps != null else [], ring.position, point, margin)
+	var shape: int = piece_shape(ring)
+	if shape == PieceGeometry.ShapeType.L_SHAPE or shape == PieceGeometry.ShapeType.PATH:
+		var pts := _get_piece_polyline(ring)
+		if pts.size() >= 2:
+			var half_thick: float = piece_thickness(ring) * 0.5 + margin
+			return _point_hits_polyline(pts, ring.position, point, half_thick)
+	return PieceGeometry.point_hits_tube(shape, ring.radius, piece_thickness(ring), ring.rotation, ring.gaps if ring.gaps != null else [], ring.position, point, margin)
 
 static func apply_settled_rotation(piece, target_rotation_deg: float, pieces: Array, links: Array, direction: int = 0) -> Dictionary:
 	var result := {

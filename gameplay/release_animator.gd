@@ -100,6 +100,18 @@ func animate_release(
 	var burst := RingShardBurstScript.new()
 	parent.add_child(burst)
 	burst.setup(pos, rad, 0.0, TAU, ring_color, thick)
+
+	if piece.def != null and "motion_model" in piece.def and (int(piece.def.motion_model) in [1, 2]):
+		var sleeves_data: Array = []
+		if "sleeves" in piece.def and piece.def.sleeves is Array and not piece.def.sleeves.is_empty():
+			sleeves_data = piece.def.sleeves
+		else:
+			sleeves_data = [{ "x": piece.def.position.x, "y": piece.def.position.y }]
+		for slv in sleeves_data:
+			var s_pos = Vector2(float(slv.x), float(slv.y)) if slv is Dictionary else slv.position
+			var slv_burst := RingShardBurstScript.new()
+			parent.add_child(slv_burst)
+			slv_burst.setup(s_pos, 26.0, 0.0, TAU, Color(0.78, 0.82, 0.86), 18.0)
 	
 	# 2. Handle Praise / Combo
 	_register_release_for_praise(pos, is_direct)

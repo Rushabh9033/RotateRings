@@ -1,0 +1,97 @@
+extends SceneTree
+
+const Rules = preload("res://gameplay/puzzle_rules.gd")
+const UserLevels = preload("res://data/user_levels.gd")
+const ConnectorRuntimeScript = preload("res://gameplay/connector_runtime.gd")
+const RingPiece2DScript = preload("res://gameplay/ring_piece_2d.gd")
+
+func _init() -> void:
+	print("=== LEVEL 16 SIMULATION START ===")
+	var def = UserLevels.build(16)
+	if def == null:
+		print("FAIL: could not load level 16 definition")
+		quit(1)
+		return
+
+	var pieces: Array = []
+	for p_def in def.pieces:
+		var p = RingPiece2DScript.new()
+		p.setup(p_def)
+		pieces.append(p)
+
+	var links: Array = []
+	for l_def in def.links:
+		var l = ConnectorRuntimeScript.new(l_def)
+		links.append(l)
+
+	# 1. Zero initial tube collisions between rings
+	for i in range(pieces.size()):
+		for j in range(i + 1, pieces.size()):
+			var p1 = pieces[i]
+			var p2 = pieces[j]
+			var is_linked := false
+			for link in links:
+				if (link.def.from_piece_id == p1.piece_id and link.def.to_piece_id == p2.piece_id) or \
+				   (link.def.from_piece_id == p2.piece_id and link.def.to_piece_id == p1.piece_id):
+					is_linked = true
+					break
+			if not is_linked and Rules._tubes_overlap(p1, p2, 0.0):
+				print("FAIL: initial tube collision between %s and %s" % [p1.piece_id, p2.piece_id])
+				quit(1)
+				return
+
+	print("PASS: Zero initial tube collisions between pieces!")
+
+	var clear_child = func(child_id: StringName):
+		var p = Rules.get_piece_by_id(child_id, pieces)
+		if p == null:
+			return
+		var incoming: Array = []
+		for l in links:
+			if l.def.to_piece_id == child_id and l.state == ConnectorRuntimeScript.State.ENGAGED:
+				incoming.append(l)
+		for l in incoming:
+			var rot = Rules.alignment_rotation_deg(p, l, pieces, p.gaps[0])
+			var res = Rules.apply_settled_rotation(p, rot, pieces, links)
+			print("Rotated %s to %f: cleared=%s, released=%s" % [child_id, rot, res.cleared, res.released])
+			l.current_stem_dist = 0.0
+
+	# Step 1: Clear the leaves
+	# Top branch:
+	clear_child.call(&"purple_mid_top_right")
+	clear_child.call(&"orange_top")
+	clear_child.call(&"blue_mid_top_left")
+
+	# Bottom left:
+	clear_child.call(&"green_bot_left")
+
+	# Bottom right:
+	clear_child.call(&"orange_lower_right")
+	clear_child.call(&"blue_bot_right")
+
+	# Step 2: Clear secondary rings holding those leaves
+	clear_child.call(&"green_mid_left")
+	clear_child.call(&"orange_bot_mid")
+	clear_child.call(&"purple_lower_left")
+	clear_child.call(&"cyan_mid_right")
+	clear_child.call(&"green_upper_left")
+	clear_child.call(&"green_upper_right")
+
+	# Resolve releases
+	var rel = Rules.resolve_releases(pieces, links)
+	print("Cascaded releases: %s" % [rel])
+
+	# Check root hub
+	var hub = Rules.get_piece_by_id(&"red_center_hub", pieces)
+	if hub != null and Rules.is_piece_releasable(hub, pieces, links):
+		hub.state = RingPiece2DScript.State.RELEASED
+		print("Released red_center_hub!")
+
+	var won = Rules.is_puzzle_won(pieces, links)
+	print("IS LEVEL 16 WON: %s" % [won])
+	if won:
+		print("SUCCESS: 100% COMPLETE LEVEL 16 PLAYTHROUGH VERIFIED!")
+		quit(0)
+	else:
+		print("FAIL: Level 16 did not report won")
+		quit(1)

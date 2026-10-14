@@ -1,8 +1,280 @@
 # MEMORY.md — Live Snapshot
 
-## Current State (updated: 2026-10-07)
+## Current State (updated: 2026-10-14)
 - **Project:** LOOPSHIFT (RotateRings) — Godot 4.7.2
-- **Status:** All 100 Levels Parsed from Markdown JSON Spec, Verified 100/100 Build Clean & Solvable
+- **Status:** Levels 1 to 26 Pixel-Perfect Recreation & Full Simulation Passing (100% Winnable); Premium Casual Mobile "Game Look" UI Implemented.
+
+#### Levels 22–26 Completed and Fully Verified (2026-10-14):
+1. **Level 22 (`22.jpeg`):**
+   - 18 pieces: 8 rings, 10 sliders, 9 links (`data/user_levels/22.json`).
+   - Symmetrical twin-wing layout with giant red center arch and diagonal slider sleeves.
+   - Zero initial tube collisions, 100% winnable in simulation (`tools/simulate_level_22_gameplay.gd`, exit code 0).
+   - Side-by-side comparison verified (`_godot_test_out/side_by_side_22.png`). No yellow acorns.
+2. **Level 23 (`23.jpeg`):**
+   - 21 rings: 2 closed anchor hubs (`purple_hub_tl`, `blue_hub_mid`), 8 concentric pairs, 3 single C-rings, 19 links, 0 sliders (`data/user_levels/23.json`).
+   - Exact circle centers and radii fitted to reference.
+   - Zero initial tube collisions, 100% winnable in simulation (`tools/simulate_level_23_gameplay.gd`, exit code 0).
+   - Side-by-side comparison verified (`_godot_test_out/side_by_side_23.png`). No yellow acorns.
+3. **Level 24 (`24.jpeg`):**
+   - 22 pieces: 15 rings (4 closed hubs: `cyan_r2`, `green_r4`, `red_r4`, `cyan_r5`; 11 C-rings), 7 rectilinear sliders, 22 links (`data/user_levels/24.json`).
+   - Sliders use `shape_type: 5` (PATH / RECTILINEAR_PATH) with relative `path_points` and sleeve definitions.
+   - Zero initial tube collisions, 100% winnable in simulation (`tools/simulate_level_24_gameplay.gd`, exit code 0).
+   - Side-by-side comparison verified (`_godot_test_out/side_by_side_24.png`). No yellow acorns.
+4. **Level 25 (`25.jpeg`):**
+   - 20 pieces: 15 C-rings, 5 sliders (3 inverted-L sliders, 1 diagonal bent slider, 1 horizontal L-slider), 15 links (`data/user_levels/25.json`).
+   - Exact silver and colored metallic sleeves on rings, custom blockers, and 100% clearance.
+   - Zero initial tube collisions, 100% winnable in simulation (`tools/simulate_level_25_gameplay.gd`, exit code 0).
+   - Side-by-side comparison verified (`_godot_test_out/side_by_side_25.png`). No yellow acorns.
+5. **Level 26 (`26.jpeg`):**
+   - 17 pieces: 1 central closed cyan hub (`cyan_hub`, 6 radiating spokes), 6 inner C-rings in hexagonal symmetry, 10 outer perimeter C-rings, 22 links, 0 sliders (`data/user_levels/26.json`).
+   - Scaled to true reference radius ($R = 38.0$, $R_{hub} = 42.0$) with perfect clearances.
+   - Zero initial tube collisions, 100% winnable in simulation (`tools/simulate_level_26_gameplay.gd`, exit code 0).
+   - Side-by-side comparison verified (`_godot_test_out/side_by_side_26.png`). No yellow acorns.
+
+#### Levels 17–21 Completed and Fully Verified (2026-10-13):
+1. **Level 17 (`17.jpeg`):** 13-ring pyramidal configuration with inward radial blockers (`data/user_levels/17.json`). 100% winnable in simulation.
+2. **Level 18 (`18.jpeg`):** 10-ring loop with 4 sliding rods/hooks (`data/user_levels/18.json`).
+   - Red U-arch rendered with smooth rounded-corner bezier tubes and accurate leg extensions.
+   - Metallic silver cuffs scaled to exact reference proportions ($20 \times 18\text{ px}$ with realistic chrome bevel and lips).
+   - Inverted stem suppression for sleeves sitting inside rings/cuffs.
+   - Orange center sleeve calibrated to orange color with snug stem attachment.
+   - Sleeve-holder release protection in `puzzle_rules.gd` ensuring holder rings do not release before their sliders.
+   - Yellow acorn fruits removed completely as requested.
+   - Bottom green diagonal slider hook extended to pass through and protrude past the silver cuff matching reference.
+   - 100% winnable in full simulation (`tools/simulate_level_18_gameplay.gd`).
+3. **Level 19 (`19.jpeg`):** Rectilinear slide labyrinth with 9 C-rings and 11 sliders (`data/user_levels/19.json`). 100% winnable in simulation.
+4. **Level 20 (`20.jpeg`):** Animal face layout with giant head ring ($R=210$), 2 eye rings, 2 nostril rings, snout C-ring, and 8 angled horn/cheek sliders (`data/user_levels/20.json`). 100% winnable in simulation.
+5. **Level 21 (`21.jpeg`):** 23 rectilinear sliding pipes and sleeve collars (`data/user_levels/21.json`). 100% winnable in simulation.
+
+#### Overall UI Transformation — Authentic Casual Hit "Game Look":
+1. **Top Header HUD:**
+   - Stacked warm dark roast cocoa "Level" and level number labels (`font_size = 18` and `32`, `UiTheme.WARM_INK`).
+   - Warm golden/peach inset moves counter capsule (`UiTheme.warm_pill()`), large cocoa moves count ("0"), and centered red "Game Rush" subtitle.
+   - Tactile porcelain squircle Settings button with bottom 3D bevel and cocoa gear icon (`UiTheme.squircle_button`).
+2. **Bottom Power-up Tray:**
+   - Floating tactile squircle cards (104x104 px) with golden rims and 3D bottom bevels (`UiTheme.powerup_card`).
+   - Integrated high-fidelity 3D Rocket Booster and 3D Star Hammer Mallet icons.
+   - Vivid circular notification badges (30x30 px, `UiTheme.red_badge`) with bold white counts ("5" and "3").
+   - Satisfying tactile spring squash-and-stretch press animations (`scale = 0.92` on press, spring release).
+1. **Level 14 (data/user_levels/14.json):**
+   - 1:1 match to reference screenshot (14.jpeg).
+   - 12 Rings ( = 60.0$, thickness .0$), 16 connector links arranged in a symmetrical  \times 3$ grid.
+   - Dual- and multi-held ring mechanics: leaf rings (purple_r1c0, 
+ed_r1c2, cyan_r2c1) held by multiple cuffs rotate sequentially through their holding cuffs, clearing each cuff upon gap alignment until fully detached.
+   - Verified 100% winnable in headless simulation (	ools/simulate_level_14_gameplay.gd).
+   - Captured in-engine screenshot level14_root.png and generated side_by_side_14.png.
+
+2. **Level 15 (data/user_levels/15.json):**
+   - 1:1 match to reference screenshot (15.jpeg) and user pixel-by-pixel feedback.
+   - **Soft Edges & 2D Porcelain Shading:** Stripped away harsh dark polygon bevel ridges and specular lines across `_draw_ring_arc()` and `_draw_l_shape()`. Shading now matches the reference copy-to-copy: vibrant plastic/porcelain tube body with anti-aliasing, soft smooth drop shadows, and soft ambient top sheen.
+   - **Slider Geometry & Umbrella Handles:** Replaced jagged multi-segment slider polylines with smooth parametric splines. `blue_slider` and `orange_slider` now curve smoothly into rounded umbrella handle J-hooks with exact curvature and round caps.
+   - **Sleeve Alignment & Cuffs:** Corrected slider sleeve anchors to sit directly on the slider rods with 0px offset. Sleeves and connectors now match parent ring color cleanly with soft ambient drop shadows and anti-aliased rounded rect cuffs.
+   - Verified 100% winnable in headless simulation (`tools/simulate_level_15_gameplay.gd`).
+   - Captured in-engine screenshot `level15_root.png` and generated `side_by_side_15_v3.png`.
+
+3. **Level 16 (data/user_levels/16.json):**
+   - 1:1 match to reference screenshot (16.jpeg).
+   - 13 Rings: 1 central closed red anchor hub (
+ole: 1) emitting 6 radial stems, and 12 surrounding open rings (
+ole: 0).
+   - Symmetric top structure with dual-held acorns (orange_top), bottom-left and bottom-right branches.
+   - Verified 100% winnable in headless simulation (	ools/simulate_level_16_gameplay.gd).
+   - Captured in-engine screenshot level16_root.png and generated side_by_side_16.png.
+
+#### Level 13 Pixel-Perfect Recreation & Dual-Held Central Chain (2026-10-12):
+1. **Geometry & Topology Authored (`data/user_levels/13.json`):**
+   - Exact 1:1 match to reference screenshot (`13.jpeg` / `media_1791818132207_98655fb7.jpg`).
+   - 12 Rings ($R = 60.0$, thickness $20.0$), 3 closed root anchors (`role: 1`) and 9 playable open rings (`role: 0`), 9 connector links:
+     - `blue_top_left`: $(199.7, 315.6)$, bowl opening down (gap at $90.0^\circ$, width $110.0^\circ$). Held by `green_top_mid`.
+     - `green_top_mid`: $(364.7, 282.0)$, bowl opening up (gap at $270.0^\circ$, width $105.0^\circ$). Held by `red_top_right`, holds `blue_top_left`.
+     - `red_top_right`: $(533.9, 310.4)$, closed circle (Root Anchor, `role: 1`). Holds `green_top_mid`.
+     - `cyan_mid_top`: $(295.4, 423.8)$, bowl opening up (gap at $270.0^\circ$, width $105.0^\circ$). Held by `orange_mid_right`, holds `green_mid_left`.
+     - `orange_mid_right`: $(461.4, 460.6)$, open ring opening right (gap at $0.0^\circ$, width $105.0^\circ$). Blocker arm at $251.0^\circ$, length $48.0\text{ px}$, width $14.0\text{ px}$. Held by `purple_mid_right`, holds `cyan_mid_top`.
+     - `purple_mid_right`: $(486.6, 625.6)$, open ring opening down-left (gap at $140.0^\circ$, width $110.0^\circ$). Holds `orange_mid_right`. Cascades upon child release.
+     - `green_mid_left`: $(171.3, 532.1)$, open ring opening left (gap at $180.0^\circ$, width $105.0^\circ$). Held by `cyan_mid_top`, holds `cyan_center`.
+     - `cyan_center`: $(332.1, 579.4)$, open ring opening right (gap at $0.0^\circ$, width $105.0^\circ$). Dual-held by `green_mid_left` and `red_lower`.
+     - `red_lower`: $(253.3, 729.7)$, open ring opening left (gap at $180.0^\circ$, width $105.0^\circ$). Held by `green_bot_left`, holds `cyan_center`.
+     - `green_bot_left`: $(257.5, 897.8)$, closed circle (Root Anchor, `role: 1`). Holds `red_lower`.
+     - `orange_lower_mid`: $(412.0, 707.6)$, bowl opening up (gap at $270.0^\circ$, width $105.0^\circ$). Blocker arm at $129.0^\circ$, length $48.0\text{ px}$, width $14.0\text{ px}$. Held by `purple_bot_right`.
+     - `purple_bot_right`: $(411.0, 876.8)$, closed circle (Root Anchor, `role: 1`). Holds `orange_lower_mid`.
+2. **Verification (L3 Behavioral & L4 End-to-End Simulation):**
+   - Headless test `tools/simulate_level_13_gameplay.gd`:
+     - Zero initial tube collisions across non-linked rings.
+     - Zero initial blocker overlaps.
+     - `blue_top_left` and `green_top_mid` release cleanly.
+     - `cyan_center` clears both cuffs (`green_mid_left` and `red_lower`) and releases.
+     - `red_lower` clears and releases.
+     - `green_mid_left` and `cyan_mid_top` clear and release.
+     - `orange_mid_right` clears and releases, allowing `purple_mid_right` to cascade.
+     - `orange_lower_mid` clears and releases.
+     - All 3 root anchors release and level is won (`IS LEVEL 13 WON: true`, exit code 0).
+   - In-engine render `_godot_test_out/level13_root.png` and `side_by_side_13.png` visually verified pixel-by-pixel against `13.jpeg`.
+
+#### Level 12 Pixel-Perfect Recreation & Bugfixes (2026-10-12):
+1. **Geometry & Topology Bugfixes (`data/user_levels/12.json`):**
+   - **Blue Ring & Red Slider Sleeve Clipping:** Re-oriented `blue_top_mid` gap center from $270.0^\circ$ to $245.0^\circ$ (width $105.0^\circ$). The left tip of the blue bowl now ends at $192.5^\circ$ ($y = 388.8$), providing **$53.1\text{ px}$ of clear vertical separation** below the red slider's sleeve $(342.2, 335.7)$, completely eliminating the sleeve clipping/intersection glitch.
+   - **Middle & Bottom Slider Alignments:** 
+     - `blue_slider_mid`: Corrected length from $206\text{ px}$ to true $130\text{ px}$ (from $(249, 572)$ to $(375, 538)$) with exact $-15.3^\circ$ diagonal tilt and `slide_max: 60.0`. Eliminates collision with the right connector stem.
+     - `cyan_mid_right`: Re-oriented gap center to $215.0^\circ$ (width $105.0^\circ$), pointing up-left towards the blue slider to match `12.jpeg`.
+     - `purple_slider_bot`: Calibrated length to $170\text{ px}$ with natural $+5.1^\circ$ tilt along $(0.996, 0.088)$ from $(300.0, 766.8)$ to $(469.0, 781.8)$, right tip resting inside `orange_bot_right` opening and sliding smoothly rightward upon release.
+   - **Top Sliders Clearance:** Re-calibrated `orange_slider_tl` tip to $(299.6, 324.1)$ and `red_slider_top` axis to $(-0.48, -0.88)$ with origin $(378.4, 401.9)$. Exact 31.8px clearance achieved; eliminates the X-crossing/overlap bug.
+   - **cyan_top_left Stem Attachment & green_mid_left Cuff Position:** Re-oriented cyan_top_left gap center to .0^\circ$ (width .0^\circ$). Adjusted green_mid_left gap center to .0^\circ$ (width .0^\circ$), ensuring the cyan cuff at .7^\circ$ sits deep on solid continuous tube with .3^\circ$ of green tube extending past it, fixing the edge-clamping glitch.
+   - **orange_bot_right Collar Alignment & Cuff Position:** Re-calibrated orange_bot_right gap center to .0^\circ$ (width .0^\circ$), ensuring the cyan cuff at .5^\circ$ sits deep on solid continuous tube with .5^\circ$ of orange tube extending past it, fixing the edge-clamping glitch.
+2. **Verification (L3 Behavioral & L4 End-to-End Simulation):**
+   - Headless test `tools/simulate_level_12_gameplay.gd`:
+     - Zero initial collisions across rings and sliders.
+     - `red_slider_top` slides up-left freely and detaches.
+     - `orange_slider_tl` slides up-right freely and detaches.
+     - `blue_slider_mid` slides up-right and detaches.
+     - `cyan_bot_left` rotates and detaches.
+     - `orange_bot_right` rotates and detaches without touching `purple_slider_bot`.
+     - `purple_slider_bot` slides rightward into empty space and releases.
+     - Remaining middle rings cascade and release cleanly (`IS LEVEL 12 WON: true`, exit code 0).
+   - In-engine render `_godot_test_out/level12_root.png` and `side_by_side_12.png` visually verified pixel-by-pixel against `12.jpeg`.
+
+#### Level 11 Pixel-Perfect Recreation & Suspended Dual-Holder Mechanics (2026-10-12):
+1. **Geometry & Topology Authored (`data/user_levels/11.json`):**
+   - Exact 1:1 match to reference screenshot (`11.jpeg` / `media_1791808949465_f37da66e.jpg`).
+   - 9 Rings ($R = 60.0$, thickness $20.0$), 2 anchors (`role: 1`) and 7 playable open rings (`role: 0`), 8 connector links:
+     - `cyan_top_center`: $(360.0, 458.0)$, closed circle (Root Anchor, `role: 1`, `gaps: []`). Holds `orange_top_left` (at $233.4^\circ$, stem $145.9\text{ px}$) and `purple_top_right` (at $306.6^\circ$, stem $145.9\text{ px}$).
+     - `orange_top_left`: $(272.9, 340.9)$, bowl opening up (gap at $270.0^\circ$, width $85.0^\circ$). Held by `cyan_top_center`, holds `red_left` (at $122.4^\circ$, stem $154.7\text{ px}$).
+     - `purple_top_right`: $(447.1, 340.9)$, bowl opening up (gap at $270.0^\circ$, width $85.0^\circ$). Held by `cyan_top_center`, holds `green_right` (at $57.6^\circ$, stem $154.7\text{ px}$).
+     - `red_left`: $(190.0, 471.5)$, open ring opening left (gap at $180.0^\circ$, width $85.0^\circ$). Held by BOTH `orange_top_left` (orange cuff at top) and `blue_mid` (blue cuff at bottom).
+     - `green_right`: $(530.0, 471.5)$, open ring opening right (gap at $0.0^\circ$, width $85.0^\circ$, `#74D13A`). Held by BOTH `purple_top_right` (purple cuff at top) and `blue_mid` (blue cuff at bottom).
+     - `blue_mid`: $(360.0, 611.5)$, suspended arch opening down (gap at $90.0^\circ$, width $110.0^\circ$). Holds `red_left` (at $219.5^\circ$, stem $220.2\text{ px}$) and `green_right` (at $320.5^\circ$, stem $220.2\text{ px}$).
+     - `orange_bot_center`: $(360.0, 800.1)$, anchor arch opening down (gap at $90.0^\circ$, width $110.0^\circ$, `role: 1`). Holds `cyan_bot_left` (at $210.8^\circ$, stem $147.8\text{ px}$) and `green_bot_right` (at $329.2^\circ$, stem $147.8\text{ px}$).
+     - `cyan_bot_left`: $(233.0, 724.5)$, open ring opening left (gap at $180.0^\circ$, width $85.0^\circ$). Held by `orange_bot_center`. Blocker arm at $342.0^\circ$, length $55.0\text{ px}$, width $14.0\text{ px}$, pointing inward/upward below `blue_mid`.
+     - `green_bot_right`: $(487.0, 724.5)$, open ring opening right (gap at $0.0^\circ$, width $85.0^\circ$, `#27AE60`). Held by `orange_bot_center`. Blocker arm at $198.0^\circ$, length $55.0\text{ px}$, width $14.0\text{ px}$, pointing inward/upward below `blue_mid`.
+2. **Engine Architecture Updates:**
+   - `puzzle_rules.gd`: Fixed concentric rotation clearance in `_overlap_contact()`. When rotating a child piece whose targeted connector is in `DETACHED` state, it now correctly allows concentric rotation inside/around the retracted cuff instead of erroneously colliding with its own former holder.
+3. **Verification (L3 Behavioral & L4 End-to-End Simulation):**
+   - Headless test `tools/simulate_level_11_gameplay.gd`:
+     - Zero initial tube collisions across all non-linked rings.
+     - Zero initial blocker overlaps.
+     - Blocker arm on `cyan_bot_left` prevents premature rotation into `blue_mid` (clamped to $-22.3^\circ$ with `hit_stopper: true`).
+     - Dual links on `red_left` and `green_right` cleared independently; both release cleanly once both links reach `DETACHED`.
+     - `blue_mid` releases automatically upon child link detachment.
+     - `cyan_bot_left` and `green_bot_right` rotate to align gaps, clear orange cuffs, and release.
+     - `orange_bot_center` anchor completes and releases.
+     - `orange_top_left` and `purple_top_right` clear cyan cuffs and release.
+     - `cyan_top_center` root anchor releases and triggers win condition (`IS LEVEL 11 WON: true`, exit code 0).
+   - In-engine render `_godot_test_out/level11_root.png` and `side_by_side_11.png` visually verified pixel-by-pixel against `11.jpeg`.
+
+#### Level 10 Pixel-Perfect Recreation & Multi-Slider Wrapper Mechanics (2026-10-12):
+1. **Geometry & Topology Authored (`data/user_levels/10.json`):**
+   - Exact 1:1 match to reference screenshot (`10.jpeg`).
+   - 12 Pieces total (Candy / Wrapper motif) centered at $(360.0, 560.0)$ on canonical $720 \times 1280$ canvas:
+     - **Central Body & Inner "H":**
+       - `cyan_center`: $(360.0, 560.0)$, closed circle (Root Anchor, `role: 1`, radius $154.4\text{ px}$).
+       - `cyan_arc_inner`: $(450.0, 555.0)$, radius $185.0\text{ px}$, gap at $0.0^\circ$ ($276.0^\circ$ width). Solid arc centered at $180^\circ$ ($84^\circ$ width) bows left as `(` matching `10.jpeg`. Holds `green_pin_inner` via horizontal crossbar stem (`collar_angle_deg: 180.0^\circ`, `stem_dist: 22.9\text{ px}`).
+       - `green_pin_inner`: $(427.1, 555.0)$, straight pin slider (`shape_type: 5, motion_model: 1`, length $181.0\text{ px}$, axis $(0.235, 0.972)$, `slide_max: 40.0\text{ px}`, `sleeves: []`). Held by cyan cuff at $(427.1, 555.0)$.
+     - **Top-Right Wrapper:**
+       - `orange_arc_tr`: $(595.1, 265.7)$, open arc (radius $105.9\text{ px}$, width $108^\circ$). Held by `cyan_center`'s diagonal cyan stem ($308.6^\circ$, stem $376.7\text{ px}$).
+       - `purple_slider_tr`: Purple L-shape slider with silver sleeve on vertical shaft (slides UP, `slide_max: 110.0`).
+       - `red_pin_tr`: Red straight pin slider with silver sleeve (slides UP-RIGHT along $(0.910, -0.414)$, `slide_max: 90.0`).
+       - `green_slider_tr`: Green L-shape slider with silver sleeve (slides RIGHT along $(0.986, -0.169)$, `slide_max: 90.0`).
+     - **Bottom-Left Wrapper:**
+       - `orange_arc_bl`: $(140.6, 873.9)$, open arc (radius $106.7\text{ px}$, width $108^\circ$). Held by `cyan_center`'s diagonal cyan stem ($125.0^\circ$, stem $383.0\text{ px}$).
+       - `purple_slider_bl`: Purple L-shape slider with silver sleeve on horizontal shaft (slides LEFT, `slide_max: 110.0`).
+       - `cyan_pin_bl`: Cyan straight pin slider with silver sleeve (slides DOWN-LEFT along $(-0.997, 0.073)$, `slide_max: 90.0`). Shortened to $X_{ref} = 136.0$ to eliminate spawn collision with diagonal stem.
+       - `dg_pin_bl`: Dark green straight pin slider with silver sleeve at $X_{ref} = 174.1$ (cleanly right of diagonal stem, slides DOWN, `slide_max: 90.0`). Zero overlap with `cyan_pin_bl` or `orange_arc_bl`.
+       - `lg_l_bl`: Light green L-shape slider with silver sleeve at $X_{ref} = 204.3$ on vertical leg (slides DOWN, `slide_max: 110.0`).
+2. **Engine Architecture Updates:**
+   - `PuzzleRulesScript.is_piece_releasable()`: Added child slider link release clearance. When a slider held as a child by an engaged connector reaches `slide_max`, it clears the cuff and releases, immediately transitioning the connector link to `DETACHED` and freeing the parent ring.
+   - `PuzzleController._on_stems_layer_draw()`: Welds now center directly at `pos_stem_start`, eliminating unsightly outer perimeter bumps on inward-pointing stems.
+3. **Verification (L3 Behavioral & L4 End-to-End Simulation):**
+   - Headless test `tools/simulate_level_10_gameplay.gd`:
+     - All 7 outer sliders slide to `slide_max` and release.
+     - Both orange arcs rotate and clear their connector links and release.
+     - `green_pin_inner` slides to `slide_max`, clears its connector cuff, and releases.
+     - `cyan_arc_inner` releases immediately once child link detaches.
+     - `cyan_center` root anchor releases via cascade once all children are cleared.
+     - Level 10 win condition confirmed (`IS LEVEL 10 WON: true`, exit code 0).
+   - In-engine render `_godot_test_out/level10_root.png` and `side_by_side_10.png` visually verified pixel-by-pixel against `10.jpeg`.
+
+
+### Level 9 Pixel-Perfect Recreation & Blocker Arm Physics (2026-10-12):
+1. **Geometry & Topology Authored (`data/user_levels/9.json`):**
+   - Exact 1:1 match to reference screenshot (`media_1791798406390_2ab1aae3.jpg` / `9.jpeg`).
+   - 9 Rings ($R=60.0$, thickness $20.0$), with 2 closed root anchors and 7 playable open rings:
+     - `cyan_anchor`: $(140.0, 390.0)$, closed circle (Root Anchor, `role: 1`). Holds `purple` (at $9.1^\circ$, stem $177.2\text{ px}$) and `orange_mid` (at $90.0^\circ$, stem $160.0\text{ px}$).
+     - `blue_anchor`: $(530.0, 335.0)$, closed circle (Root Anchor, `role: 1`). Holds `light_green` (at $90.0^\circ$, stem $175.0\text{ px}$).
+     - `purple`: $(315.0, 418.0)$, bowl facing up (gap at $270.0^\circ$, width $85.0^\circ$). Held by `cyan_anchor` and `red`.
+     - `orange_mid`: $(140.0, 550.0)$, inverted U (gap at $90.0^\circ$, width $85.0^\circ$). Held by `cyan_anchor`, holds `cyan_lower` (at $46.3^\circ$, stem $159.1\text{ px}$).
+     - `red`: $(380.0, 555.0)$, inverted U (gap at $90.0^\circ$, width $85.0^\circ$). Holds `purple` (at $244.6^\circ$, stem $151.6\text{ px}$).
+       - Blocker arm: angle $343.0^\circ$ (pointing up-right towards light green), length $52.0\text{ px}$, width $14.0\text{ px}$, rounded end cap (`has_stopper: false`).
+     - `light_green`: $(530.0, 510.0)$, gap facing left/down-left at $190.0^\circ$. Held by `blue_anchor`, holds `dark_green` (at $69.4^\circ$, stem $170.9\text{ px}$).
+     - `dark_green`: $(590.0, 670.0)$, backward C opening left (gap at $180.0^\circ$). Held by `light_green`.
+     - `cyan_lower`: $(250.0, 665.0)$, inverted U (gap at $90.0^\circ$). Held by `orange_mid`, holds `orange_bot` (at $24.0^\circ$, stem $197.0\text{ px}$).
+     - `orange_bot`: $(430.0, 745.0)$, bowl facing up (gap at $290.0^\circ$). Held by `cyan_lower`.
+2. **Verification (L3 Behavioral):**
+   - Headless test `tools/simulate_level_9_gameplay.gd`:
+     - Zero initial tube collisions across all non-linked rings.
+     - Blocker arm on `red` has zero initial spawn overlap with `light_green`.
+     - Rotating `light_green` CW (+60°) is immediately clamped to $0.0^\circ$ by `red`'s blocker arm (`hit_stopper: true`).
+     - Both anchors correctly tagged `role: 1`, unrotatable; all 7 pieces correctly tagged `role: 0`, rotatable.
+   - In-engine render `_godot_test_out/level9_root.png` generated and visually verified side-by-side with reference image (`_godot_test_out/comparison_level9.png`).
+
+
+### Level 8 Pixel-Perfect Recreation & Blocker Arm Physics (2026-10-12):
+1. **Geometry & Topology Authored (`data/user_levels/8.json`):**
+   - Exact 1:1 match to reference screenshot (`media_1791794738219_7fa78f72.jpg`).
+   - 9 Rings with uniform radius $R=60.0$, thickness $20.0$, spaced with generous stem clearance (all center-to-center distances between connected rings expanded from ~140px to 165px–183px):
+     - `blue`: $(263.9, 333.9)$, gap at $0.0^\circ$ (facing right towards dark green).
+     - `dark_green`: $(455.9, 333.5)$, gap at $180.0^\circ$ (facing left towards blue).
+     - `purple`: $(275.3, 508.8)$, gap at $90.0^\circ$ (facing down). Holds Blue (straight up at $266.3^\circ$, stem $175.3\text{ px}$) and Red (straight right at $357.6^\circ$, stem $183.2\text{ px}$).
+     - `red`: $(458.3, 501.0)$, gap at $135.0^\circ$. Holds Dark Green (straight up at $269.2^\circ$, stem $167.5\text{ px}$).
+     - `cyan`: $(238.5, 689.7)$, gap facing left/up-left at $180.0^\circ$ ($85.0^\circ$ width). Solid continuous right arc holds Orange Center cuff at $46.2^\circ$ and Orange Left cuff at $133.3^\circ$ with generous spacing.
+     - `light_green`: $(507.7, 723.5)$, bowl facing up (gap at $270.0^\circ$). Held by Orange Center ($328.7^\circ$, stem $175.0\text{ px}$), holds Orange Right ($48.8^\circ$, stem $165.1\text{ px}$).
+     - `orange_left`: $(114.9, 820.9)$, gap at $90.0^\circ$. Holds Cyan at $313.3^\circ$, stem $180.3\text{ px}$.
+     - `orange_center`: $(358.2, 814.4)$, gap at $90.0^\circ$. Stopper stem at $50.0^\circ$ with square T-stopper cleanly attached to the solid arc end. Holds Cyan ($226.2^\circ$, stem $172.9\text{ px}$) and Light Green ($328.7^\circ$, stem $175.0\text{ px}$).
+     - `orange_right`: $(616.4, 847.8)$, gap at $90.0^\circ$. Held by Light Green.
+2. **Blocker Arms Implementation & Physics Collision (`PieceDefinition`, `RingPiece2D`, `PuzzleRules`):**
+   - Added `@export var blockers: Array = []` to `PieceDefinition` with full serialization in `to_dict` and `apply_dict`.
+   - `RingPiece2D._draw()` renders blocker arms with the exact same 3D shaded plastic bevel style (soft shadow, dark base, main color body, glossy highlight bevel), supporting rounded end caps (Cyan) and perpendicular T-stoppers (Orange Center).
+   - In `PuzzleRules`: added `_blockers_hit_ring()` and integrated into `_overlap_contact()`. Blocker arms are now real physical collision obstacles in `clamp_rotation_step()`:
+     - Rotating Purple CCW is immediately blocked ($0.0^\circ$ allowed) by Cyan's blocker arm.
+     - Rotating Cyan CW is physically clamped when its blocker arm hits Purple ($74.5^\circ$ clamp).
+3. **Verification (L3 Behavioral):**
+   - Headless test `tools/simulate_level_8_gameplay.gd`: Zero initial tube collisions across all 9 pieces, blocker arm collision physically stops rotation as expected.
+   - In-engine render `_godot_test_out/level8_root.png` visually verified against user reference and circled feedback.
+
+### Level 6 Slider Mechanics & Gap Fix (2026-10-12):
+1. **Root Cause of Slider Freeze:**
+   - In `RingPiece2D.setup(p_def)`, `gaps` was never assigned from `p_def.gaps`, remaining an empty array `[]`.
+   - This caused `RingPiece2D` to treat every arc as a fully closed 360° ring (`is_closed = true`).
+   - `clamp_slide_step` tested `_point_on_tube()` against `cyan_arc` and `purple_arc`. Because their gaps were treated as non-existent, the sliders immediately collided with the closed ring body at 0.0 distance, completely preventing either slider from moving in any direction.
+2. **Silver Connector Drop & Release Lifecycle Fix:**
+   - Previously, the silver sleeve was drawn statically via `current_level_def.pieces` at `p_def.position`, meaning it sat pre-rendered on the board before the drop animation, and stayed behind in empty space after the L piece broke.
+   - Fixed `PuzzleController._on_cuffs_layer_draw()`:
+     - Only iterates `active_pieces`. If the piece is released or destroyed, the sleeve is immediately omitted.
+     - During the drop intro animation (`Time.get_ticks_msec() / 1000.0 < _drop_anim_end_time`), the sleeve's position and alpha follow `p.position` and `p.modulate.a`, so it falls from the sky mounted onto the L-piece.
+     - Once dropped, it rests at `p_def.position` while the player slides the L-shape through it.
+     - In `ReleaseAnimator.animate_release()`, an accompanying metallic shard burst (`Color(0.78, 0.82, 0.86)`) spawns at the sleeve position, shattering the silver sleeve synchronously when the L-shape breaks.
+### Level 7 Pixel-Perfect Recreation & Engine Multi-Sleeve Support (2026-10-12):
+1. **Level 7 Authored & Configured (`data/user_levels/7.json`):**
+   - Exact 1:1 match to reference screenshot (`media_1791791558396_4d5da6e6.jpg`).
+   - 7 Rings (radius $60.0$, thickness $20.0$):
+     - `cyan_center`: $(384, 450)$, gap at $350.0^\circ$ ($85^\circ$ width).
+     - `purple_top`: $(394, 291)$, gap at $270.0^\circ$ ($100^\circ$ width).
+     - `blue_topleft`: $(266, 351)$, gap at $165.0^\circ$ ($90^\circ$ width).
+     - `red_midleft`: $(276, 561)$, gap at $180.0^\circ$ ($90^\circ$ width).
+     - `orange_midright`: $(490, 561)$, gap at $320.0^\circ$ ($90^\circ$ width).
+     - `green_bottomleft`: $(276, 703)$, gap at $90.0^\circ$ ($95^\circ$ width).
+     - `purple_bottomright`: $(442, 699)$, gap at $90.0^\circ$ ($95^\circ$ width).
+   - 2 Slider U-Brackets with 4 Silver Sleeves:
+     - `green_bracket`: Spine at $x=168, y=456$, prongs enter Blue and Red rings. Sleeves at $(226, 351)$ and $(236, 561)$, sliding axis `(-1.0, 0.0)`.
+     - `red_bracket`: Mathematically exact rectangular U-bracket tilted at $51.5^\circ$, prongs enter Cyan and Orange rings through their gaps. Sleeves at $(451.3, 416.6)$ and $(520.5, 502.1)$, sliding axis `(0.777, -0.629)`. Clean parallel prongs with $90^\circ$ corners.
+   - 6 Links with parent-matching cuff colors (Cyan $\times 4$, Red $\times 1$, Orange $\times 1$).
+2. **Engine Architecture Updates:**
+   - `PieceDefinition`: Added `@export var sleeves: Array = []` with lossless serialization in `to_dict` and `apply_dict`.
+   - `LinkDefinition`: Added flexible `joint_color` / `joint_color_name` / `joint_color_hex` parsing in `apply_dict`.
+   - `PuzzleRules`: Fixed polyline pieces in `_cuff_hits_ring` to check segment OBBs rather than circular approximation.
+   - `ReleaseAnimator`: Metallic silver shard shatter bursts emit at all sleeve locations upon slider destruction.
+3. **Verification (L3 Behavioral):**
+   - Headless test `tools/simulate_level_7_gameplay.gd`: Zero spawn overlaps, zero cuff hits, all leaves releasable, both brackets slide freely.
+   - In-engine capture `_godot_test_out/level7_root.png` visually verified against user reference image.
+   - Strictly followed user constraint: NO APK BUILT.
 
 ## Complete System Audit & Professionalism Overhaul:
 1. **Full 12-Level Geometry Audit (`tools/audit_levels.py`):**

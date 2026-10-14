@@ -62,6 +62,10 @@ enum PieceType {
 @export var corner_radius: float = 0.0             # ROUNDED_SQUARE / OPEN_FRAME corner radius
 @export var thickness: float = 28.0               # stroke width on every shape
 @export var path_points: PackedVector2Array = PackedVector2Array()  # PATH shape
+@export var sleeves: Array = []                                     # slider silver sleeve positions/axes
+@export var blockers: Array = []                                    # blocker arms / obstacle stems
+@export var has_acorn: bool = false                                  # collectible acorn inside ring
+@export var acorn_color_hex: String = "#F2C94C"
 
 @export var color: Color = Color("#00B4D8")
 
@@ -165,6 +169,10 @@ func to_dict() -> Dictionary:
 		"corner_radius": float(corner_radius),
 		"thickness": float(thickness),
 		"path_points": path_ary,
+		"sleeves": sleeves.duplicate(true),
+		"blockers": blockers.duplicate(true),
+		"has_acorn": bool(has_acorn),
+		"acorn_color_hex": String(acorn_color_hex),
 		"z_index": int(z_index),
 		"initially_locked": bool(initially_locked),
 		"locked": bool(locked),
@@ -292,6 +300,24 @@ func apply_dict(d: Dictionary) -> void:
 				if pp_i is Dictionary:
 					new_path2.append(Vector2(float(pp_i.get("x", 0.0)), float(pp_i.get("y", 0.0))))
 			path_points = new_path2
+	if d.has("sleeves"):
+		var slv_in: Variant = d["sleeves"]
+		if slv_in is Array:
+			sleeves = slv_in.duplicate(true)
+		else:
+			sleeves = []
+	else:
+		sleeves = []
+	if d.has("blockers"):
+		var bl_in: Variant = d["blockers"]
+		if bl_in is Array:
+			blockers = bl_in.duplicate(true)
+		else:
+			blockers = []
+	else:
+		blockers = []
+	has_acorn = bool(d.get("has_acorn", false))
+	acorn_color_hex = String(d.get("acorn_color_hex", "#F2C94C"))
 	z_index = int(d.get("z_index", d.get("z", 1)))
 	initially_locked = bool(d.get("initially_locked", false))
 	locked = bool(d.get("locked", false))

@@ -29,6 +29,17 @@ const DIMMER := Color(0.28, 0.16, 0.1, 0.46)
 const RADIUS := 26
 const SPACE := 8
 
+# Casual mobile hit palette
+const WARM_PILL_BG := Color("FCE8D3")
+const WARM_PILL_BORDER := Color("EBC6A6")
+const WARM_INK := Color("543324")
+const RUSH_RED := Color("DC2626")
+const GOLD_BORDER := Color("F4CF9E")
+const GOLD_BORDER_BEVEL := Color("E8B67D")
+const CARD_SURFACE := Color("FFFDF9")
+const BADGE_RED := Color("E62638")
+const BADGE_BORDER := Color("BF1B2A")
+
 const FONT_DISPLAY := 48
 const FONT_TITLE := 34
 const FONT_HEAD := 22
@@ -97,12 +108,80 @@ static func panel() -> StyleBoxFlat:
 
 
 static func pill() -> StyleBoxFlat:
-	var box := _chunky(SURFACE_RAISED, Color("E8D2B8"), false)
-	box.content_margin_left = 16.0
-	box.content_margin_right = 16.0
-	box.shadow_color = Color(0.42, 0.26, 0.14, 0.12)
-	box.shadow_size = 8
-	box.shadow_offset = Vector2(0, 4)
+	return warm_pill()
+
+
+static func warm_pill() -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = WARM_PILL_BG
+	box.border_color = WARM_PILL_BORDER
+	box.set_border_width_all(2)
+	box.border_width_bottom = 3
+	box.set_corner_radius_all(24)
+	box.content_margin_left = 28.0
+	box.content_margin_right = 28.0
+	box.content_margin_top = 8.0
+	box.content_margin_bottom = 8.0
+	box.shadow_color = Color(0.42, 0.24, 0.12, 0.10)
+	box.shadow_size = 6
+	box.shadow_offset = Vector2(0, 3)
+	return box
+
+
+static func squircle_button(btn: Button) -> void:
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = CARD_SURFACE
+	normal.border_color = Color("EAD8C4")
+	normal.set_border_width_all(2)
+	normal.border_width_bottom = 5
+	normal.set_corner_radius_all(18)
+	normal.shadow_color = Color(0.38, 0.22, 0.12, 0.14)
+	normal.shadow_size = 6
+	normal.shadow_offset = Vector2(0, 3)
+
+	var hover := normal.duplicate()
+	hover.bg_color = Color("FFFFFF")
+
+	var pressed := StyleBoxFlat.new()
+	pressed.bg_color = Color("F5EDE4")
+	pressed.border_color = Color("D6C2AC")
+	pressed.set_border_width_all(2)
+	pressed.border_width_bottom = 2
+	pressed.set_corner_radius_all(18)
+
+	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", pressed)
+	btn.add_theme_stylebox_override("focus", hover)
+	btn.add_theme_color_override("font_color", WARM_INK)
+	btn.add_theme_color_override("font_hover_color", WARM_INK)
+	btn.add_theme_color_override("font_pressed_color", WARM_INK)
+	btn.add_theme_font_override("font", rounded_font())
+	_bind_press(btn)
+
+
+static func powerup_card() -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = CARD_SURFACE
+	box.border_color = GOLD_BORDER
+	box.set_border_width_all(3)
+	box.border_width_bottom = 7
+	box.set_corner_radius_all(24)
+	box.shadow_color = Color(0.42, 0.26, 0.14, 0.16)
+	box.shadow_size = 10
+	box.shadow_offset = Vector2(0, 6)
+	return box
+
+
+static func red_badge() -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = BADGE_RED
+	box.border_color = BADGE_BORDER
+	box.border_width_bottom = 2
+	box.set_corner_radius_all(14)
+	box.shadow_color = Color(0.5, 0.1, 0.1, 0.28)
+	box.shadow_size = 5
+	box.shadow_offset = Vector2(0, 2)
 	return box
 
 

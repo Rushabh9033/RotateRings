@@ -37,7 +37,8 @@ func handle_input(event: InputEvent, active_pieces: Array, active_links: Array =
 				var hit_piece = resolve_hit(event.global_position, active_pieces)
 				if hit_piece:
 					_set_held(hit_piece)
-					if not PuzzleRulesScript.is_piece_rotatable(hit_piece, active_pieces, active_links):
+					var is_slider_m: bool = hit_piece.def != null and int(hit_piece.def.motion_model) in [1, 2]
+					if not is_slider_m and not PuzzleRulesScript.is_piece_rotatable(hit_piece, active_pieces, active_links):
 						current_active_pieces = active_pieces
 						current_active_links = active_links
 						jiggle_locked_piece(hit_piece)
@@ -56,7 +57,8 @@ func handle_input(event: InputEvent, active_pieces: Array, active_links: Array =
 			var hit_piece = resolve_hit(event.position, active_pieces)
 			if hit_piece:
 				_set_held(hit_piece)
-				if not PuzzleRulesScript.is_piece_rotatable(hit_piece, active_pieces, active_links):
+				var is_slider_t: bool = hit_piece.def != null and int(hit_piece.def.motion_model) in [1, 2]
+				if not is_slider_t and not PuzzleRulesScript.is_piece_rotatable(hit_piece, active_pieces, active_links):
 					current_active_pieces = active_pieces
 					current_active_links = active_links
 					jiggle_locked_piece(hit_piece)
@@ -141,9 +143,13 @@ func resolve_hit(global_pt: Vector2, pieces: Array):
 		var dist_from_center: float = (global_pt - p.global_position).length()
 		var pt_angle: float = (global_pt - p.global_position).angle()
 		var shape_type = p.def.shape_type if (p.get("def") and "shape_type" in p.def) else 0
-		var boundary_dist = PieceGeometry.get_world_boundary_distance(shape_type, p.radius, p.global_rotation, pt_angle)
-		var global_boundary_dist: float = boundary_dist * global_scale_factor
-		var dist_to_tube: float = absf(dist_from_center - global_boundary_dist)
+		var dist_to_tube: float = INF
+		if shape_type == PieceGeometry.ShapeType.L_SHAPE:
+			dist_to_tube = p.get_distance_to_ring(global_pt)
+		else:
+			var boundary_dist = PieceGeometry.get_world_boundary_distance(shape_type, p.radius, p.global_rotation, pt_angle)
+			var global_boundary_dist: float = boundary_dist * global_scale_factor
+			dist_to_tube = absf(dist_from_center - global_boundary_dist)
 
 		# Best match: closest tube within reasonable touch band
 		var touch_margin: float = global_thickness + (40.0 * global_scale_factor)
@@ -175,41 +181,21 @@ func start_drag(piece: Node2D, global_pt: Vector2, active_pieces: Array = [], ac
 	current_active_pieces = active_pieces
 	current_active_links = active_links
 	piece.state = RingPiece2DScript.State.SELECTED
+	last_pointer_pos = global_pt
 
 	var is_sliding = false
-	if "def" in piece and "motion_model" in piece.def:
-		is_sliding = (piece.def.motion_model == 1) # SLIDE_AXIS
+	if "def" in piece and piece.def != null and "motion_model" in piece.def:
+		is_sliding = (piece.def.motion_model in [1, 2]) # SLIDE_AXIS
 
 	if is_sliding:
-		# Calculate projection onto motion_axis
-		var axis = piece.def.motion_axis.normalized()
-		var global_axis = piece.get_parent().global_transform.basis_xform(axis).normalized()
-		var offset = global_pt - last_pointer_pos if "last_pointer_pos" in self else Vector2.ZERO
-		self.set_meta("last_pointer_pos", global_pt) # store
-		if offset.length_squared() < 0.001:
-			return
-			
-		var step_delta_dist = offset.dot(global_axis)
-		# Check physical connector collision
-		var clamp_res = PuzzleRulesScript.clamp_slide_step(
-			piece,
-			axis * step_delta_dist,
-			current_active_pieces,
-			current_active_links
-		)
-		
-		var allowed_delta: Vector2 = clamp_res["allowed_delta"]
-		if clamp_res["hit_stopper"]:
-			var pt = clamp_res["contact_point"]
-			var col = clamp_res["contact_color"]
-			_trigger_collision_feedback(pt, col)
-		
-		piece.state = RingPiece2DScript.State.ROTATING
-		piece.position += allowed_delta
-		# Trigger audio
+		if audio_service and audio_service.has_method("play_piece_select"):
+			audio_service.play_piece_select()
+		if haptic_service and haptic_service.has_method("trigger_selection"):
+			haptic_service.trigger_selection()
+		piece_selected.emit(piece)
 		piece.queue_redraw()
 		return
-	
+
 	# Fallback to rotation logic
 	var offset: Vector2 = global_pt - piece.global_position
 	last_pointer_angle_deg = rad_to_deg(offset.angle())
@@ -236,23 +222,36 @@ func update_drag(global_pt: Vector2) -> void:
 		return
 
 	var is_sliding = false
-	if "def" in piece and "motion_model" in piece.def:
-		is_sliding = (piece.def.motion_model == 1) # SLIDE_AXIS
+	if "def" in piece and piece.def != null and "motion_model" in piece.def:
+		is_sliding = (piece.def.motion_model in [1, 2]) # SLIDE_AXIS
 
 	if is_sliding:
-		# Calculate projection onto motion_axis
 		var axis = piece.def.motion_axis.normalized()
 		var global_axis = piece.get_parent().global_transform.basis_xform(axis).normalized()
-		var offset = global_pt - last_pointer_pos if "last_pointer_pos" in self else Vector2.ZERO
-		self.set_meta("last_pointer_pos", global_pt) # store
+		var offset = global_pt - last_pointer_pos
+		last_pointer_pos = global_pt
 		if offset.length_squared() < 0.001:
 			return
 			
 		var step_delta_dist = offset.dot(global_axis)
-		# Check physical connector collision
+		var base_pos: Vector2 = piece.def.position
+		var current_disp: float = (piece.position - base_pos).dot(axis)
+		var desired_disp: float = current_disp + step_delta_dist
+		var s_min: float = float(piece.def.slide_min)
+		var s_max: float = float(piece.def.slide_max)
+		var clamped_disp: float = clampf(desired_disp, s_min, s_max)
+		var allowed_step: float = clamped_disp - current_disp
+
+		if step_delta_dist < -0.1 and current_disp <= s_min + 0.5:
+			_trigger_collision_feedback(piece.global_position, piece.ring_color if "ring_color" in piece else Color.WHITE)
+			return
+
+		if absf(allowed_step) < 0.001:
+			return
+
 		var clamp_res = PuzzleRulesScript.clamp_slide_step(
 			piece,
-			axis * step_delta_dist,
+			axis * allowed_step,
 			current_active_pieces,
 			current_active_links
 		)
@@ -265,10 +264,15 @@ func update_drag(global_pt: Vector2) -> void:
 		
 		piece.state = RingPiece2DScript.State.ROTATING
 		piece.position += allowed_delta
-		# Trigger audio
+		if audio_service and audio_service.has_method("play_rotation_tick"):
+			audio_service.play_rotation_tick(0.8)
 		piece.queue_redraw()
+
+		var new_disp: float = (piece.position - base_pos).dot(axis)
+		if new_disp >= s_max - 20.0:
+			end_drag()
 		return
-	
+
 	# Fallback to rotation logic
 	var offset: Vector2 = global_pt - piece.global_position
 	if offset.length_squared() < 9.0:

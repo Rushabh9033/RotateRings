@@ -1,0 +1,506 @@
+{
+  "id": 13,
+  "title": "Level 13",
+  "instruction": "",
+  "par_moves": 10,
+  "theme_id": "porcelain",
+  "frame_scale": 1.0,
+  "frame_offset_x": 0.0,
+  "frame_offset_y": 0.0,
+  "frame_anchor": "auto",
+  "grid_size": 20.0,
+  "snap_to_grid": false,
+  "snap_to_piece_centers": false,
+  "snap_to_edges": false,
+  "snap_to_guides": false,
+  "snap_to_connector_points": false,
+  "nudge_step": 1.0,
+  "nudge_shift_multiplier": 10.0,
+  "nudge_alt_multiplier": 0.1,
+  "guides": [],
+  "reference_guides": [],
+  "size_links": {},
+  "locks": {},
+  "pieces": [
+    {
+      "id": "blue_top_left",
+      "color_name": "blue",
+      "color_hex": "#2F80ED",
+      "x": 199.7,
+      "y": 315.7,
+      "start_angle_deg": 0.0,
+      "radius": 60.0,
+      "radius_y": 60.0,
+      "thickness": 20.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "target_exit_angle_deg": 0.0,
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 90.0,
+          "width_deg": 110.0,
+          "tolerance_deg": 16.0
+        }
+      ]
+    },
+    {
+      "id": "green_top_mid",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "x": 364.7,
+      "y": 282.1,
+      "start_angle_deg": 0.0,
+      "radius": 60.0,
+      "radius_y": 60.0,
+      "thickness": 20.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "target_exit_angle_deg": 0.0,
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 270.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ]
+    },
+    {
+      "id": "red_top_right",
+      "color_name": "red",
+      "color_hex": "#E63946",
+      "x": 533.9,
+      "y": 310.4,
+      "start_angle_deg": 0.0,
+      "radius": 60.0,
+      "radius_y": 60.0,
+      "thickness": 20.0,
+      "shape_type": 0,
+      "piece_type": 0,
+      "role": 1,
+      "z_index": 1,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "target_exit_angle_deg": 0.0,
+      "motion_model": 0,
+      "gaps": []
+    },
+    {
+      "id": "orange_mid_right",
+      "color_name": "orange",
+      "color_hex": "#EA7829",
+      "x": 461.4,
+      "y": 460.7,
+      "start_angle_deg": 0.0,
+      "radius": 60.0,
+      "radius_y": 60.0,
+      "thickness": 20.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 1.0,
+        "y": 0.0
+      },
+      "target_exit_angle_deg": 0.0,
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 0.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": [
+        {
+          "angle_deg": 251.0,
+          "length": 48.0,
+          "width": 14.0,
+          "has_stopper": false
+        }
+      ]
+    },
+    {
+      "id": "purple_mid_right",
+      "color_name": "purple",
+      "color_hex": "#7B61FF",
+      "x": 486.6,
+      "y": 625.7,
+      "start_angle_deg": 0.0,
+      "radius": 60.0,
+      "radius_y": 60.0,
+      "thickness": 20.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 1.0,
+        "y": 1.0
+      },
+      "target_exit_angle_deg": 0.0,
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 140.0,
+          "width_deg": 110.0,
+          "tolerance_deg": 16.0
+        }
+      ]
+    },
+    {
+      "id": "cyan_mid_top",
+      "color_name": "cyan",
+      "color_hex": "#32ADDA",
+      "x": 295.4,
+      "y": 423.9,
+      "start_angle_deg": 0.0,
+      "radius": 60.0,
+      "radius_y": 60.0,
+      "thickness": 20.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "target_exit_angle_deg": 0.0,
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 270.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ]
+    },
+    {
+      "id": "green_mid_left",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "x": 171.3,
+      "y": 532.2,
+      "start_angle_deg": 0.0,
+      "radius": 60.0,
+      "radius_y": 60.0,
+      "thickness": 20.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": -1.0,
+        "y": 0.0
+      },
+      "target_exit_angle_deg": 0.0,
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 180.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ]
+    },
+    {
+      "id": "cyan_center",
+      "color_name": "cyan",
+      "color_hex": "#32ADDA",
+      "x": 332.1,
+      "y": 579.5,
+      "start_angle_deg": 0.0,
+      "radius": 60.0,
+      "radius_y": 60.0,
+      "thickness": 20.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 1.0,
+        "y": 0.0
+      },
+      "target_exit_angle_deg": 0.0,
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 0.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ]
+    },
+    {
+      "id": "red_lower",
+      "color_name": "red",
+      "color_hex": "#E63946",
+      "x": 253.3,
+      "y": 729.8,
+      "start_angle_deg": 0.0,
+      "radius": 60.0,
+      "radius_y": 60.0,
+      "thickness": 20.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": -1.0,
+        "y": 0.0
+      },
+      "target_exit_angle_deg": 0.0,
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 180.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ]
+    },
+    {
+      "id": "green_bot_left",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "x": 257.5,
+      "y": 897.9,
+      "start_angle_deg": 0.0,
+      "radius": 60.0,
+      "radius_y": 60.0,
+      "thickness": 20.0,
+      "shape_type": 0,
+      "piece_type": 0,
+      "role": 1,
+      "z_index": 1,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "target_exit_angle_deg": 0.0,
+      "motion_model": 0,
+      "gaps": []
+    },
+    {
+      "id": "orange_lower_mid",
+      "color_name": "orange",
+      "color_hex": "#EA7829",
+      "x": 412.0,
+      "y": 707.7,
+      "start_angle_deg": 0.0,
+      "radius": 60.0,
+      "radius_y": 60.0,
+      "thickness": 20.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "target_exit_angle_deg": 0.0,
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 270.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": [
+        {
+          "angle_deg": 129.0,
+          "length": 48.0,
+          "width": 14.0,
+          "has_stopper": false
+        }
+      ]
+    },
+    {
+      "id": "purple_bot_right",
+      "color_name": "purple",
+      "color_hex": "#7B61FF",
+      "x": 411.0,
+      "y": 876.9,
+      "start_angle_deg": 0.0,
+      "radius": 60.0,
+      "radius_y": 60.0,
+      "thickness": 20.0,
+      "shape_type": 0,
+      "piece_type": 0,
+      "role": 1,
+      "z_index": 1,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "target_exit_angle_deg": 0.0,
+      "motion_model": 0,
+      "gaps": []
+    }
+  ],
+  "links": [
+    {
+      "id": "link_red_top_right_to_green_top_mid",
+      "from_id": "red_top_right",
+      "to_id": "green_top_mid",
+      "from_piece_id": "red_top_right",
+      "to_piece_id": "green_top_mid",
+      "collar_angle_deg": 189.5,
+      "stem_dist": 171.6,
+      "joint_color": "red",
+      "joint_color_name": "red",
+      "joint_color_hex": "#E63946"
+    },
+    {
+      "id": "link_green_top_mid_to_blue_top_left",
+      "from_id": "green_top_mid",
+      "to_id": "blue_top_left",
+      "from_piece_id": "green_top_mid",
+      "to_piece_id": "blue_top_left",
+      "collar_angle_deg": 168.5,
+      "stem_dist": 168.4,
+      "joint_color": "green",
+      "joint_color_name": "green",
+      "joint_color_hex": "#27AE60"
+    },
+    {
+      "id": "link_purple_mid_right_to_orange_mid_right",
+      "from_id": "purple_mid_right",
+      "to_id": "orange_mid_right",
+      "from_piece_id": "purple_mid_right",
+      "to_piece_id": "orange_mid_right",
+      "collar_angle_deg": 261.3,
+      "stem_dist": 166.9,
+      "joint_color": "purple",
+      "joint_color_name": "purple",
+      "joint_color_hex": "#7B61FF"
+    },
+    {
+      "id": "link_orange_mid_right_to_cyan_mid_top",
+      "from_id": "orange_mid_right",
+      "to_id": "cyan_mid_top",
+      "from_piece_id": "orange_mid_right",
+      "to_piece_id": "cyan_mid_top",
+      "collar_angle_deg": 192.5,
+      "stem_dist": 170.0,
+      "joint_color": "orange",
+      "joint_color_name": "orange",
+      "joint_color_hex": "#EA7829"
+    },
+    {
+      "id": "link_cyan_mid_top_to_green_mid_left",
+      "from_id": "cyan_mid_top",
+      "to_id": "green_mid_left",
+      "from_piece_id": "cyan_mid_top",
+      "to_piece_id": "green_mid_left",
+      "collar_angle_deg": 138.9,
+      "stem_dist": 164.7,
+      "joint_color": "cyan",
+      "joint_color_name": "cyan",
+      "joint_color_hex": "#32ADDA"
+    },
+    {
+      "id": "link_green_mid_left_to_cyan_center",
+      "from_id": "green_mid_left",
+      "to_id": "cyan_center",
+      "from_piece_id": "green_mid_left",
+      "to_piece_id": "cyan_center",
+      "collar_angle_deg": 16.4,
+      "stem_dist": 167.6,
+      "joint_color": "green",
+      "joint_color_name": "green",
+      "joint_color_hex": "#27AE60"
+    },
+    {
+      "id": "link_red_lower_to_cyan_center",
+      "from_id": "red_lower",
+      "to_id": "cyan_center",
+      "from_piece_id": "red_lower",
+      "to_piece_id": "cyan_center",
+      "collar_angle_deg": 297.7,
+      "stem_dist": 169.7,
+      "joint_color": "red",
+      "joint_color_name": "red",
+      "joint_color_hex": "#E63946"
+    },
+    {
+      "id": "link_green_bot_left_to_red_lower",
+      "from_id": "green_bot_left",
+      "to_id": "red_lower",
+      "from_piece_id": "green_bot_left",
+      "to_piece_id": "red_lower",
+      "collar_angle_deg": 268.6,
+      "stem_dist": 168.2,
+      "joint_color": "green",
+      "joint_color_name": "green",
+      "joint_color_hex": "#27AE60"
+    },
+    {
+      "id": "link_purple_bot_right_to_orange_lower_mid",
+      "from_id": "purple_bot_right",
+      "to_id": "orange_lower_mid",
+      "from_piece_id": "purple_bot_right",
+      "to_piece_id": "orange_lower_mid",
+      "collar_angle_deg": 270.3,
+      "stem_dist": 169.2,
+      "joint_color": "purple",
+      "joint_color_name": "purple",
+      "joint_color_hex": "#7B61FF"
+    }
+  ]
+}

@@ -16,8 +16,8 @@ func _draw() -> void:
 	var s := size
 	if s.x < 2.0 or s.y < 2.0:
 		return
-	draw_rect(Rect2(Vector2.ZERO, s), Color("F6EBDD"))
-	draw_circle(Vector2(s.x * 0.5, s.y * 0.42), s.y * 0.55, Color(1, 0.97, 0.93, 0.9))
+	draw_rect(Rect2(Vector2.ZERO, s), Color("F7ECD6"))
+	draw_circle(Vector2(s.x * 0.5, s.y * 0.42), s.y * 0.55, Color(0.99, 0.96, 0.90, 0.95))
 	if board_mode:
 		_wash(s, 0.35)
 	else:

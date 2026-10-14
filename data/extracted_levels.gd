@@ -10,6 +10,89 @@ const LevelDefinitionScript = preload("res://data/level_definition.gd")
 
 static func build(level_id: int):
 	match level_id:
+		2:
+			var def := LevelDefinitionScript.new()
+			def.level_id = 2
+			def.title = "Level 2"
+			def.instruction = "Rotate rings to align gaps. Clear all rings to win."
+			var __hub_r1 := PieceDefinitionScript.new(&"r1", Vector2(369.0, 420.0), 110.0, 22.0, Color("#F97316"), 0.0, [GapDefinitionScript.new(270.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE)
+			__hub_r1.role = PieceDefinitionScript.PieceRole.HUB
+			def.pieces = [
+				PieceDefinitionScript.new(&"r2", Vector2(622.0, 420.0), 56.0, 20.0, Color("#06B6D4"), 0.0, [GapDefinitionScript.new(90.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r3", Vector2(496.0, 551.0), 56.0, 20.0, Color("#8B5CF6"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+			]
+			def.pieces.append(__hub_r1)
+			def.links = [
+				LinkDefinitionScript.new(&"link_r1_r2", &"r1", &"r2", Color("#F97316"), 90.0, 170.0),
+				LinkDefinitionScript.new(&"link_r3_r1", &"r3", &"r1", Color("#8B5CF6"), 315.0, 99.5),
+			]
+			return def
+		3:
+			var def := LevelDefinitionScript.new()
+			def.level_id = 3
+			def.title = "Level 3"
+			def.instruction = "Rotate rings to align gaps. Clear all rings to win."
+			var __hub_r1 := PieceDefinitionScript.new(&"r1", Vector2(360.0, 360.0), 110.0, 22.0, Color("#06B6D4"), 0.0, [GapDefinitionScript.new(200.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE)
+			__hub_r1.role = PieceDefinitionScript.PieceRole.HUB
+			def.pieces = [
+				PieceDefinitionScript.new(&"r2", Vector2(240.0, 480.0), 70.0, 20.0, Color("#F97316"), 0.0, [GapDefinitionScript.new(110.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r3", Vector2(480.0, 480.0), 70.0, 20.0, Color("#8B5CF6"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r4", Vector2(360.0, 600.0), 70.0, 20.0, Color("#FF3B30"), 0.0, [GapDefinitionScript.new(20.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+			]
+			def.pieces.append(__hub_r1)
+			def.links = [
+				LinkDefinitionScript.new(&"link_r1_r2", &"r1", &"r2", Color("#06B6D4"), 225.0, 79.7),
+				LinkDefinitionScript.new(&"link_r1_r3", &"r1", &"r3", Color("#06B6D4"), 135.0, 79.7),
+				LinkDefinitionScript.new(&"link_r4_r2", &"r4", &"r2", Color("#FF3B30"), 315.0, 99.7),
+				LinkDefinitionScript.new(&"link_r4_r3", &"r4", &"r3", Color("#FF3B30"), 45.0, 99.7),
+			]
+			return def
+		4:
+			var def := LevelDefinitionScript.new()
+			def.level_id = 4
+			def.title = "Level 4"
+			def.instruction = "Rotate rings to align gaps. Clear all rings to win."
+			var __hub_r3 := PieceDefinitionScript.new(&"r3", Vector2(360.0, 560.0), 110.0, 22.0, Color("#8B5CF6"), 0.0, [GapDefinitionScript.new(200.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE)
+			__hub_r3.role = PieceDefinitionScript.PieceRole.HUB
+			def.pieces = [
+				PieceDefinitionScript.new(&"r1", Vector2(300.0, 420.0), 56.0, 20.0, Color("#F97316"), 0.0, [GapDefinitionScript.new(270.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r2", Vector2(500.0, 420.0), 70.0, 20.0, Color("#06B6D4"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r4", Vector2(220.0, 700.0), 56.0, 20.0, Color("#FF3B30"), 0.0, [GapDefinitionScript.new(20.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r5", Vector2(500.0, 700.0), 70.0, 20.0, Color("#22C55E"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r6", Vector2(360.0, 840.0), 56.0, 20.0, Color("#3B82F6"), 0.0, [GapDefinitionScript.new(180.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+			]
+			def.pieces.append(__hub_r3)
+			def.links = [
+				LinkDefinitionScript.new(&"link_r2_r1", &"r2", &"r1", Color("#06B6D4"), 270.0, 137.0),
+				LinkDefinitionScript.new(&"link_r3_r2", &"r3", &"r2", Color("#8B5CF6"), 45.0, 108.0),
+				LinkDefinitionScript.new(&"link_r3_r4", &"r3", &"r4", Color("#8B5CF6"), 225.0, 115.0),
+				LinkDefinitionScript.new(&"link_r3_r5", &"r3", &"r5", Color("#8B5CF6"), 135.0, 108.0),
+				LinkDefinitionScript.new(&"link_r5_r6", &"r5", &"r6", Color("#22C55E"), 225.0, 135.0),
+			]
+			return def
+		5:
+			var def := LevelDefinitionScript.new()
+			def.level_id = 5
+			def.title = "Level 5"
+			def.instruction = "Rotate rings to align gaps. Clear all rings to win."
+			var __hub_r1 := PieceDefinitionScript.new(&"r1", Vector2(360.0, 640.0), 110.0, 22.0, Color("#8B5CF6"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE)
+			__hub_r1.role = PieceDefinitionScript.PieceRole.HUB
+			def.pieces = [
+				PieceDefinitionScript.new(&"r2", Vector2(204.0, 550.0), 70.0, 20.0, Color("#06B6D4"), 0.0, [GapDefinitionScript.new(95.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r3", Vector2(516.0, 550.0), 70.0, 20.0, Color("#F97316"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r4", Vector2(204.0, 730.0), 70.0, 20.0, Color("#FF3B30"), 0.0, [GapDefinitionScript.new(95.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r5", Vector2(516.0, 730.0), 70.0, 20.0, Color("#22C55E"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r6", Vector2(360.0, 460.0), 70.0, 20.0, Color("#22C55E"), 0.0, [GapDefinitionScript.new(215.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r7", Vector2(360.0, 820.0), 70.0, 20.0, Color("#3B82F6"), 0.0, [GapDefinitionScript.new(35.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+			]
+			def.pieces.append(__hub_r1)
+			def.links = [
+				LinkDefinitionScript.new(&"link_r6_r2", &"r6", &"r2", Color("#22C55E"), 240.0, 110.1),
+				LinkDefinitionScript.new(&"link_r6_r3", &"r6", &"r3", Color("#22C55E"), 120.0, 110.1),
+				LinkDefinitionScript.new(&"link_r7_r4", &"r7", &"r4", Color("#3B82F6"), 300.0, 110.1),
+				LinkDefinitionScript.new(&"link_r7_r5", &"r7", &"r5", Color("#3B82F6"), 60.0, 110.1),
+			]
+			return def
 		77:
 			var def := LevelDefinitionScript.new()
 			def.level_id = 77
@@ -159,28 +242,19 @@ static func build(level_id: int):
 			var __hub_r21 := PieceDefinitionScript.new(&"r21", Vector2(404.0, 715.0), 110.0, 22.0, Color("#3B82F6"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE)
 			__hub_r21.role = PieceDefinitionScript.PieceRole.HUB
 			def.pieces = [
-				PieceDefinitionScript.new(&"r1", Vector2(498.0, 285.0), 70.0, 20.0, Color("#8B5CF6"), 0.0, [GapDefinitionScript.new(13.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r2", Vector2(393.0, 308.0), 70.0, 20.0, Color("#FF3B30"), 0.0, [GapDefinitionScript.new(200.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r3", Vector2(499.0, 393.0), 70.0, 20.0, Color("#8B5CF6"), 0.0, [GapDefinitionScript.new(40.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r4", Vector2(497.0, 381.0), 56.0, 20.0, Color("#F97316"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r5", Vector2(497.0, 392.0), 56.0, 20.0, Color("#3B82F6"), 0.0, [GapDefinitionScript.new(90.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r6", Vector2(505.0, 390.0), 56.0, 20.0, Color("#06B6D4"), 0.0, [GapDefinitionScript.new(353.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r7", Vector2(234.0, 482.0), 80.0, 20.0, Color("#8B5CF6"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r8", Vector2(211.0, 483.0), 56.0, 20.0, Color("#FF3B30"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r9", Vector2(249.0, 526.0), 80.0, 20.0, Color("#22C55E"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r10", Vector2(272.0, 524.0), 56.0, 20.0, Color("#3B82F6"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r11", Vector2(732.0, 476.0), 80.0, 20.0, Color("#22C55E"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r12", Vector2(757.0, 475.0), 56.0, 20.0, Color("#06B6D4"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r13", Vector2(718.0, 523.0), 80.0, 20.0, Color("#8B5CF6"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r14", Vector2(743.0, 523.0), 56.0, 20.0, Color("#F97316"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r15", Vector2(500.0, 587.0), 70.0, 20.0, Color("#FF3B30"), 0.0, [GapDefinitionScript.new(215.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r16", Vector2(499.0, 612.0), 70.0, 20.0, Color("#22C55E"), 0.0, [GapDefinitionScript.new(200.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r17", Vector2(349.0, 677.0), 80.0, 20.0, Color("#FF3B30"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r18", Vector2(465.0, 675.0), 80.0, 20.0, Color("#F97316"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r19", Vector2(535.0, 675.0), 80.0, 20.0, Color("#FF3B30"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r20", Vector2(643.0, 676.0), 80.0, 20.0, Color("#8B5CF6"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r22", Vector2(444.0, 776.0), 80.0, 20.0, Color("#06B6D4"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r23", Vector2(536.0, 775.0), 80.0, 20.0, Color("#06B6D4"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r24", Vector2(599.0, 713.0), 80.0, 20.0, Color("#22C55E"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
 			]
 			def.pieces.append(__hub_r21)
 			def.links = [
-				LinkDefinitionScript.new(&"link_r1_r2", &"r1", &"r2", Color("#8B5CF6"), 289.0, 37.5),
-				LinkDefinitionScript.new(&"link_r1_r3", &"r1", &"r3", Color("#8B5CF6"), 181.0, 38.0),
-				LinkDefinitionScript.new(&"link_r1_r4", &"r1", &"r4", Color("#8B5CF6"), 140.0, 33.0),
-				LinkDefinitionScript.new(&"link_r3_r5", &"r3", &"r5", Color("#8B5CF6"), 272.0, 4.0),
-				LinkDefinitionScript.new(&"link_r3_r6", &"r3", &"r6", Color("#8B5CF6"), 93.0, 4.0),
+
 			]
 			return def
 		81:
@@ -191,18 +265,13 @@ static func build(level_id: int):
 			var __hub_r4 := PieceDefinitionScript.new(&"r4", Vector2(284.0, 279.0), 110.0, 22.0, Color("#8B5CF6"), 0.0, [GapDefinitionScript.new(50.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE)
 			__hub_r4.role = PieceDefinitionScript.PieceRole.HUB
 			def.pieces = [
-				PieceDefinitionScript.new(&"r10", Vector2(315.0, 465.0), 56.0, 20.0, Color("#FF3B30"), 0.0, [GapDefinitionScript.new(315.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r12", Vector2(409.0, 558.0), 70.0, 20.0, Color("#8B5CF6"), 0.0, [GapDefinitionScript.new(315.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r13", Vector2(486.0, 651.0), 70.0, 20.0, Color("#3B82F6"), 0.0, [GapDefinitionScript.new(90.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r14", Vector2(657.0, 651.0), 70.0, 20.0, Color("#22C55E"), 0.0, [GapDefinitionScript.new(270.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r16", Vector2(477.0, 763.0), 56.0, 20.0, Color("#8B5CF6"), 0.0, [GapDefinitionScript.new(90.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r3", Vector2(576.0, 186.0), 56.0, 20.0, Color("#F97316"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r6", Vector2(221.0, 372.0), 56.0, 20.0, Color("#22C55E"), 0.0, [GapDefinitionScript.new(135.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
 			]
 			def.pieces.append(__hub_r4)
 			def.links = [
-				LinkDefinitionScript.new(&"link_r10_r12", &"r10", &"r12", Color("#FF3B30"), 135.0, 69.2),
-				LinkDefinitionScript.new(&"link_r12_r13", &"r12", &"r13", Color("#8B5CF6"), 315.0, 50.7),
-				LinkDefinitionScript.new(&"link_r13_r14", &"r13", &"r14", Color("#3B82F6"), 90.0, 101.0),
-				LinkDefinitionScript.new(&"link_r14_r16", &"r14", &"r16", Color("#22C55E"), 225.0, 149.0),
+				LinkDefinitionScript.new(&"link_r3_r4", &"r3", &"r4", Color("#F97316"), 180.0, 223.5),
+				LinkDefinitionScript.new(&"link_r4_r6", &"r4", &"r6", Color("#8B5CF6"), 180.0, 29.3),
 			]
 			return def
 		82:
@@ -213,12 +282,34 @@ static func build(level_id: int):
 			var __hub_r1 := PieceDefinitionScript.new(&"r1", Vector2(500.0, 456.0), 110.0, 22.0, Color("#06B6D4"), 0.0, [GapDefinitionScript.new(65.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE)
 			__hub_r1.role = PieceDefinitionScript.PieceRole.HUB
 			def.pieces = [
-				PieceDefinitionScript.new(&"r14", Vector2(698.0, 703.0), 56.0, 20.0, Color("#3B82F6"), 0.0, [GapDefinitionScript.new(270.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r15", Vector2(670.0, 793.0), 56.0, 20.0, Color("#06B6D4"), 0.0, [GapDefinitionScript.new(180.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r2", Vector2(284.0, 229.0), 56.0, 20.0, Color("#F97316"), 0.0, [GapDefinitionScript.new(110.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r3", Vector2(500.0, 193.0), 70.0, 20.0, Color("#8B5CF6"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r4", Vector2(649.0, 200.0), 56.0, 20.0, Color("#FF3B30"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r5", Vector2(660.0, 266.0), 56.0, 20.0, Color("#F97316"), 0.0, [GapDefinitionScript.new(225.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r6", Vector2(498.0, 371.0), 70.0, 20.0, Color("#8B5CF6"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r7", Vector2(353.0, 454.0), 70.0, 20.0, Color("#FF3B30"), 0.0, [GapDefinitionScript.new(35.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r8", Vector2(284.0, 510.0), 56.0, 20.0, Color("#8B5CF6"), 0.0, [GapDefinitionScript.new(45.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r9", Vector2(648.0, 461.0), 70.0, 20.0, Color("#F97316"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r10", Vector2(498.0, 541.0), 70.0, 20.0, Color("#22C55E"), 0.0, [GapDefinitionScript.new(35.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r11", Vector2(343.0, 595.0), 70.0, 20.0, Color("#3B82F6"), 0.0, [GapDefinitionScript.new(25.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r12", Vector2(299.0, 704.0), 70.0, 20.0, Color("#06B6D4"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r13", Vector2(322.0, 793.0), 56.0, 20.0, Color("#22C55E"), 0.0, [GapDefinitionScript.new(90.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
 			]
 			def.pieces.append(__hub_r1)
 			def.links = [
-				LinkDefinitionScript.new(&"link_r14_r15", &"r14", &"r15", Color("#3B82F6"), 180.0, 38.3),
+				LinkDefinitionScript.new(&"link_r1_r2", &"r1", &"r2", Color("#06B6D4"), 315.0, 230.3),
+				LinkDefinitionScript.new(&"link_r1_r3", &"r1", &"r3", Color("#06B6D4"), 0.0, 173.0),
+				LinkDefinitionScript.new(&"link_r1_r4", &"r1", &"r4", Color("#06B6D4"), 45.0, 213.2),
+				LinkDefinitionScript.new(&"link_r1_r5", &"r1", &"r5", Color("#06B6D4"), 45.0, 165.4),
+				LinkDefinitionScript.new(&"link_r1_r9", &"r1", &"r9", Color("#06B6D4"), 90.0, 58.1),
+				LinkDefinitionScript.new(&"link_r1_r11", &"r1", &"r11", Color("#06B6D4"), 225.0, 119.7),
+				LinkDefinitionScript.new(&"link_r3_r6", &"r3", &"r6", Color("#8B5CF6"), 180.0, 108.0),
+				LinkDefinitionScript.new(&"link_r6_r7", &"r6", &"r7", Color("#8B5CF6"), 225.0, 97.1),
+				LinkDefinitionScript.new(&"link_r7_r8", &"r7", &"r8", Color("#FF3B30"), 225.0, 25.9),
+				LinkDefinitionScript.new(&"link_r6_r10", &"r6", &"r10", Color("#8B5CF6"), 180.0, 100.0),
+				LinkDefinitionScript.new(&"link_r9_r10", &"r9", &"r10", Color("#F97316"), 225.0, 100.0),
+				LinkDefinitionScript.new(&"link_r11_r12", &"r11", &"r12", Color("#3B82F6"), 180.0, 47.5),
+				LinkDefinitionScript.new(&"link_r12_r13", &"r12", &"r13", Color("#06B6D4"), 180.0, 28.9),
 			]
 			return def
 		83:
@@ -414,40 +505,16 @@ static func build(level_id: int):
 			var __hub_r3 := PieceDefinitionScript.new(&"r3", Vector2(267.0, 328.0), 110.0, 22.0, Color("#06B6D4"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE)
 			__hub_r3.role = PieceDefinitionScript.PieceRole.HUB
 			def.pieces = [
-				PieceDefinitionScript.new(&"r1", Vector2(381.0, 236.0), 70.0, 20.0, Color("#8B5CF6"), 0.0, [GapDefinitionScript.new(175.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r2", Vector2(625.0, 268.0), 70.0, 20.0, Color("#F97316"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r4", Vector2(600.0, 384.0), 70.0, 20.0, Color("#22C55E"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r5", Vector2(381.0, 427.0), 80.0, 20.0, Color("#FF3B30"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r6", Vector2(313.0, 595.0), 70.0, 20.0, Color("#22C55E"), 0.0, [GapDefinitionScript.new(270.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r7", Vector2(497.0, 601.0), 70.0, 20.0, Color("#FF3B30"), 0.0, [GapDefinitionScript.new(270.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r9", Vector2(323.0, 729.0), 56.0, 20.0, Color("#F97316"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r11", Vector2(609.0, 196.0), 80.0, 20.0, Color("#22C55E"), 90.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r12", Vector2(497.0, 286.0), 80.0, 20.0, Color("#3B82F6"), 25.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r13", Vector2(323.0, 384.0), 80.0, 20.0, Color("#FF3B30"), 150.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r14", Vector2(497.0, 412.0), 80.0, 20.0, Color("#FF3B30"), 90.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r15", Vector2(381.0, 482.0), 80.0, 20.0, Color("#FF3B30"), 180.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r16", Vector2(454.0, 528.0), 80.0, 20.0, Color("#F97316"), 90.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r17", Vector2(182.0, 595.0), 56.0, 20.0, Color("#22C55E"), 270.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r18", Vector2(412.0, 595.0), 80.0, 20.0, Color("#22C55E"), 90.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r19", Vector2(323.0, 662.0), 80.0, 20.0, Color("#F97316"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r20", Vector2(497.0, 659.0), 80.0, 20.0, Color("#FF3B30"), 180.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r21", Vector2(560.0, 677.0), 80.0, 20.0, Color("#8B5CF6"), 90.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r8", Vector2(751.0, 648.0), 70.0, 20.0, Color("#3B82F6"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r10", Vector2(609.0, 732.0), 56.0, 20.0, Color("#22C55E"), 0.0, [GapDefinitionScript.new(35.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r22", Vector2(751.0, 530.0), 56.0, 20.0, Color("#8B5CF6"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r23", Vector2(686.0, 686.0), 80.0, 20.0, Color("#22C55E"), 225.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
 			]
 			def.pieces.append(__hub_r3)
 			def.links = [
-				LinkDefinitionScript.new(&"link_r11_r1", &"r11", &"r1", Color("#22C55E"), 270.0, 156.5),
-				LinkDefinitionScript.new(&"link_r11_r2", &"r11", &"r2", Color("#22C55E"), 90.0, 4.0),
-				LinkDefinitionScript.new(&"link_r12_r2", &"r12", &"r2", Color("#3B82F6"), 205.0, 54.3),
-				LinkDefinitionScript.new(&"link_r13_r1", &"r13", &"r1", Color("#FF3B30"), 330.0, 84.0),
-				LinkDefinitionScript.new(&"link_r14_r4", &"r14", &"r4", Color("#FF3B30"), 270.0, 31.7),
-				LinkDefinitionScript.new(&"link_r16_r2", &"r16", &"r2", Color("#F97316"), 270.0, 236.2),
-				LinkDefinitionScript.new(&"link_r17_r6", &"r17", &"r6", Color("#22C55E"), 90.0, 68.0),
-				LinkDefinitionScript.new(&"link_r18_r6", &"r18", &"r6", Color("#22C55E"), 270.0, 24.0),
-				LinkDefinitionScript.new(&"link_r18_r7", &"r18", &"r7", Color("#22C55E"), 90.0, 10.2),
-				LinkDefinitionScript.new(&"link_r19_r6", &"r19", &"r6", Color("#F97316"), 0.0, 4.0),
-				LinkDefinitionScript.new(&"link_r19_r9", &"r19", &"r9", Color("#F97316"), 180.0, 4.0),
-				LinkDefinitionScript.new(&"link_r20_r7", &"r20", &"r7", Color("#FF3B30"), 0.0, 4.0),
-				LinkDefinitionScript.new(&"link_r21_r4", &"r21", &"r4", Color("#8B5CF6"), 90.0, 220.7),
+				LinkDefinitionScript.new(&"link_r22_r8", &"r22", &"r8", Color("#8B5CF6"), 180.0, 55.0),
+				LinkDefinitionScript.new(&"link_r23_r8", &"r23", &"r8", Color("#22C55E"), 45.0, 4.0),
+				LinkDefinitionScript.new(&"link_r23_r10", &"r23", &"r10", Color("#22C55E"), 225.0, 21.7),
 			]
 			return def
 		88:
@@ -458,13 +525,26 @@ static func build(level_id: int):
 			var __hub_r6 := PieceDefinitionScript.new(&"r6", Vector2(689.0, 320.0), 110.0, 22.0, Color("#22C55E"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE)
 			__hub_r6.role = PieceDefinitionScript.PieceRole.HUB
 			def.pieces = [
-				PieceDefinitionScript.new(&"r9", Vector2(302.0, 463.0), 56.0, 20.0, Color("#22C55E"), 0.0, [GapDefinitionScript.new(90.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r10", Vector2(485.0, 516.0), 70.0, 20.0, Color("#3B82F6"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r14", Vector2(535.0, 633.0), 56.0, 20.0, Color("#22C55E"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r1", Vector2(300.0, 197.0), 70.0, 20.0, Color("#F97316"), 0.0, [GapDefinitionScript.new(170.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r2", Vector2(491.0, 198.0), 70.0, 20.0, Color("#06B6D4"), 0.0, [GapDefinitionScript.new(245.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r3", Vector2(689.0, 197.0), 70.0, 20.0, Color("#8B5CF6"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r4", Vector2(262.0, 322.0), 56.0, 20.0, Color("#FF3B30"), 0.0, [GapDefinitionScript.new(90.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r5", Vector2(491.0, 322.0), 70.0, 20.0, Color("#22C55E"), 0.0, [GapDefinitionScript.new(90.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r8", Vector2(689.0, 408.0), 70.0, 20.0, Color("#8B5CF6"), 0.0, [GapDefinitionScript.new(270.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r11", Vector2(689.0, 526.0), 70.0, 20.0, Color("#F97316"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r15", Vector2(689.0, 652.0), 70.0, 20.0, Color("#3B82F6"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r19", Vector2(689.0, 769.0), 56.0, 20.0, Color("#22C55E"), 0.0, [GapDefinitionScript.new(180.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
 			]
 			def.pieces.append(__hub_r6)
 			def.links = [
-				LinkDefinitionScript.new(&"link_r9_r10", &"r9", &"r10", Color("#22C55E"), 135.0, 127.5),
+				LinkDefinitionScript.new(&"link_r1_r2", &"r1", &"r2", Color("#F97316"), 90.0, 121.0),
+				LinkDefinitionScript.new(&"link_r2_r3", &"r2", &"r3", Color("#06B6D4"), 90.0, 128.0),
+				LinkDefinitionScript.new(&"link_r1_r4", &"r1", &"r4", Color("#F97316"), 180.0, 67.6),
+				LinkDefinitionScript.new(&"link_r2_r5", &"r2", &"r5", Color("#06B6D4"), 180.0, 54.0),
+				LinkDefinitionScript.new(&"link_r5_r8", &"r5", &"r8", Color("#22C55E"), 135.0, 145.9),
+				LinkDefinitionScript.new(&"link_r8_r11", &"r8", &"r11", Color("#8B5CF6"), 180.0, 48.0),
+				LinkDefinitionScript.new(&"link_r11_r15", &"r11", &"r15", Color("#F97316"), 180.0, 56.0),
+				LinkDefinitionScript.new(&"link_r15_r19", &"r15", &"r19", Color("#3B82F6"), 180.0, 54.0),
 			]
 			return def
 		89:
@@ -522,18 +602,13 @@ static func build(level_id: int):
 			var __hub_r12 := PieceDefinitionScript.new(&"r12", Vector2(362.0, 452.0), 110.0, 22.0, Color("#06B6D4"), 0.0, [GapDefinitionScript.new(25.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE)
 			__hub_r12.role = PieceDefinitionScript.PieceRole.HUB
 			def.pieces = [
-				PieceDefinitionScript.new(&"r11", Vector2(422.0, 403.0), 70.0, 20.0, Color("#FF3B30"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r14", Vector2(322.0, 413.0), 70.0, 20.0, Color("#F97316"), 0.0, [GapDefinitionScript.new(110.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r20", Vector2(361.0, 520.0), 70.0, 20.0, Color("#F97316"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r1", Vector2(491.0, 463.0), 70.0, 20.0, Color("#06B6D4"), 0.0, [GapDefinitionScript.new(200.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r7", Vector2(563.0, 502.0), 70.0, 20.0, Color("#06B6D4"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
 			]
 			def.pieces.append(__hub_r12)
 			def.links = [
-				LinkDefinitionScript.new(&"link_r20_r12", &"r20", &"r12", Color("#F97316"), 0.0, 4.0),
-				LinkDefinitionScript.new(&"link_r12_r20", &"r12", &"r20", Color("#06B6D4"), 180.0, 4.0),
-				LinkDefinitionScript.new(&"link_r12_r11", &"r12", &"r11", Color("#06B6D4"), 50.0, 4.0),
-				LinkDefinitionScript.new(&"link_r11_r12", &"r11", &"r12", Color("#FF3B30"), 230.0, 4.0),
-				LinkDefinitionScript.new(&"link_r12_r14", &"r12", &"r14", Color("#06B6D4"), 310.0, 4.0),
-				LinkDefinitionScript.new(&"link_r14_r12", &"r14", &"r12", Color("#F97316"), 130.0, 4.0),
+				LinkDefinitionScript.new(&"link_r1_r7", &"r1", &"r7", Color("#06B6D4"), 90.0, 11.9),
+				LinkDefinitionScript.new(&"link_r7_r1", &"r7", &"r1", Color("#06B6D4"), 270.0, 11.9),
 			]
 			return def
 		91:
@@ -544,20 +619,12 @@ static func build(level_id: int):
 			var __hub_r8 := PieceDefinitionScript.new(&"r8", Vector2(597.0, 408.0), 110.0, 22.0, Color("#22C55E"), 0.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE)
 			__hub_r8.role = PieceDefinitionScript.PieceRole.HUB
 			def.pieces = [
-				PieceDefinitionScript.new(&"r10", Vector2(401.0, 413.0), 56.0, 20.0, Color("#3B82F6"), 0.0, [GapDefinitionScript.new(180.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r11", Vector2(401.0, 520.0), 70.0, 20.0, Color("#FF3B30"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r12", Vector2(239.0, 586.0), 70.0, 20.0, Color("#F97316"), 0.0, [GapDefinitionScript.new(110.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r14", Vector2(587.0, 638.0), 56.0, 20.0, Color("#06B6D4"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r15", Vector2(239.0, 689.0), 56.0, 20.0, Color("#3B82F6"), 0.0, [GapDefinitionScript.new(180.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r16", Vector2(392.0, 732.0), 70.0, 20.0, Color("#22C55E"), 0.0, [GapDefinitionScript.new(45.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r4", Vector2(682.0, 206.0), 56.0, 20.0, Color("#8B5CF6"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r6", Vector2(597.0, 304.0), 70.0, 20.0, Color("#3B82F6"), 0.0, [GapDefinitionScript.new(15.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
 			]
 			def.pieces.append(__hub_r8)
 			def.links = [
-				LinkDefinitionScript.new(&"link_r11_r10", &"r11", &"r10", Color("#FF3B30"), 90.0, 44.0),
-				LinkDefinitionScript.new(&"link_r12_r11", &"r12", &"r11", Color("#F97316"), 0.0, 104.9),
-				LinkDefinitionScript.new(&"link_r12_r16", &"r12", &"r16", Color("#F97316"), 135.0, 141.5),
-				LinkDefinitionScript.new(&"link_r14_r16", &"r14", &"r16", Color("#06B6D4"), 180.0, 153.5),
-				LinkDefinitionScript.new(&"link_r15_r16", &"r15", &"r16", Color("#3B82F6"), 135.0, 95.9),
+				LinkDefinitionScript.new(&"link_r4_r6", &"r4", &"r6", Color("#8B5CF6"), 180.0, 66.7),
 			]
 			return def
 		92:
@@ -825,15 +892,24 @@ static func build(level_id: int):
 			var __hub_r8 := PieceDefinitionScript.new(&"r8", Vector2(290.0, 428.0), 110.0, 22.0, Color("#FF3B30"), 360.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE)
 			__hub_r8.role = PieceDefinitionScript.PieceRole.HUB
 			def.pieces = [
-				PieceDefinitionScript.new(&"r9", Vector2(380.0, 368.0), 56.0, 20.0, Color("#22C55E"), 360.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r10", Vector2(491.0, 403.0), 70.0, 20.0, Color("#06B6D4"), 0.0, [GapDefinitionScript.new(253.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r11", Vector2(466.0, 490.0), 70.0, 20.0, Color("#22C55E"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
-				PieceDefinitionScript.new(&"r14", Vector2(480.0, 624.0), 56.0, 20.0, Color("#8B5CF6"), 360.0, [], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r1", Vector2(290.0, 238.0), 70.0, 20.0, Color("#06B6D4"), 0.0, [GapDefinitionScript.new(234.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r2", Vector2(426.0, 182.0), 70.0, 20.0, Color("#F97316"), 0.0, [GapDefinitionScript.new(85.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r3", Vector2(732.0, 182.0), 70.0, 20.0, Color("#22C55E"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r4", Vector2(568.0, 238.0), 70.0, 20.0, Color("#8B5CF6"), 0.0, [GapDefinitionScript.new(265.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r5", Vector2(488.0, 308.0), 70.0, 20.0, Color("#F97316"), 0.0, [GapDefinitionScript.new(25.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r6", Vector2(712.0, 282.0), 70.0, 20.0, Color("#FF3B30"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
+				PieceDefinitionScript.new(&"r7", Vector2(712.0, 388.0), 56.0, 20.0, Color("#3B82F6"), 0.0, [GapDefinitionScript.new(0.0, 110.0, 16.0)], 0.0, PieceDefinitionScript.ShapeType.CIRCLE),
 			]
 			def.pieces.append(__hub_r8)
 			def.links = [
-				LinkDefinitionScript.new(&"link_r8_r10", &"r8", &"r10", Color("#FF3B30"), 180.0, 112.5),
-				LinkDefinitionScript.new(&"link_r10_r11", &"r10", &"r11", Color("#06B6D4"), 120.0, 20.5),
+				LinkDefinitionScript.new(&"link_r1_r2", &"r1", &"r2", Color("#06B6D4"), 60.0, 77.1),
+				LinkDefinitionScript.new(&"link_r1_r5", &"r1", &"r5", Color("#06B6D4"), 145.0, 140.0),
+				LinkDefinitionScript.new(&"link_r2_r4", &"r2", &"r4", Color("#F97316"), 130.0, 82.6),
+				LinkDefinitionScript.new(&"link_r3_r4", &"r3", &"r4", Color("#22C55E"), 220.0, 103.3),
+				LinkDefinitionScript.new(&"link_r3_r6", &"r3", &"r6", Color("#22C55E"), 180.0, 32.0),
+				LinkDefinitionScript.new(&"link_r4_r5", &"r4", &"r5", Color("#8B5CF6"), 220.0, 36.3),
+				LinkDefinitionScript.new(&"link_r4_r6", &"r4", &"r6", Color("#8B5CF6"), 90.0, 80.6),
+				LinkDefinitionScript.new(&"link_r6_r7", &"r6", &"r7", Color("#FF3B30"), 180.0, 43.0),
 			]
 			return def
 		98:

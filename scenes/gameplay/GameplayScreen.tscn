@@ -94,16 +94,16 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 24
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 44
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 44
 
 [node name="TopHUD" type="HBoxContainer" parent="SafeArea"]
 layout_mode = 2
 size_flags_vertical = 0
 mouse_filter = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 16
 
 [node name="BackBtn" type="Button" parent="SafeArea/TopHUD"]
 visible = false
@@ -113,7 +113,7 @@ size_flags_vertical = 4
 text = "‹"
 
 [node name="LevelBox" type="VBoxContainer" parent="SafeArea/TopHUD"]
-custom_minimum_size = Vector2(80, 52)
+custom_minimum_size = Vector2(90, 60)
 layout_mode = 2
 size_flags_horizontal = 0
 alignment = 1
@@ -122,13 +122,13 @@ theme_override_constants/separation = -2
 [node name="LevelPrefix" type="Label" parent="SafeArea/TopHUD/LevelBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.62, 0.45, 0.35, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 18
 text = "Level"
 
 [node name="LevelNum" type="Label" parent="SafeArea/TopHUD/LevelBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 0.2, 0.15, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 32
 text = "3"
 
 [node name="CenterHUD" type="VBoxContainer" parent="SafeArea/TopHUD"]
@@ -137,7 +137,7 @@ size_flags_horizontal = 3
 alignment = 1
 
 [node name="ScorePill" type="PanelContainer" parent="SafeArea/TopHUD/CenterHUD"]
-custom_minimum_size = Vector2(180, 44)
+custom_minimum_size = Vector2(210, 50)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -146,19 +146,20 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_score_pill")
 [node name="ScoreLbl" type="Label" parent="SafeArea/TopHUD/CenterHUD/ScorePill"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.35, 0.22, 0.12, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 28
 text = "0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="PauseBtn" type="Button" parent="SafeArea/TopHUD"]
-custom_minimum_size = Vector2(52, 52)
+custom_minimum_size = Vector2(58, 58)
 layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 4
 text = "⚙"
 
 [node name="EditBtn" type="Button" parent="SafeArea/TopHUD"]
+visible = false
 custom_minimum_size = Vector2(72, 52)
 layout_mode = 2
 size_flags_horizontal = 8
@@ -170,7 +171,7 @@ layout_mode = 2
 size_flags_vertical = 8
 mouse_filter = 2
 alignment = 1
-theme_override_constants/separation = 16
+theme_override_constants/separation = 40
 
 [node name="RocketCard" type="PanelContainer" parent="SafeArea/BottomHUD"]
 custom_minimum_size = Vector2(112, 118)

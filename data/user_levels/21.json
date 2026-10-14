@@ -1,0 +1,1231 @@
+{
+  "id": 21,
+  "title": "Level 21",
+  "par_moves": 23,
+  "theme_id": "porcelain",
+  "pieces": [
+    {
+      "id": "purple_top_l",
+      "color_name": "purple",
+      "color_hex": "#9B51E0",
+      "x": 273.3,
+      "y": 337.6,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": -1.0,
+        "y": 0.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": -1.0,
+        "y": 0.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 90.0,
+      "path_points": [
+        {
+          "x": -136.6,
+          "y": 42.0
+        },
+        {
+          "x": -136.6,
+          "y": 0.0
+        },
+        {
+          "x": 147.2,
+          "y": 0.0
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 273.3,
+          "y": 337.6,
+          "axis": {
+            "x": -1.0,
+            "y": 0.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "blue_top_mid",
+      "color_name": "blue",
+      "color_hex": "#2F80ED",
+      "x": 315.3,
+      "y": 532.0,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 90.0,
+      "path_points": [
+        {
+          "x": -52.6,
+          "y": -168.2
+        },
+        {
+          "x": 0.0,
+          "y": -168.2
+        },
+        {
+          "x": 0.0,
+          "y": 42.0
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 315.3,
+          "y": 532.0,
+          "axis": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "green_top_mid",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "x": 420.4,
+      "y": 532.0,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 90.0,
+      "path_points": [
+        {
+          "x": -52.6,
+          "y": -168.2
+        },
+        {
+          "x": 0.0,
+          "y": -168.2
+        },
+        {
+          "x": 0.0,
+          "y": 42.0
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 420.4,
+          "y": 532.0,
+          "axis": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "red_top_r",
+      "color_name": "red",
+      "color_hex": "#EB5757",
+      "x": 515.0,
+      "y": 390.1,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 1.0,
+        "y": 0.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 1.0,
+        "y": 0.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 80.0,
+      "path_points": [
+        {
+          "x": -73.6,
+          "y": -47.3
+        },
+        {
+          "x": -73.6,
+          "y": 0.0
+        },
+        {
+          "x": 52.6,
+          "y": 0.0
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 515.0,
+          "y": 390.1,
+          "axis": {
+            "x": 1.0,
+            "y": 0.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "green_top_r",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "x": 504.5,
+      "y": 342.8,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 1.0,
+        "y": 0.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 1.0,
+        "y": 0.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 80.0,
+      "path_points": [
+        {
+          "x": -52.6,
+          "y": 0.0
+        },
+        {
+          "x": 84.1,
+          "y": 0.0
+        },
+        {
+          "x": 84.1,
+          "y": 52.6
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 504.5,
+          "y": 342.8,
+          "axis": {
+            "x": 1.0,
+            "y": 0.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "cyan_col_1",
+      "color_name": "cyan",
+      "color_hex": "#2BBBEF",
+      "x": 126.1,
+      "y": 490.0,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 90.0,
+      "path_points": [
+        {
+          "x": 0.0,
+          "y": -157.7
+        },
+        {
+          "x": 0.0,
+          "y": 147.2
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 126.1,
+          "y": 490.0,
+          "axis": {
+            "x": 0.0,
+            "y": -1.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "blue_col_2",
+      "color_name": "blue",
+      "color_hex": "#2F80ED",
+      "x": 178.7,
+      "y": 490.0,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 90.0,
+      "path_points": [
+        {
+          "x": 0.0,
+          "y": -94.6
+        },
+        {
+          "x": 0.0,
+          "y": 147.2
+        },
+        {
+          "x": 47.3,
+          "y": 147.2
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 178.7,
+          "y": 490.0,
+          "axis": {
+            "x": 0.0,
+            "y": -1.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "green_col_3",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "x": 231.2,
+      "y": 532.0,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 90.0,
+      "path_points": [
+        {
+          "x": -63.1,
+          "y": -168.2
+        },
+        {
+          "x": 0.0,
+          "y": -168.2
+        },
+        {
+          "x": 0.0,
+          "y": 52.6
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 231.2,
+          "y": 532.0,
+          "axis": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "orange_col_4",
+      "color_name": "orange",
+      "color_hex": "#EA7829",
+      "x": 273.3,
+      "y": 490.0,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 90.0,
+      "path_points": [
+        {
+          "x": 0.0,
+          "y": -94.6
+        },
+        {
+          "x": 0.0,
+          "y": 147.2
+        },
+        {
+          "x": 52.6,
+          "y": 147.2
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 273.3,
+          "y": 490.0,
+          "axis": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "purple_col_5",
+      "color_name": "purple",
+      "color_hex": "#9B51E0",
+      "x": 357.4,
+      "y": 490.0,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 90.0,
+      "path_points": [
+        {
+          "x": 0.0,
+          "y": -94.6
+        },
+        {
+          "x": 0.0,
+          "y": 147.2
+        },
+        {
+          "x": 63.1,
+          "y": 147.2
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 357.4,
+          "y": 490.0,
+          "axis": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "blue_pin",
+      "color_name": "blue",
+      "color_hex": "#2F80ED",
+      "x": 452.0,
+      "y": 469.0,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 70.0,
+      "path_points": [
+        {
+          "x": 0.0,
+          "y": -63.1
+        },
+        {
+          "x": 0.0,
+          "y": 63.1
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 452.0,
+          "y": 469.0,
+          "axis": {
+            "x": 0.0,
+            "y": -1.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "green_pin",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "x": 494.0,
+      "y": 500.5,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 70.0,
+      "path_points": [
+        {
+          "x": 0.0,
+          "y": -84.1
+        },
+        {
+          "x": 0.0,
+          "y": 42.0
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 494.0,
+          "y": 500.5,
+          "axis": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "cyan_pin",
+      "color_name": "cyan",
+      "color_hex": "#2BBBEF",
+      "x": 536.1,
+      "y": 469.0,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 70.0,
+      "path_points": [
+        {
+          "x": 0.0,
+          "y": -63.1
+        },
+        {
+          "x": 0.0,
+          "y": 63.1
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 536.1,
+          "y": 469.0,
+          "axis": {
+            "x": 0.0,
+            "y": -1.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "teal_mid_hook",
+      "color_name": "teal",
+      "color_hex": "#009688",
+      "x": 546.6,
+      "y": 579.3,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 1.0,
+        "y": 0.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 1.0,
+        "y": 0.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 80.0,
+      "path_points": [
+        {
+          "x": -105.1,
+          "y": 0.0
+        },
+        {
+          "x": 0.0,
+          "y": 0.0
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 546.6,
+          "y": 579.3,
+          "axis": {
+            "x": 1.0,
+            "y": 0.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "green_mid_r",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "x": 525.5,
+      "y": 689.7,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 80.0,
+      "path_points": [
+        {
+          "x": -63.1,
+          "y": -73.6
+        },
+        {
+          "x": 0.0,
+          "y": -73.6
+        },
+        {
+          "x": 0.0,
+          "y": 42.0
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 525.5,
+          "y": 689.7,
+          "axis": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "green_far_r",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "x": 588.6,
+      "y": 658.2,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 80.0,
+      "path_points": [
+        {
+          "x": 0.0,
+          "y": -115.6
+        },
+        {
+          "x": 0.0,
+          "y": 136.6
+        },
+        {
+          "x": -63.1,
+          "y": 136.6
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 588.6,
+          "y": 658.2,
+          "axis": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "orange_mid_l",
+      "color_name": "orange",
+      "color_hex": "#EA7829",
+      "x": 189.2,
+      "y": 679.2,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": -1.0,
+        "y": 0.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": -1.0,
+        "y": 0.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 80.0,
+      "path_points": [
+        {
+          "x": -73.6,
+          "y": 0.0
+        },
+        {
+          "x": 52.6,
+          "y": 0.0
+        },
+        {
+          "x": 52.6,
+          "y": 52.6
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 189.2,
+          "y": 679.2,
+          "axis": {
+            "x": -1.0,
+            "y": 0.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "purple_mid",
+      "color_name": "purple",
+      "color_hex": "#9B51E0",
+      "x": 189.2,
+      "y": 773.8,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": -1.0,
+        "y": 0.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": -1.0,
+        "y": 0.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 80.0,
+      "path_points": [
+        {
+          "x": -73.6,
+          "y": 0.0
+        },
+        {
+          "x": 73.6,
+          "y": 0.0
+        },
+        {
+          "x": 73.6,
+          "y": -94.6
+        },
+        {
+          "x": 231.2,
+          "y": -94.6
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 189.2,
+          "y": 773.8,
+          "axis": {
+            "x": -1.0,
+            "y": 0.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "cyan_mid_h",
+      "color_name": "cyan",
+      "color_hex": "#2BBBEF",
+      "x": 373.1,
+      "y": 721.2,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 1.0,
+        "y": 0.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 1.0,
+        "y": 0.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 80.0,
+      "path_points": [
+        {
+          "x": -78.8,
+          "y": 0.0
+        },
+        {
+          "x": 78.8,
+          "y": 0.0
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 373.1,
+          "y": 721.2,
+          "axis": {
+            "x": 1.0,
+            "y": 0.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "orange_mid_h",
+      "color_name": "orange",
+      "color_hex": "#EA7829",
+      "x": 388.9,
+      "y": 752.8,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 1.0,
+        "y": 0.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 1.0,
+        "y": 0.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 80.0,
+      "path_points": [
+        {
+          "x": -94.6,
+          "y": 0.0
+        },
+        {
+          "x": 94.6,
+          "y": 0.0
+        },
+        {
+          "x": 94.6,
+          "y": -52.6
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 388.9,
+          "y": 752.8,
+          "axis": {
+            "x": 1.0,
+            "y": 0.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "red_bot_h",
+      "color_name": "red",
+      "color_hex": "#EB5757",
+      "x": 262.8,
+      "y": 805.3,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": -1.0,
+        "y": 0.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": -1.0,
+        "y": 0.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 80.0,
+      "path_points": [
+        {
+          "x": -136.6,
+          "y": 31.5
+        },
+        {
+          "x": -136.6,
+          "y": 0.0
+        },
+        {
+          "x": 126.1,
+          "y": 0.0
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 262.8,
+          "y": 805.3,
+          "axis": {
+            "x": -1.0,
+            "y": 0.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "green_bot_h",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "x": 262.8,
+      "y": 836.9,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": -1.0,
+        "y": 0.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": -1.0,
+        "y": 0.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 80.0,
+      "path_points": [
+        {
+          "x": -115.6,
+          "y": 0.0
+        },
+        {
+          "x": 147.2,
+          "y": 0.0
+        },
+        {
+          "x": 147.2,
+          "y": -42.0
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 262.8,
+          "y": 836.9,
+          "axis": {
+            "x": -1.0,
+            "y": 0.0
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "purple_bot_r",
+      "color_name": "purple",
+      "color_hex": "#9B51E0",
+      "x": 504.5,
+      "y": 836.9,
+      "start_angle_deg": 0.0,
+      "radius": 52.0,
+      "radius_y": 52.0,
+      "thickness": 18.0,
+      "shape_type": 5,
+      "piece_type": 0,
+      "role": 0,
+      "z_index": 2,
+      "initially_locked": false,
+      "locked": false,
+      "property_locks": {},
+      "release_direction": {
+        "x": 1.0,
+        "y": 0.0
+      },
+      "motion_model": 1,
+      "motion_axis": {
+        "x": 1.0,
+        "y": 0.0
+      },
+      "slide_min": 0.0,
+      "slide_max": 80.0,
+      "path_points": [
+        {
+          "x": -63.1,
+          "y": 0.0
+        },
+        {
+          "x": 73.6,
+          "y": 0.0
+        },
+        {
+          "x": 73.6,
+          "y": -42.0
+        }
+      ],
+      "sleeves": [
+        {
+          "x": 504.5,
+          "y": 836.9,
+          "axis": {
+            "x": 1.0,
+            "y": 0.0
+          }
+        }
+      ],
+      "gaps": []
+    }
+  ],
+  "links": []
+}

@@ -81,11 +81,18 @@ func to_dict() -> Dictionary:
 
 func apply_dict(d: Dictionary) -> void:
 	id = StringName(String(d.get("id", "link_")))
-	from_piece_id = StringName(String(d.get("from_id", "ring_a")))
-	to_piece_id = StringName(String(d.get("to_id", "ring_b")))
+	from_piece_id = StringName(String(d.get("from_id", d.get("from_piece_id", "ring_a"))))
+	to_piece_id = StringName(String(d.get("to_id", d.get("to_piece_id", "ring_b"))))
+	var j_col_str: String = String(d.get("joint_color", ""))
+	var j_hex: String = String(d.get("joint_color_hex", ""))
+	var j_name: String = String(d.get("joint_color_name", ""))
+	if j_hex.is_empty() and j_col_str.begins_with("#"):
+		j_hex = j_col_str
+	if j_name.is_empty() and not j_col_str.is_empty() and not j_col_str.begins_with("#"):
+		j_name = j_col_str
 	joint_color = PieceDefinition.color_hex_static_to_color(
-		String(d.get("joint_color_hex", "#EA7829")),
-		String(d.get("joint_color_name", "orange")),
+		j_hex,
+		j_name if not j_name.is_empty() else "orange",
 	)
 	collar_angle_deg = float(d.get("collar_angle_deg", -999.0))
 	if d.has("cuff_center_local"):
@@ -107,8 +114,8 @@ func apply_dict(d: Dictionary) -> void:
 static func from_dict(d: Dictionary) -> LinkDefinition:
 	var ld := LinkDefinition.new(
 		StringName(String(d.get("id", "link_"))),
-		StringName(String(d.get("from_id", "ring_a"))),
-		StringName(String(d.get("to_id", "ring_b"))),
+		StringName(String(d.get("from_id", d.get("from_piece_id", "ring_a")))),
+		StringName(String(d.get("to_id", d.get("to_piece_id", "ring_b")))),
 		PieceDefinition.color_hex_static_to_color(
 			String(d.get("joint_color_hex", "#EA7829")),
 			String(d.get("joint_color_name", "orange")),

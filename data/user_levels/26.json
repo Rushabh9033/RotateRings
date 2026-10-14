@@ -1,0 +1,695 @@
+{
+  "id": 26,
+  "title": "Level 26",
+  "par_moves": 30,
+  "theme_id": "porcelain",
+  "pieces": [
+    {
+      "id": "cyan_hub",
+      "color_name": "cyan",
+      "color_hex": "#2BBBEF",
+      "x": 357.4,
+      "y": 592.8,
+      "start_angle_deg": 0.0,
+      "radius": 42.0,
+      "radius_y": 42.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 0,
+      "role": 1,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "motion_model": 0,
+      "gaps": [],
+      "blockers": []
+    },
+    {
+      "id": "orange_in_top",
+      "color_name": "orange",
+      "color_hex": "#EA7829",
+      "x": 357.4,
+      "y": 455.2,
+      "start_angle_deg": 0.0,
+      "radius": 38.0,
+      "radius_y": 38.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 270.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "purple_in_tr",
+      "color_name": "purple",
+      "color_hex": "#9B51E0",
+      "x": 458.3,
+      "y": 524.5,
+      "start_angle_deg": 0.0,
+      "radius": 38.0,
+      "radius_y": 38.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 270.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "red_in_br",
+      "color_name": "red",
+      "color_hex": "#EB5757",
+      "x": 466.7,
+      "y": 650.7,
+      "start_angle_deg": 0.0,
+      "radius": 38.0,
+      "radius_y": 38.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 90.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "blue_in_bot",
+      "color_name": "blue",
+      "color_hex": "#2F80ED",
+      "x": 357.4,
+      "y": 730.5,
+      "start_angle_deg": 0.0,
+      "radius": 38.0,
+      "radius_y": 38.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 90.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "green_in_bl",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "x": 248.1,
+      "y": 650.7,
+      "start_angle_deg": 0.0,
+      "radius": 38.0,
+      "radius_y": 38.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 0.0,
+        "y": 1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 90.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "purple_in_tl",
+      "color_name": "purple",
+      "color_hex": "#9B51E0",
+      "x": 256.5,
+      "y": 524.5,
+      "start_angle_deg": 0.0,
+      "radius": 38.0,
+      "radius_y": 38.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 0.0,
+        "y": -1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 270.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "green_top_left",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "x": 247.0,
+      "y": 387.9,
+      "start_angle_deg": 0.0,
+      "radius": 38.0,
+      "radius_y": 38.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 1.0,
+        "y": -1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 270.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "purple_tr",
+      "color_name": "purple",
+      "color_hex": "#9B51E0",
+      "x": 467.7,
+      "y": 387.9,
+      "start_angle_deg": 0.0,
+      "radius": 38.0,
+      "radius_y": 38.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 1.0,
+        "y": -1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 270.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "red_tr",
+      "color_name": "red",
+      "color_hex": "#EB5757",
+      "x": 559.2,
+      "y": 477.2,
+      "start_angle_deg": 0.0,
+      "radius": 38.0,
+      "radius_y": 38.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 1.0,
+        "y": -1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 0.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "orange_mr",
+      "color_name": "orange",
+      "color_hex": "#EA7829",
+      "x": 536.1,
+      "y": 592.8,
+      "start_angle_deg": 0.0,
+      "radius": 38.0,
+      "radius_y": 38.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 1.0,
+        "y": 1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 0.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "purple_mr",
+      "color_name": "purple",
+      "color_hex": "#9B51E0",
+      "x": 559.2,
+      "y": 708.5,
+      "start_angle_deg": 0.0,
+      "radius": 38.0,
+      "radius_y": 38.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 1.0,
+        "y": 1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 0.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "red_br",
+      "color_name": "red",
+      "color_hex": "#EB5757",
+      "x": 467.7,
+      "y": 797.8,
+      "start_angle_deg": 0.0,
+      "radius": 38.0,
+      "radius_y": 38.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 1.0,
+        "y": 1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 90.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "cyan_bl",
+      "color_name": "cyan",
+      "color_hex": "#2BBBEF",
+      "x": 247.0,
+      "y": 797.8,
+      "start_angle_deg": 0.0,
+      "radius": 38.0,
+      "radius_y": 38.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": -1.0,
+        "y": 1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 90.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "orange_bl",
+      "color_name": "orange",
+      "color_hex": "#EA7829",
+      "x": 155.6,
+      "y": 708.5,
+      "start_angle_deg": 0.0,
+      "radius": 38.0,
+      "radius_y": 38.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 1.0,
+        "y": 1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 180.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "green_ml",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "x": 178.7,
+      "y": 592.8,
+      "start_angle_deg": 0.0,
+      "radius": 38.0,
+      "radius_y": 38.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": 1.0,
+        "y": 1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 180.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "blue_tl",
+      "color_name": "blue",
+      "color_hex": "#2F80ED",
+      "x": 155.6,
+      "y": 477.2,
+      "start_angle_deg": 0.0,
+      "radius": 38.0,
+      "radius_y": 38.0,
+      "thickness": 18.0,
+      "shape_type": 0,
+      "piece_type": 1,
+      "role": 0,
+      "z_index": 1,
+      "has_acorn": false,
+      "release_direction": {
+        "x": -1.0,
+        "y": -1.0
+      },
+      "motion_model": 0,
+      "gaps": [
+        {
+          "center_angle_deg": 180.0,
+          "width_deg": 105.0,
+          "tolerance_deg": 16.0
+        }
+      ],
+      "blockers": []
+    }
+  ],
+  "links": [
+    {
+      "id": "link_hub_orange_in_top",
+      "from_piece_id": "cyan_hub",
+      "to_piece_id": "orange_in_top",
+      "color_name": "cyan",
+      "color_hex": "#2BBBEF",
+      "anchor_angle_deg": 270.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_hub_purple_in_tr",
+      "from_piece_id": "cyan_hub",
+      "to_piece_id": "purple_in_tr",
+      "color_name": "cyan",
+      "color_hex": "#2BBBEF",
+      "anchor_angle_deg": 330.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_hub_red_in_br",
+      "from_piece_id": "cyan_hub",
+      "to_piece_id": "red_in_br",
+      "color_name": "cyan",
+      "color_hex": "#2BBBEF",
+      "anchor_angle_deg": 30.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_hub_blue_in_bot",
+      "from_piece_id": "cyan_hub",
+      "to_piece_id": "blue_in_bot",
+      "color_name": "cyan",
+      "color_hex": "#2BBBEF",
+      "anchor_angle_deg": 90.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_hub_green_in_bl",
+      "from_piece_id": "cyan_hub",
+      "to_piece_id": "green_in_bl",
+      "color_name": "cyan",
+      "color_hex": "#2BBBEF",
+      "anchor_angle_deg": 150.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_hub_purple_in_tl",
+      "from_piece_id": "cyan_hub",
+      "to_piece_id": "purple_in_tl",
+      "color_name": "cyan",
+      "color_hex": "#2BBBEF",
+      "anchor_angle_deg": 210.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_orange_in_top_green_top_left",
+      "from_piece_id": "orange_in_top",
+      "to_piece_id": "green_top_left",
+      "color_name": "orange",
+      "color_hex": "#EA7829",
+      "anchor_angle_deg": 150.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_orange_in_top_purple_tr",
+      "from_piece_id": "orange_in_top",
+      "to_piece_id": "purple_tr",
+      "color_name": "orange",
+      "color_hex": "#EA7829",
+      "anchor_angle_deg": 30.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_green_top_left_blue_tl",
+      "from_piece_id": "green_top_left",
+      "to_piece_id": "blue_tl",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "anchor_angle_deg": 210.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_purple_tr_red_tr",
+      "from_piece_id": "purple_tr",
+      "to_piece_id": "red_tr",
+      "color_name": "purple",
+      "color_hex": "#9B51E0",
+      "anchor_angle_deg": 330.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_blue_tl_green_ml",
+      "from_piece_id": "blue_tl",
+      "to_piece_id": "green_ml",
+      "color_name": "blue",
+      "color_hex": "#2F80ED",
+      "anchor_angle_deg": 90.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_purple_in_tl_green_ml",
+      "from_piece_id": "purple_in_tl",
+      "to_piece_id": "green_ml",
+      "color_name": "purple",
+      "color_hex": "#9B51E0",
+      "anchor_angle_deg": 180.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_green_ml_green_in_bl",
+      "from_piece_id": "green_ml",
+      "to_piece_id": "green_in_bl",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "anchor_angle_deg": 330.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_green_ml_orange_bl",
+      "from_piece_id": "green_ml",
+      "to_piece_id": "orange_bl",
+      "color_name": "green",
+      "color_hex": "#27AE60",
+      "anchor_angle_deg": 210.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_orange_bl_cyan_bl",
+      "from_piece_id": "orange_bl",
+      "to_piece_id": "cyan_bl",
+      "color_name": "orange",
+      "color_hex": "#EA7829",
+      "anchor_angle_deg": 90.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_blue_in_bot_cyan_bl",
+      "from_piece_id": "blue_in_bot",
+      "to_piece_id": "cyan_bl",
+      "color_name": "blue",
+      "color_hex": "#2F80ED",
+      "anchor_angle_deg": 180.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_red_tr_orange_mr",
+      "from_piece_id": "red_tr",
+      "to_piece_id": "orange_mr",
+      "color_name": "red",
+      "color_hex": "#EB5757",
+      "anchor_angle_deg": 90.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_purple_in_tr_orange_mr",
+      "from_piece_id": "purple_in_tr",
+      "to_piece_id": "orange_mr",
+      "color_name": "purple",
+      "color_hex": "#9B51E0",
+      "anchor_angle_deg": 0.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_red_in_br_orange_mr",
+      "from_piece_id": "red_in_br",
+      "to_piece_id": "orange_mr",
+      "color_name": "red",
+      "color_hex": "#EB5757",
+      "anchor_angle_deg": 30.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_orange_mr_purple_mr",
+      "from_piece_id": "orange_mr",
+      "to_piece_id": "purple_mr",
+      "color_name": "orange",
+      "color_hex": "#EA7829",
+      "anchor_angle_deg": 330.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_purple_mr_red_br",
+      "from_piece_id": "purple_mr",
+      "to_piece_id": "red_br",
+      "color_name": "purple",
+      "color_hex": "#9B51E0",
+      "anchor_angle_deg": 90.0,
+      "length": 30.0
+    },
+    {
+      "id": "link_blue_in_bot_red_br",
+      "from_piece_id": "blue_in_bot",
+      "to_piece_id": "red_br",
+      "color_name": "blue",
+      "color_hex": "#2F80ED",
+      "anchor_angle_deg": 0.0,
+      "length": 30.0
+    }
+  ]
+}

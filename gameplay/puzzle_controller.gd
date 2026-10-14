@@ -151,6 +151,24 @@ func load_level(def) -> void:
 			t.kill()
 	_active_drop_tweens.clear()
 
+	# Pre-calculate drop delays: sliders anchored to a parent ring drop simultaneously with their parent ring
+	var piece_delays: Dictionary = {}
+	var cur_delay: float = 0.0
+	for p_def in def.pieces:
+		var is_slider: bool = ("motion_model" in p_def) and (int(p_def.motion_model) in [1, 2])
+		var parent_anchor_id = null
+		if is_slider and ("sleeves" in p_def) and (p_def.sleeves is Array):
+			for slv in p_def.sleeves:
+				if slv is Dictionary and ("stem_from" in slv):
+					parent_anchor_id = slv.stem_from
+					break
+		if parent_anchor_id != null and piece_delays.has(parent_anchor_id):
+			# Drop together with its holder ring!
+			piece_delays[p_def.id] = piece_delays[parent_anchor_id]
+		else:
+			piece_delays[p_def.id] = cur_delay
+			cur_delay += 0.08
+
 	for p_def in def.pieces:
 		var p_node = RingPiece2DScript.new()
 		p_node.setup(p_def)
@@ -160,24 +178,25 @@ func load_level(def) -> void:
 		p_node.position = p_def.position + Vector2(0, -1200)
 		p_node.modulate.a = 0.0
 
+		var p_delay: float = float(piece_delays.get(p_def.id, 0.0))
 		var drop_tween = create_tween().set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
-		drop_tween.tween_property(p_node, "position", p_def.position, 0.8).set_delay(drop_delay)
-		drop_tween.parallel().tween_property(p_node, "modulate:a", 1.0, 0.3).set_delay(drop_delay)
+		drop_tween.tween_property(p_node, "position", p_def.position, 0.8).set_delay(p_delay)
+		drop_tween.parallel().tween_property(p_node, "modulate:a", 1.0, 0.3).set_delay(p_delay)
 
 		# Small shadow flare on impact
 		var flare_tween = create_tween().set_trans(Tween.TRANS_SPRING)
-		flare_tween.tween_property(p_node, "shadow_offset_mult", 2.0, 0.1).set_delay(drop_delay + 0.7)
+		flare_tween.tween_property(p_node, "shadow_offset_mult", 2.0, 0.1).set_delay(p_delay + 0.7)
 		flare_tween.tween_property(p_node, "shadow_offset_mult", 1.0, 0.3)
 
 		_active_drop_tweens.append(drop_tween)
 		_active_drop_tweens.append(flare_tween)
-
-		drop_delay += 0.08
 		
 		p_node.rotation_changed.connect(_on_piece_rotated)
 		pieces_container.add_child(p_node)
 		active_pieces.append(p_node)
 		piece_map[p_def.id] = p_node
+
+	drop_delay = cur_delay
 
 	for l_def in def.links:
 		var link = l_def.duplicate()
@@ -201,6 +220,8 @@ func load_level(def) -> void:
 			PuzzleRulesScript.bind_connector(link, from_def.position, from_def.start_angle_deg, to_def.position, from_def.radius)
 		var runtime = ConnectorRuntime.new(link)
 		runtime.current_stem_dist = link.stem_dist
+		if to_def != null:
+			runtime.child_radius = to_def.radius
 		active_links.append(runtime)
 
 
@@ -231,15 +252,6 @@ func load_level(def) -> void:
 			var st = p.get("_state_tween")
 			if is_instance_valid(st):
 				st.kill()
-		# Drop tweens live on the puzzle_controller and bind `p_node` by
-		# reference; the only safe way to stop a tween step from running on
-		# a freed target is to kill the tween entirely. Iterate the list in
-		# reverse so we can remove entries safely.
-		for i in range(_active_drop_tweens.size() - 1, -1, -1):
-			var t = _active_drop_tweens[i]
-			if is_instance_valid(t):
-				t.kill()
-			_active_drop_tweens.remove_at(i)
 		active_pieces.erase(p)
 		p.queue_free()
 	
@@ -448,7 +460,7 @@ func restart_level() -> void:
 
 func _get_child_boundary_distance(link: ConnectorRuntime, dir: Vector2) -> float:
 	var shape_type = 0
-	var r = 72.0
+	var r = link.child_radius if ("child_radius" in link) else 70.0
 	var rot = 0.0
 	var to_p = PuzzleRulesScript.get_piece_by_id(link.def.to_piece_id, active_pieces)
 	if is_instance_valid(to_p):
@@ -473,23 +485,13 @@ func _on_stems_layer_draw(ci: CanvasItem) -> void:
 			continue
 		if float(link.current_stem_dist) <= 1.0:
 			continue
-		# FIX #3: if this link's child has released, the link is DETACHED
-		# (see puzzle_rules.gd on_piece_released). Draw a faded broken
-		# stub instead of the full stem so it doesn't look "still attached".
-		# ConnectorRuntime.State: ENGAGED=0, CLEARING=1, DETACHED=2
-		var is_detached := int(link.state) == 2
-		if is_detached:
-			# Skip full stem; draw only a short faded stub at the parent edge.
-			_draw_detached_stem_stub(ci, link, from_p)
-			continue
 
 		var world_angle_rad := deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
 		var dir := Vector2.from_angle(world_angle_rad)
 		var parent_shape = from_p.def.shape_type if from_p.get("def") and "shape_type" in from_p.def else 0
 		var pos_stem_start: Vector2 = from_p.position + dir * PieceGeometry.get_boundary_distance(parent_shape, from_p.radius, deg_to_rad(link.def.collar_angle_deg))
 
-		# FIX Bug 1 (Update): Users want the FULL connector (stem + cuff) to remain 
-		# even when the child ring breaks away.
+		# The full connector (stem + cuff) permanently remains on the parent ring.
 		var child_r: float = _get_child_boundary_distance(link, dir)
 		var pos_cuff: Vector2 = from_p.position + dir * (link.current_stem_dist - child_r)
 
@@ -497,25 +499,69 @@ func _on_stems_layer_draw(ci: CanvasItem) -> void:
 		var c_dark = collar_color.darkened(0.22)
 		var c_main = collar_color.lightened(0.02)
 		var c_light = collar_color.lightened(0.25)
-		c_light.a = 0.85
+		c_light.a = 0.65
 		var stem_thickness := ConnectorRuntime.STEM_RADIUS * 2.0
 
-		# 1. Soft drop shadow cast strictly downwards
-		ci.draw_line(pos_stem_start + Vector2(0, 6.0), pos_cuff + Vector2(0, 6.0), Color(0.20, 0.14, 0.10, 0.12), stem_thickness + 2.0, true)
-		# 2. Darker lower base
-		ci.draw_line(pos_stem_start + Vector2(0, 2.5), pos_cuff + Vector2(0, 2.5), c_dark, stem_thickness, true)
-		# 3. Main stem body
+		# 1. Soft smooth drop shadow
+		ci.draw_line(pos_stem_start + Vector2(0, 5.0), pos_cuff + Vector2(0, 5.0), Color(0.20, 0.14, 0.10, 0.10), stem_thickness + 2.0, true)
+		# 2. Main rich stem body
 		ci.draw_line(pos_stem_start, pos_cuff, c_main, stem_thickness, true)
-		# 4. Highlight bevel
-		ci.draw_line(pos_stem_start + Vector2(-1.5, -1.5), pos_cuff + Vector2(-1.5, -1.5), c_light, stem_thickness - 6.0, true)
+		# 3. Soft upper light sheen
+		ci.draw_line(pos_stem_start + Vector2(-0.8, -1.2), pos_cuff + Vector2(-0.8, -1.2), c_light, stem_thickness * 0.50, true)
 
-		# 5. Flared weld / fillet base at ring outer perimeter
-		var r_outer: float = PieceGeometry.get_boundary_distance(parent_shape, from_p.radius, deg_to_rad(link.def.collar_angle_deg)) + (from_p.thickness * 0.5)
-		var weld_center: Vector2 = from_p.position + dir * (r_outer - 1.0)
+		# 4. Flared weld / fillet base at ring tube perimeter
+		var weld_center: Vector2 = pos_stem_start
 		var weld_radius: float = stem_thickness * 0.85
-		ci.draw_circle(weld_center + Vector2(0, 2.5), weld_radius, c_dark)
+		ci.draw_circle(weld_center + Vector2(0, 5.0), weld_radius, Color(0.20, 0.14, 0.10, 0.10))
 		ci.draw_circle(weld_center, weld_radius, c_main)
-		ci.draw_circle(weld_center + Vector2(-1.0, -1.0), weld_radius * 0.6, c_light)
+		ci.draw_circle(weld_center + Vector2(-0.8, -1.0), weld_radius * 0.55, c_light)
+
+	# Draw stems connecting parent pieces to slider sleeves
+	for p in active_pieces:
+		if not is_instance_valid(p): continue
+		if p.state == RingPiece2DScript.State.RELEASED or p.state == RingPiece2DScript.State.RELEASING: continue
+		var p_def = p.def
+		if p_def == null or not ("motion_model" in p_def) or not (int(p_def.motion_model) in [1, 2]): continue
+		if not ("sleeves" in p_def) or not (p_def.sleeves is Array): continue
+		for slv_item in p_def.sleeves:
+			if not (slv_item is Dictionary) or not ("stem_from" in slv_item): continue
+			var parent_p = PuzzleRulesScript.get_piece_by_id(slv_item.stem_from, active_pieces)
+			if not is_instance_valid(parent_p): continue
+			if parent_p.state == RingPiece2DScript.State.RELEASED or parent_p.state == RingPiece2DScript.State.RELEASING: continue
+
+			var item_pos: Vector2 = Vector2(float(slv_item.x), float(slv_item.y))
+			var sleeve_pos: Vector2
+			if Time.get_ticks_msec() / 1000.0 < _drop_anim_end_time:
+				# The sleeve is held by parent_p, so it moves strictly with parent_p during the drop animation!
+				sleeve_pos = item_pos + (parent_p.position - parent_p.def.position)
+			else:
+				sleeve_pos = item_pos
+
+			var dist_to_sleeve: float = (sleeve_pos - parent_p.position).length()
+			var parent_shape: int = int(parent_p.def.shape_type) if (parent_p.get("def") and "shape_type" in parent_p.def) else 0
+			var parent_boundary: float = PieceGeometry.get_boundary_distance(parent_shape, parent_p.radius, (sleeve_pos - parent_p.position).angle())
+			if dist_to_sleeve < parent_boundary + 4.0:
+				continue
+
+			var dir: Vector2 = (sleeve_pos - parent_p.position).normalized()
+			var pos_stem_start: Vector2 = parent_p.position + dir * parent_boundary
+			var pos_stem_end: Vector2 = sleeve_pos - dir * 8.0
+
+			var collar_color: Color = parent_p.ring_color
+			var c_main: Color = collar_color.lightened(0.02)
+			var c_light: Color = collar_color.lightened(0.25)
+			c_light.a = 0.65
+			var stem_thickness: float = ConnectorRuntime.STEM_RADIUS * 2.0
+
+			ci.draw_line(pos_stem_start + Vector2(0, 5.0), pos_stem_end + Vector2(0, 5.0), Color(0.20, 0.14, 0.10, 0.10), stem_thickness + 2.0, true)
+			ci.draw_line(pos_stem_start, pos_stem_end, c_main, stem_thickness, true)
+			ci.draw_line(pos_stem_start + Vector2(-0.8, -1.2), pos_stem_end + Vector2(-0.8, -1.2), c_light, stem_thickness * 0.50, true)
+
+			var weld_center: Vector2 = pos_stem_start
+			var weld_radius: float = stem_thickness * 0.85
+			ci.draw_circle(weld_center + Vector2(0, 5.0), weld_radius, Color(0.20, 0.14, 0.10, 0.10))
+			ci.draw_circle(weld_center, weld_radius, c_main)
+			ci.draw_circle(weld_center + Vector2(-0.8, -1.0), weld_radius * 0.55, c_light)
 
 func _on_cuffs_layer_draw(ci: CanvasItem) -> void:
 	for link in active_links:
@@ -525,14 +571,6 @@ func _on_cuffs_layer_draw(ci: CanvasItem) -> void:
 			continue
 		if float(link.current_stem_dist) <= 1.0:
 			continue
-		# FIX #3+#4: if the link is DETACHED (child released), don't draw
-		# the cuff at all — only the stem stub from the stem layer
-		# remains. This makes "the cuff is gone" visible immediately,
-		# so the player doesn't think the parent is still connected.
-		# ConnectorRuntime.State: ENGAGED=0, CLEARING=1, DETACHED=2
-		var is_detached := int(link.state) == 2
-		if is_detached:
-			continue
 
 		var world_angle_rad := deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
 		var dir := Vector2.from_angle(world_angle_rad)
@@ -541,10 +579,9 @@ func _on_cuffs_layer_draw(ci: CanvasItem) -> void:
 
 		var tangent := Vector2(-dir.y, dir.x)
 		var collar_color: Color = from_p.ring_color if link.def.joint_color == Color.TRANSPARENT else link.def.joint_color
-		var c_dark = collar_color.darkened(0.22)
 		var c_main = collar_color.lightened(0.02)
 		var c_light = collar_color.lightened(0.25)
-		c_light.a = 0.85
+		c_light.a = 0.65
 
 		var sleeve_tangent_span := ConnectorRuntime.TANGENTIAL_WIDTH
 		var sleeve_radial_depth := ConnectorRuntime.RADIAL_DEPTH
@@ -555,40 +592,104 @@ func _on_cuffs_layer_draw(ci: CanvasItem) -> void:
 		ci.draw_set_transform(pos_cuff, tangent.angle(), Vector2.ONE)
 
 		# 1. Soft drop shadow
-		_draw_rounded_rect(ci, Rect2(-half_st, -half_rd + 6.0, sleeve_tangent_span, sleeve_radial_depth), Color(0.20, 0.14, 0.10, 0.12), cuff_corner_r)
+		_draw_rounded_rect(ci, Rect2(-half_st, -half_rd + 5.0, sleeve_tangent_span, sleeve_radial_depth), Color(0.20, 0.14, 0.10, 0.12), cuff_corner_r)
 
-		# 2. Darker lower base
-		_draw_rounded_rect(ci, Rect2(-half_st, -half_rd + 2.5, sleeve_tangent_span, sleeve_radial_depth), c_dark, cuff_corner_r)
-
-		# 3. Main collar body
+		# 2. Main collar body
 		_draw_rounded_rect(ci, Rect2(-half_st, -half_rd, sleeve_tangent_span, sleeve_radial_depth), c_main, cuff_corner_r)
 
-		# 4. Highlight bevel (shifted up and slightly smaller)
-		_draw_rounded_rect(ci, Rect2(-half_st + 1.5, -half_rd - 1.0, sleeve_tangent_span - 3.0, sleeve_radial_depth - 4.0), c_light, cuff_corner_r * 0.8)
+		# 3. Soft upper light sheen
+		_draw_rounded_rect(ci, Rect2(-half_st + 1.5, -half_rd - 0.5, sleeve_tangent_span - 3.0, sleeve_radial_depth * 0.45), c_light, cuff_corner_r * 0.8)
 
 		ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
-# FIX #3 + #4: when a link's child has released (state == DETACHED),
-# draw a SHORT faded stem stub at the parent edge instead of the full
-# stem + cuff. This makes the "broken link" visible immediately.
-func _draw_detached_stem_stub(ci: CanvasItem, link, from_p) -> void:
-	var world_angle_rad: float = deg_to_rad(from_p.rotation_degrees + link.def.collar_angle_deg)
-	var dir := Vector2.from_angle(world_angle_rad)
-	var parent_shape: int = from_p.def.shape_type if from_p.get("def") and "shape_type" in from_p.def else 0
-	# Anchor at the parent's outer edge.
-	var pos_stem_start: Vector2 = from_p.position + dir * PieceGeometry.get_boundary_distance(
-		parent_shape, from_p.radius, deg_to_rad(link.def.collar_angle_deg))
-	# Short stub: 18px long (vs. typical stem_dist of 60-240).
-	var stub_length: float = 18.0
-	var pos_stub_end: Vector2 = pos_stem_start + dir * stub_length
-	# Faded color: lighter than the main stem so it reads as "broken/leftover".
-	var faded: Color = from_p.ring_color if link.def.joint_color == Color.TRANSPARENT else link.def.joint_color
-	faded = faded.darkened(0.4)
-	faded.a = 0.45
-	# A thin, short line.
-	ci.draw_line(pos_stem_start, pos_stub_end, faded, 4.0, true)
-	# A small "frayed end" circle so it doesn't look like a connector arm.
-	ci.draw_circle(pos_stub_end, 3.0, faded)
+	# Draw slider sleeves only for active slider pieces
+	for p in active_pieces:
+		if not is_instance_valid(p):
+			continue
+		if p.state == RingPiece2DScript.State.RELEASED or p.state == RingPiece2DScript.State.RELEASING:
+			continue
+		var p_def = p.def
+		if p_def == null or not ("motion_model" in p_def) or not (int(p_def.motion_model) in [1, 2]):
+			continue
+
+		var default_axis: Vector2 = p_def.motion_axis.normalized() if ("motion_axis" in p_def and p_def.motion_axis != Vector2.ZERO) else Vector2.RIGHT
+
+		var sleeves_data: Array = []
+		if "sleeves" in p_def and p_def.sleeves is Array:
+			sleeves_data = p_def.sleeves
+		else:
+			sleeves_data = [{ "x": p_def.position.x, "y": p_def.position.y, "axis": default_axis }]
+
+		var slv_len := 20.0
+		var slv_w := 18.0
+
+		for slv_item in sleeves_data:
+			var item_pos: Vector2 = Vector2(float(slv_item.x), float(slv_item.y)) if slv_item is Dictionary else slv_item.position
+			var item_axis: Vector2 = default_axis
+			if slv_item is Dictionary and "axis" in slv_item:
+				item_axis = Vector2(float(slv_item.axis.x), float(slv_item.axis.y)).normalized()
+
+			var parent_p = null
+			if slv_item is Dictionary and "stem_from" in slv_item:
+				parent_p = PuzzleRulesScript.get_piece_by_id(slv_item.stem_from, active_pieces)
+
+			var sleeve_pos: Vector2
+			if Time.get_ticks_msec() / 1000.0 < _drop_anim_end_time:
+				if is_instance_valid(parent_p):
+					# Moves rigidly with parent_p that holds the sleeve
+					sleeve_pos = item_pos + (parent_p.position - parent_p.def.position)
+				else:
+					var offset_from_def: Vector2 = item_pos - p_def.position
+					sleeve_pos = p.position + offset_from_def
+			else:
+				sleeve_pos = item_pos
+
+			var alpha: float = parent_p.modulate.a if is_instance_valid(parent_p) else p.modulate.a
+			var s_off := Vector2(0, 5.0)
+
+			# Authentic metallic silver / chrome collar
+			var is_metallic_silver: bool = true
+			if slv_item is Dictionary and "use_parent_color" in slv_item and bool(slv_item.use_parent_color):
+				is_metallic_silver = false
+
+			ci.draw_set_transform(sleeve_pos + s_off, item_axis.angle(), Vector2.ONE)
+			# 1. Soft drop shadow
+			_draw_rounded_rect(ci, Rect2(-slv_len * 0.5 - 1.0, -slv_w * 0.5 - 1.0, slv_len + 2.0, slv_w + 2.0), Color(0.12, 0.08, 0.06, 0.12 * alpha), 5.0)
+			ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+			ci.draw_set_transform(sleeve_pos, item_axis.angle(), Vector2.ONE)
+			if is_metallic_silver:
+				var c_base := Color(0.70, 0.74, 0.79, alpha)       # Brushed metallic silver
+				var c_hi := Color(0.96, 0.98, 1.0, 0.85 * alpha)    # Gleaming white-silver highlight
+				var c_rim := Color(0.58, 0.62, 0.68, alpha)       # Metallic end rim collars
+				var c_dark := Color(0.48, 0.52, 0.58, alpha)      # Bottom shadow bevel
+
+				# A. Outer rim flanges (small metallic lips on either side)
+				var flange_w := slv_w + 4.0
+				var flange_t := 4.5
+				_draw_rounded_rect(ci, Rect2(-slv_len * 0.5 - 1.0, -flange_w * 0.5, flange_t, flange_w), c_rim, 2.0)
+				_draw_rounded_rect(ci, Rect2(slv_len * 0.5 - flange_t + 1.0, -flange_w * 0.5, flange_t, flange_w), c_rim, 2.0)
+
+				# B. Main metallic cylinder body
+				_draw_rounded_rect(ci, Rect2(-slv_len * 0.5, -slv_w * 0.5, slv_len, slv_w), c_base, 3.5)
+
+				# C. Bottom darker cylindrical shade
+				_draw_rounded_rect(ci, Rect2(-slv_len * 0.5, slv_w * 0.15, slv_len, slv_w * 0.35), c_dark, 2.5)
+
+				# D. Brilliant specular top highlight sheen
+				var hl_h: float = slv_w * 0.38
+				_draw_rounded_rect(ci, Rect2(-slv_len * 0.5 + 2.0, -slv_w * 0.5 + 1.5, slv_len - 4.0, hl_h), c_hi, 2.5)
+			else:
+				var slv_color: Color = parent_p.ring_color if is_instance_valid(parent_p) else Color(0.76, 0.80, 0.84, alpha)
+				var slv_c_main = slv_color.lightened(0.02)
+				var slv_c_light = slv_color.lightened(0.25)
+				slv_c_light.a = 0.65
+				_draw_rounded_rect(ci, Rect2(-slv_len * 0.5, -slv_w * 0.5, slv_len, slv_w), slv_c_main, 5.0)
+				var hl_w: float = slv_w * 0.45
+				_draw_rounded_rect(ci, Rect2(-slv_len * 0.5 + 1.5, -hl_w * 0.5 - 0.5, slv_len - 3.0, hl_w), slv_c_light, 4.0)
+			ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
 
 func _draw_rounded_rect(ci: CanvasItem, rect: Rect2, color: Color, radius: float) -> void:
 	var r := minf(radius, minf(rect.size.x * 0.5, rect.size.y * 0.5))

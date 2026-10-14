@@ -28,6 +28,7 @@ var def
 var state: State = State.ENGAGED
 var retract_progress: float = 0.0
 var current_stem_dist: float = 0.0
+var child_radius: float = 70.0
 
 func _init(link_def) -> void:
 	def = link_def
