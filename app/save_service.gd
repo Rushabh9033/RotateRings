@@ -14,11 +14,14 @@ var save_data: Dictionary = {
 		"reduced_motion": false,
 		"tutorial_seen": false
 	},
-	"hints_remaining": 3
+	"hints_remaining": 3,
+	"hammers_remaining": 3
 }
 
 const MAX_HINTS: int = 3
 const HINTS_PER_LEVEL_REWARD: int = 1
+const MAX_HAMMERS: int = 3
+const HAMMERS_PER_LEVEL_REWARD: int = 1
 
 func _ready() -> void:
 	load_data()
@@ -114,8 +117,9 @@ func record_level_completion(lvl_num: int, moves: int, par_moves: int, used_hint
 	}
 	save_data["levels"] = levels
 
-	# Reward a hint for clearing a level so the player doesn't run out by mid-game.
+	# Reward a hint and hammer for clearing a level so the player doesn't run out by mid-game.
 	refill_hints_on_level_complete()
+	refill_hammers_on_level_complete()
 
 	# Unlock only the next production level. Experimental ids do not advance the map.
 	if LevelDatabaseScript.is_level_playable(lvl_num):
@@ -150,6 +154,7 @@ func reset_all_progress() -> void:
 	save_data["highest_unlocked_level"] = 1
 	save_data["levels"] = {}
 	save_data["hints_remaining"] = MAX_HINTS
+	save_data["hammers_remaining"] = MAX_HAMMERS
 	save_data_to_disk()
 
 func get_hints_remaining() -> int:
@@ -167,6 +172,23 @@ func refill_hints_on_level_complete() -> void:
 	# Reward the player with +1 hint per level cleared, capped at MAX_HINTS.
 	var remaining: int = get_hints_remaining()
 	save_data["hints_remaining"] = mini(remaining + HINTS_PER_LEVEL_REWARD, MAX_HINTS)
+	save_data_to_disk()
+
+func get_hammers_remaining() -> int:
+	return int(save_data.get("hammers_remaining", MAX_HAMMERS))
+
+func consume_hammer() -> bool:
+	var remaining: int = get_hammers_remaining()
+	if remaining <= 0:
+		return false
+	save_data["hammers_remaining"] = remaining - 1
+	save_data_to_disk()
+	return true
+
+func refill_hammers_on_level_complete() -> void:
+	# Reward the player with +1 hammer per level cleared, capped at MAX_HAMMERS.
+	var remaining: int = get_hammers_remaining()
+	save_data["hammers_remaining"] = mini(remaining + HAMMERS_PER_LEVEL_REWARD, MAX_HAMMERS)
 	save_data_to_disk()
 
 func has_seen_tutorial() -> bool:

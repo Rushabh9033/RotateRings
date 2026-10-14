@@ -2,7 +2,24 @@
 
 ## Current State (updated: 2026-10-14)
 - **Project:** LOOPSHIFT (RotateRings) — Godot 4.7.2
-- **Status:** Complete 100-Level Campaign Audited and Verified (0 fatal errors, 100 playable); Exhaustive Codebase & Systems Analysis Completed.
+- **Status:** Interactive Hammer Tool & Unity-Quality Strike Shatter Animation Implemented; Background Clean Porcelain (#F7EFE3); 100-Level Campaign Fully Audited.
+
+#### Interactive Hammer Tool & Clean Porcelain Background (2026-10-14):
+1. **Interactive Hammer Powerup (`gameplay/hammer_animator.gd` & `scenes/gameplay/GameplayScreen.gd`):**
+   - Hammer button unlocked with active red badge (default 3 count, refilled on level complete).
+   - Matching 3D toy mallet icon (`res://art/tools/hammer_tool.png` - purple head, gold star face, wooden handle).
+   - Tapping Hammer button enters targeting mode: pointer tracks with smooth lerp and gentle floating bobbing.
+   - Hovering over a ring highlights its contour rim.
+   - Tapping any ring triggers Unity-quality multi-phase strike animation:
+     1. Windup/pullback (tilts to -65°, scales to 1.35x).
+     2. Power slam down onto ring (+24° tilt).
+     3. Impact blast: radial expanding shockwave, gold star burst particles, camera/board shake (`shake_screen`), impact sound effect.
+     4. Shatter & drop: primary target ring + 1-2 adjacent/connected rings flash bright white, emit colored ceramic shard particles, uncouple links, and drop downward with physical gravity, random spin tumble, and fade out.
+     5. Piece count updates, cascade releases are resolved, win condition evaluated.
+     6. Consumes 1 hammer count in `SaveService`, refreshes badge on the card.
+2. **Clean Game Canvas Confirmation:**
+   - Background is 100% clean porcelain cream (`#F7EFE3`). Zero vertical lines, zero orange tracks in actual gameplay.
+   - Screenshots captured and verified in `screenshots/` (`screen_gameplay.png`, `hammer_strike_impact.png`, `hammer_rings_drop.png`).
 
 #### Exhaustive Codebase & 100-Level Audit (2026-10-14):
 1. **Full 100-Level Deep Audit (`tools/audit_all_levels_deep.gd` & `tools/test_all_100_levels_runtime.gd`):**

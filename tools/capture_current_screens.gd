@@ -63,18 +63,18 @@ func _init() -> void:
 		ls.setup(save_svc, audio_svc)
 	, "screen_level_select.png", 50)
 
-	# 3. GameplayScreen
+	# 3. GameplayScreen (Level 18)
 	var gp = load("res://scenes/gameplay/GameplayScreen.tscn").instantiate()
 	await capture.call(gp, func():
 		gp.setup(save_svc, audio_svc, haptic_svc)
-		gp.load_level_by_id(4)
+		gp.load_level_by_id(18)
 		var pc = gp.puzzle_controller
 		if pc:
 			for ch in pc.pieces_container.get_children():
 				if ch is Node2D and ch.def != null:
 					ch.position = ch.def.position
 					ch.modulate.a = 1.0
-	, "screen_gameplay.png", 35)
+	, "screen_gameplay.png", 40)
 
 	# 4. SettingsModal
 	var sm = load("res://scenes/components/SettingsModal.tscn").instantiate()
@@ -95,9 +95,24 @@ func _init() -> void:
 	# 6. VictoryModal
 	var vm = load("res://scenes/components/VictoryModal.tscn").instantiate()
 	await capture.call(vm, func():
-		vm.show_victory(12, 15, true, 12, 3)
+		vm.show_victory(12, 15, true, 12, 19)
 		vm.modulate.a = 1.0
 	, "screen_victory.png", 35)
 
-	print("ALL SCREENS CAPTURED SUCCESSFULLY.")
+	# Also copy to screenshots/ folder
+	var sdir = DirAccess.open("res://")
+	if not sdir.dir_exists("screenshots"):
+		sdir.make_dir("screenshots")
+	for sname in ["screen_home.png", "screen_level_select.png", "screen_gameplay.png", "screen_settings.png", "screen_pause.png", "screen_victory.png"]:
+		var src_path = "_godot_test_out/" + sname
+		var dst_path = "screenshots/" + sname
+		if FileAccess.file_exists(src_path):
+			var f_src = FileAccess.open(src_path, FileAccess.READ)
+			var buf = f_src.get_buffer(f_src.get_length())
+			f_src.close()
+			var f_dst = FileAccess.open(dst_path, FileAccess.WRITE)
+			f_dst.store_buffer(buf)
+			f_dst.close()
+
+	print("ALL SCREENS CAPTURED AND COPIED TO screenshots/ SUCCESSFULLY.")
 	quit(0)

@@ -94,6 +94,20 @@ func play_hint() -> void:
 	ui_player.volume_db = -4.0
 	ui_player.play()
 
+func play_hammer_swing() -> void:
+	if not is_sound_enabled(): return
+	var stream := generate_sine_tone(240.0, 0.14, 2.5, 0.45)
+	ui_player.stream = stream
+	ui_player.volume_db = -3.0
+	ui_player.play()
+
+func play_hammer_impact() -> void:
+	if not is_sound_enabled(): return
+	var stream := generate_touch_clack()
+	click_player.stream = stream
+	click_player.volume_db = 3.0
+	click_player.play()
+
 func generate_sine_tone(freq: float, duration: float, decay_power: float, gain: float) -> AudioStreamWAV:
 	var sample_rate := 44100
 	var frames := int(sample_rate * duration)

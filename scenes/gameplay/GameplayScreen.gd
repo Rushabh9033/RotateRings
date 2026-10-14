@@ -7,6 +7,7 @@ const DroppedRing2DScript = preload("res://gameplay/dropped_ring_2d.gd")
 const UiTheme = preload("res://app/ui_theme.gd")
 const LevelDocumentScript = preload("res://data/level_document.gd")
 const EditorToolbarScript = preload("res://scenes/editor/EditorToolbar.gd")
+const HammerAnimatorScript = preload("res://gameplay/hammer_animator.gd")
 
 signal back_to_levels_requested
 signal back_to_home_requested
@@ -38,6 +39,7 @@ var save_service: Node = null
 var audio_service: Node = null
 var haptic_service: Node = null
 var mascot: Node2D = null
+var hammer_animator: Node2D = null
 
 var current_level_id: int = 1
 var current_score: int = 0
@@ -53,8 +55,17 @@ func setup(save_svc: Node, audio_svc: Node, haptic_svc: Node) -> void:
 		pause_modal.setup(save_service)
 		edit_overlay.set_puzzle(puzzle_controller)
 		edit_overlay.set_level_id(current_level_id)
+	if hammer_animator != null:
+		hammer_animator.setup(self, puzzle_controller, audio_service)
 
 func _ready() -> void:
+	# Dedicated Hammer Powerup Animator
+	hammer_animator = HammerAnimatorScript.new()
+	add_child(hammer_animator)
+	hammer_animator.setup(self, puzzle_controller, audio_service)
+	hammer_animator.targeting_cancelled.connect(_on_hammer_cancelled)
+	hammer_animator.smash_completed.connect(_on_hammer_smash_finished)
+
 	if save_service != null and puzzle_controller != null and pause_modal != null and edit_overlay != null:
 		puzzle_controller.setup(audio_service, haptic_service, save_service)
 		pause_modal.setup(save_service)
@@ -71,8 +82,9 @@ func _ready() -> void:
 	back_btn.pressed.connect(_on_back_pressed)
 	_apply_chrome()
 	if rocket_btn: rocket_btn.pressed.connect(_on_hint_pressed)
-	# Hammer is locked, do not connect to hint
-	if hammer_btn: hammer_btn.disabled = true
+	if hammer_btn:
+		hammer_btn.disabled = false
+		hammer_btn.pressed.connect(_on_hammer_pressed)
 	
 	mascot = MascotCompanionScript.new()
 	mascot.position = Vector2(get_viewport().get_visible_rect().size.x * 0.5, 200.0)
@@ -123,6 +135,10 @@ func _load_definition(lvl_id: int, def) -> bool:
 	target_score = 0
 	total_pieces_in_level = 0
 	score_lbl.text = "0"
+	
+	if hammer_animator:
+		hammer_animator.cancel_targeting()
+	_refresh_hammer_badge()
 	
 	pause_modal.hide()
 	victory_modal.hide()
@@ -246,7 +262,8 @@ func _apply_chrome() -> void:
 
 	var hammer_card := get_node_or_null("SafeArea/BottomHUD/HammerCard") as PanelContainer
 	if hammer_card and hammer_btn:
-		_mount_powerup_card(hammer_card, hammer_btn, load("res://art/tools/hammer_tool.png"), "locked")
+		var hammer_count: String = str(save_service.get_hammers_remaining()) if save_service else "3"
+		_mount_powerup_card(hammer_card, hammer_btn, load("res://art/tools/hammer_tool.png"), hammer_count)
 
 	UiTheme.apply_font(self)
 
@@ -289,8 +306,9 @@ func _on_level_completed(moves: int, par_moves: int, used_hint: bool) -> void:
 	if haptic_service:
 		haptic_service.trigger_level_complete()
 
-	# Refill happens inside record_level_completion — refresh the badge so the +1 is visible.
+	# Refill happens inside record_level_completion — refresh the badges so the +1 is visible.
 	_refresh_hint_badge()
+	_refresh_hammer_badge()
 		
 	# Trigger Mascot Portal Completion Sequence!
 	var viewport_center = get_viewport().get_visible_rect().size * 0.5
@@ -734,6 +752,79 @@ func _flash_hint_badge() -> void:
 		var t := create_tween().set_loops(2)
 		t.tween_property(badge, "modulate:a", 0.3, 0.1)
 		t.tween_property(badge, "modulate:a", 1.0, 0.1)
+
+func _unhandled_input(event: InputEvent) -> void:
+	if hammer_animator and hammer_animator.is_targeting:
+		if hammer_animator.handle_input(event):
+			get_viewport().set_input_as_handled()
+
+func _on_hammer_pressed() -> void:
+	if hammer_animator == null: return
+	if hammer_animator.is_targeting or hammer_animator.is_striking:
+		hammer_animator.cancel_targeting()
+		_set_hammer_card_active(false)
+		return
+	
+	var remaining: int = save_service.get_hammers_remaining() if save_service else 3
+	if remaining <= 0:
+		_flash_hammer_badge()
+		if audio_service: audio_service.play_ui_tap()
+		return
+	
+	hammer_animator.start_targeting()
+	_set_hammer_card_active(true)
+	if audio_service and audio_service.has_method("play_hammer_swing"):
+		audio_service.play_hammer_swing()
+	elif audio_service:
+		audio_service.play_ui_tap()
+
+func _on_hammer_cancelled() -> void:
+	_set_hammer_card_active(false)
+
+func _on_hammer_smash_finished() -> void:
+	_set_hammer_card_active(false)
+	if save_service:
+		save_service.consume_hammer()
+	_refresh_hammer_badge()
+
+func _set_hammer_card_active(active: bool) -> void:
+	var card := get_node_or_null("SafeArea/BottomHUD/HammerCard") as PanelContainer
+	if card:
+		var tw = card.create_tween().set_trans(Tween.TRANS_SPRING).set_ease(Tween.EASE_OUT)
+		if active:
+			tw.tween_property(card, "scale", Vector2(1.12, 1.12), 0.15)
+			card.modulate = Color(1.18, 1.15, 1.05, 1.0)
+		else:
+			tw.tween_property(card, "scale", Vector2.ONE, 0.15)
+			card.modulate = Color.WHITE
+
+func _refresh_hammer_badge() -> void:
+	var badge = get_node_or_null("SafeArea/BottomHUD/HammerCard/Badge/BadgeLbl")
+	if badge and badge is Label:
+		var remaining: int = save_service.get_hammers_remaining() if save_service else 3
+		badge.text = str(remaining)
+		var badge_panel = badge.get_parent()
+		if badge_panel:
+			badge_panel.visible = true
+
+func _flash_hammer_badge() -> void:
+	var badge = get_node_or_null("SafeArea/BottomHUD/HammerCard/Badge")
+	if badge:
+		var t := create_tween().set_loops(2)
+		t.tween_property(badge, "modulate:a", 0.3, 0.1)
+		t.tween_property(badge, "modulate:a", 1.0, 0.1)
+
+func shake_screen(strength: float = 8.0, duration: float = 0.24) -> void:
+	var puzzle_area = get_node_or_null("PuzzleArea")
+	if puzzle_area == null: return
+	var orig_pos = puzzle_area.position
+	var tw = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	var steps: int = int(duration / 0.04)
+	for i in steps:
+		var factor: float = float(steps - i) / float(steps)
+		var offset := Vector2(randf_range(-strength, strength), randf_range(-strength, strength)) * factor
+		tw.tween_property(puzzle_area, "position", orig_pos + offset, 0.04)
+	tw.tween_property(puzzle_area, "position", orig_pos, 0.04)
 
 func _fire_confetti(pos: Vector2) -> void:
 	var chunk_tex := _chunk_texture()
