@@ -54,9 +54,7 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F2:
 		if level_editor.visible:
 			level_editor.hide()
-			if home_screen: home_screen.show()
-			if level_select_screen: level_select_screen.show()
-			if gameplay_screen: gameplay_screen.show()
+			if scene_router: scene_router.restore_screen()
 		else:
 			if home_screen: home_screen.hide()
 			if level_select_screen: level_select_screen.hide()

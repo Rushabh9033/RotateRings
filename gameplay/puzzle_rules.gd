@@ -90,7 +90,7 @@ static func is_piece_rotatable(piece, _all_pieces: Array, links: Array) -> bool:
 
 static func cuff_world_angle_deg(child, link, pieces: Array) -> float:
 	var parent_p = get_piece_by_id(link.def.from_piece_id, pieces)
-	if _is_gone(parent_p) and parent_p == null:
+	if parent_p == null or _is_gone(parent_p):
 		return 0.0
 	var world_rad: float = deg_to_rad(parent_p.rotation_degrees + link.def.collar_angle_deg)
 	var dir := Vector2.from_angle(world_rad)

@@ -114,6 +114,8 @@ func setup(audio: Node, haptic: Node, save_svc: Node = null) -> void:
 	hint_controller.setup(audio)
 
 func load_level(def) -> void:
+	if pieces_container == null:
+		_ready()
 	if def == null:
 		push_warning("PuzzleController.load_level received null and did not substitute Level 1.")
 		return
@@ -232,7 +234,7 @@ func load_level(def) -> void:
 	_intro_token += 1
 	var expected_token = _intro_token
 	_is_intro_done = false
-	if get_tree():
+	if is_inside_tree() and get_tree():
 		get_tree().create_timer(total_drop_time).timeout.connect(func():
 			if _intro_token == expected_token:
 				_is_intro_done = true

@@ -70,6 +70,20 @@ func show_home() -> void:
 	if gameplay_screen: gameplay_screen.hide()
 	if editor_screen: editor_screen.hide()
 
+func restore_screen() -> void:
+	match current_screen:
+		Screen.HOME:
+			show_home()
+		Screen.LEVEL_SELECT:
+			show_level_select()
+		Screen.GAMEPLAY:
+			if home_screen: home_screen.hide()
+			if level_select_screen: level_select_screen.hide()
+			if gameplay_screen: gameplay_screen.show()
+			if editor_screen: editor_screen.hide()
+		Screen.EDITOR, _:
+			show_home()
+
 func show_level_select() -> void:
 	current_screen = Screen.LEVEL_SELECT
 	if level_select_screen and level_select_screen.has_method("build_grid"):

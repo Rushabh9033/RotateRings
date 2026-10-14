@@ -16,7 +16,7 @@ enum State {
 # Tuned so the cuff is larger than ring thickness and the gap comfortably accommodates
 # the sleeve width with margin. Tweak these together with GAP_WIDTH_DEG in json_to_gd.py
 # and thickness in PieceDefinition to keep all visuals balanced.
-const TANGENTIAL_WIDTH := 32.0      # sleeve width along the ring arc
+const TANGENTIAL_WIDTH := 34.0      # sleeve width along the ring arc
 const RADIAL_DEPTH := 29.0          # sleeve radial height (compact, covers 22px/26px ring tube)
 const STEM_RADIUS := 6.25           # stem radius (stem thickness 12.5 px)
 const SAFETY_MARGIN := 3.0

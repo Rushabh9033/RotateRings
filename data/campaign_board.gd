@@ -942,15 +942,15 @@ static func _authored(level_id: int) -> Dictionary:
 			# Bottom: orange and green bars, green C-ring, red bar with lock
 			return _open_root(68, 90.0, [
 				_k(-180, 64, 90.0, [    # Orange full ring top-left (has honey)
-					_k(-135, 0, 0.0, [     # Green L-bar
-						_k(-90, 0, 0.0, [      # Dark blue bar top
-							_k(-45, 0, 0.0),       # Purple bar
+					_k(-135, 56.0, 90.0, [     # Green L-bar
+						_k(-90, 56.0, 90.0, [      # Dark blue bar top
+							_k(-45, 56.0, 90.0),       # Purple bar
 						]),
 					]),
 				]),
 				_k(-120, 60, 132.0, [   # Dark blue C-ring left
 					_k(-60, 58, 148.0, [   # Purple C-ring
-						_k(0, 0, 0.0),         # Orange bar right
+						_k(0, 56.0, 90.0),         # Orange bar right
 					]),
 				]),
 				_k(0, 72, 90.0, [       # Light cyan full ring center
@@ -963,7 +963,7 @@ static func _authored(level_id: int) -> Dictionary:
 						_k(90, 58, 155.0),     # Light cyan curved section
 					]),
 				]),
-				_k(135, 0, 0.0, [       # Purple L-bar bottom-right
+				_k(135, 56.0, 90.0, [       # Purple L-bar bottom-right
 					_k(180, 66, 132.0, [   # Light cyan C-ring
 						_k(-135, 60, 148.0, [  # Green full ring
 							_k(-90, 58, 142.0, [   # Orange C-ring
@@ -972,10 +972,10 @@ static func _authored(level_id: int) -> Dictionary:
 						]),
 					]),
 				]),
-				_k(-180, 0, 0.0, [      # Orange bar bottom-left
-					_k(-135, 0, 0.0, [     # Green bar
+				_k(-180, 56.0, 90.0, [      # Orange bar bottom-left
+					_k(-135, 56.0, 90.0, [     # Green bar
 						_k(-90, 56, 135.0, [   # Green C-ring
-							_k(-45, 0, 0.0),       # Red bar with lock
+							_k(-45, 56.0, 90.0),       # Red bar with lock
 						]),
 					]),
 				]),
@@ -1003,7 +1003,7 @@ static func _authored(level_id: int) -> Dictionary:
 				]),
 				_k(30, 66, 135.0, [     # Purple C-ring right
 					_k(90, 58, 150.0, [    # Orange C-ring
-						_k(150, 0, 0.0),       # Light cyan bar lock
+						_k(150, 56.0, 90.0),       # Light cyan bar lock
 					]),
 				]),
 				_k(0, 68, 90.0, [       # Light cyan curved section center
@@ -1017,8 +1017,8 @@ static func _authored(level_id: int) -> Dictionary:
 					_k(-135, 58, 148.0, [  # Purple C-ring
 						_k(-90, 60, 142.0, [   # Orange full ring
 							_k(-45, 56, 155.0, [   # Light cyan C-ring
-								_k(0, 0, 0.0, [        # Red bar
-									_k(45, 0, 0.0),        # Light cyan bar lock
+								_k(0, 56.0, 90.0, [        # Red bar
+									_k(45, 56.0, 90.0),        # Light cyan bar lock
 								]),
 							]),
 						]),
@@ -1034,11 +1034,11 @@ static func _authored(level_id: int) -> Dictionary:
 			# Lower-left: green curved section with lock, light cyan bar
 			# Bottom: orange full ring (has honey), dark blue full ring, purple full ring (has honey)
 			# Red C-ring, orange bar, green C-ring bottom-right
-			return _open_root(0, 0.0, [  # No central root, complex bar structure
+			return _open_root(68.0, 90.0, [  # No central root, complex bar structure
 				# Top section
-				_k(-180, 0, 0.0, [      # Green bar far-left
-					_k(-150, 0, 0.0, [     # Purple bar with lock
-						_k(-120, 0, 0.0),      # Light cyan C-ring
+				_k(-180, 56.0, 90.0, [      # Green bar far-left
+					_k(-150, 56.0, 90.0, [     # Purple bar with lock
+						_k(-120, 56.0, 90.0),      # Light cyan C-ring
 					]),
 				]),
 				_k(-90, 60, 125.0, [    # Purple curved section top
@@ -1046,29 +1046,29 @@ static func _authored(level_id: int) -> Dictionary:
 						_k(30, 56, 135.0),     # Green C-ring (has honey)
 					]),
 				]),
-				_k(0, 0, 0.0, [         # Green bar top-right
-					_k(30, 0, 0.0, [       # Dark blue bar
-						_k(60, 0, 0.0),        # (Lock point)
+				_k(0, 56.0, 90.0, [         # Green bar top-right
+					_k(30, 56.0, 90.0, [       # Dark blue bar
+						_k(60, 56.0, 90.0),        # (Lock point)
 					]),
 				]),
 				# Middle section
 				_k(-120, 64, 130.0, [   # Dark blue C-ring left
 					_k(-60, 62, 148.0, [   # Light cyan full ring
 						_k(0, 58, 140.0, [     # Orange curved section
-							_k(60, 0, 0.0),        # Green bar lock
+							_k(60, 56.0, 90.0),        # Green bar lock
 						]),
 					]),
 				]),
-				_k(90, 0, 0.0, [        # Purple U-shape bar right
+				_k(90, 56.0, 90.0, [        # Purple U-shape bar right
 					_k(120, 60, 145.0, [   # Orange C-ring
-						_k(150, 0, 0.0, [      # Light cyan bar
-							_k(180, 0, 0.0),       # Green-red connector
+						_k(150, 56.0, 90.0, [      # Light cyan bar
+							_k(180, 56.0, 90.0),       # Green-red connector
 						]),
 					]),
 				]),
 				# Bottom section
-				_k(-180, 0, 0.0, [      # Green curved section bottom-left (lock)
-					_k(-150, 0, 0.0, [     # Light cyan bar
+				_k(-180, 56.0, 90.0, [      # Green curved section bottom-left (lock)
+					_k(-150, 56.0, 90.0, [     # Light cyan bar
 						_k(-120, 56, 132.0, [  # Orange full ring (has honey)
 							_k(-90, 58, 148.0, [   # Dark blue full ring
 								_k(-60, 60, 142.0, [   # Purple full ring (has honey)
@@ -1078,7 +1078,7 @@ static func _authored(level_id: int) -> Dictionary:
 						]),
 					]),
 				]),
-				_k(135, 0, 0.0, [       # Orange bar bottom-right
+				_k(135, 56.0, 90.0, [       # Orange bar bottom-right
 					_k(180, 64, 138.0),    # Green C-ring
 				]),
 			])
@@ -2422,7 +2422,6 @@ static func _authored(level_id: int) -> Dictionary:
 
 			var root := _n(4.0, C, 1, 0.0, 0, [
 				[-150.0, top_blue_L],
-				[-60.0, top_green],
 				[60.0, top_right],
 				[-120.0, cyan_hub],
 				[0.0, green_hub],
