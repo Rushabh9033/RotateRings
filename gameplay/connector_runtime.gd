@@ -17,8 +17,8 @@ enum State {
 # the sleeve width with margin. Tweak these together with GAP_WIDTH_DEG in json_to_gd.py
 # and thickness in PieceDefinition to keep all visuals balanced.
 const TANGENTIAL_WIDTH := 32.0      # sleeve width along the ring arc
-const RADIAL_DEPTH := 18.0          # sleeve radial height (thicker than ring tube)
-const STEM_RADIUS := 6.0
+const RADIAL_DEPTH := 32.0          # sleeve radial height (larger than ring tube so ring is fully covered)
+const STEM_RADIUS := 7.5            # stem radius (stem thickness 15.0 px)
 const SAFETY_MARGIN := 3.0
 const CLEARANCE_MARGIN := 3.0
 # Extra space required between solid bodies (ring tubes, cuffs, stems).

@@ -583,18 +583,23 @@ func _on_cuffs_layer_draw(ci: CanvasItem) -> void:
 		var c_light = collar_color.lightened(0.25)
 		c_light.a = 0.65
 
-		var sleeve_tangent_span := ConnectorRuntime.TANGENTIAL_WIDTH
-		var sleeve_radial_depth := ConnectorRuntime.RADIAL_DEPTH
+		var child_thick: float = 26.0
+		var to_p = PuzzleRulesScript.get_piece_by_id(link.def.to_piece_id, active_pieces)
+		if is_instance_valid(to_p) and "thickness" in to_p:
+			child_thick = float(to_p.thickness)
+
+		var sleeve_tangent_span: float = 42.0
+		var sleeve_radial_depth: float = maxf(40.0, child_thick + 16.0)
 		var half_st := sleeve_tangent_span * 0.5
 		var half_rd := sleeve_radial_depth * 0.5
-		var cuff_corner_r := 5.0
+		var cuff_corner_r := 7.0
 
 		ci.draw_set_transform(pos_cuff, tangent.angle(), Vector2.ONE)
 
 		# 1. Soft drop shadow
 		_draw_rounded_rect(ci, Rect2(-half_st, -half_rd + 5.0, sleeve_tangent_span, sleeve_radial_depth), Color(0.20, 0.14, 0.10, 0.12), cuff_corner_r)
 
-		# 2. Main collar body
+		# 2. Main collar body (completely envelopes the child ring tube underneath)
 		_draw_rounded_rect(ci, Rect2(-half_st, -half_rd, sleeve_tangent_span, sleeve_radial_depth), c_main, cuff_corner_r)
 
 		# 3. Soft upper light sheen
@@ -620,8 +625,9 @@ func _on_cuffs_layer_draw(ci: CanvasItem) -> void:
 		else:
 			sleeves_data = [{ "x": p_def.position.x, "y": p_def.position.y, "axis": default_axis }]
 
-		var slv_len := 20.0
-		var slv_w := 18.0
+		var p_thick: float = float(p.thickness) if "thickness" in p else 26.0
+		var slv_len := 26.0
+		var slv_w := maxf(34.0, p_thick + 8.0)
 
 		for slv_item in sleeves_data:
 			var item_pos: Vector2 = Vector2(float(slv_item.x), float(slv_item.y)) if slv_item is Dictionary else slv_item.position
