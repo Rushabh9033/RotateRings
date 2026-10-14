@@ -2,25 +2,35 @@
 
 ## Current State (updated: 2026-10-14)
 - **Project:** LOOPSHIFT (RotateRings) — Godot 4.7.2
-- **Status:** Interactive Hammer Strike Verified & Smashing Rings; Clean Porcelain Canvas Enforced; All Tests Green.
+- **Status:** Hammer Powerup Fully Upgraded (Dark Smoke Backdrop, Popout Shapes, Exact Hammer Prompt Banner, Random 1-to-Multiple Ring Breakage, Realistic Small Colored Rock Shattering); 6K Ultra-Crisp Rendering Enforced; All Automated Tests Green.
 
-#### Interactive Hammer Input & Ring Smashing Verified (2026-10-14):
-1. **Interactive Hammer Input Interception (`gameplay/hammer_animator.gd` & `scenes/gameplay/GameplayScreen.gd`):**
-   - **Root Cause of Floating Hammer:** `PuzzleController._unhandled_input` was catching ring click events before `GameplayScreen._unhandled_input` because `PuzzleController` is a child node in the tree. It was initiating drag/jiggle and calling `set_input_as_handled()`. Also, `puzzle_controller.is_active` was not frozen on targeting start, and misses prematurely cancelled targeting.
-   - **Fix Implemented:**
-     - `HammerAnimator` now directly intercepts touch/mouse events via `_input(event)`.
-     - `_find_hit_piece()` uses two-stage detection: `drag_controller.resolve_hit()` geometry check first, with generous radial distance fallback ($\text{radius} \times \text{scale} + 54\text{px}$).
-     - Tapping empty puzzle space does NOT cancel targeting — the hammer stays floating and responsive until a ring is tapped or the hammer button is toggled.
-     - `GameplayScreen._on_hammer_pressed()` freezes `puzzle_controller.is_active = false` and pauses input; `_on_hammer_cancelled()` and `_on_hammer_smash_finished()` cleanly restore `puzzle_controller.is_active = true`.
-     - Target ring + 1–2 adjacent connected rings shatter, emit color-matched ceramic shards, and drop via gravity tumble.
-     - Hammer count consumes ($3 \rightarrow 2$), badge updates, cascades and win conditions resolve.
-   - **End-to-End Test (`tools/test_hammer_live_interaction.gd`):**
-     - Automatically simulates Level 4 gameplay, enters hammer mode, clicks `ring_orange`, verifies strike sequence, drops 2 pieces ($7 \rightarrow 5$), consumes 1 hammer, restores puzzle state. **PASSED 100%**.
-2. **Clean Canvas & Removal of Background Vertical Lines:**
-   - Locked `ScorePill` with `clip_contents = true`, `size_flags_vertical = SIZE_SHRINK_CENTER`, `size_flags_horizontal = SIZE_SHRINK_CENTER`, preventing any container stretching.
-   - Cleaned `app/ui_backdrop.gd`: removed `_corner_ring` and edge rects so no background artifacts or lines appear.
-   - Background confirmed 100% pure porcelain cream (`#F7EFE3`).
-   - Verified via pixel checks and captured screenshots in `screenshots/` (`screen_gameplay.png`, `hammer_strike_impact.png`, `hammer_rings_drop.png`).
+#### Hammer Tool & Visual Polish Upgrade (2026-10-14):
+1. **Atmospheric Dark Smoke Backdrop & Popout (`gameplay/hammer_animator.gd`):**
+   - When Hammer tool is activated (`start_targeting`), the background smoothly cross-fades into rich dark smoke charcoal (`#121017`, 94% opacity).
+   - Puzzle controller and active shapes dynamically pop out (`z_index = 65`, spring scale 1.035, brightness modulate `(1.18, 1.18, 1.14)`), giving high-contrast focus on the rings.
+   - Smoothly restores to normal gameplay background upon strike or cancellation.
+2. **Exact Hammer Prompt Banner:**
+   - Displays a sleek floating frosted pill centered above the puzzle area (`y = 136.0`).
+   - Contains the exact 3D hammer icon (crisp 36x36px render from tool card) and text: `"Tap any object to smash it"`.
+   - Polished with amber glowing rim, gentle spring entrance, subtle idle breathing bob, and seamless exit fade.
+3. **Random Breakage (Single vs Multiple Rings):**
+   - Strike now rolls weighted random breakage:
+     - ~45% chance: Single ring (only the tapped ring breaks).
+     - ~35% chance: Double rings (tapped ring + 1 adjacent/connected ring).
+     - ~20% chance: Triple rings (tapped ring + 2 adjacent/connected rings).
+4. **Physical Colored Rocks Shattering (`ColoredRockChunk`):**
+   - The intact victim rings vanish instantly on impact (`v.visible = false`), replaced by bursting small colored rocks matching the ring's exact color.
+   - Each rock is rendered as a 5-7 vertex irregular polygon with 4-layer shading: soft drop shadow, dark stone rim, vibrant rock face, and top specular chiseled facet.
+   - Spawns 16-20 rock chunks + 8-10 micro-gravel crumbs per victim ring, blasting radially outward away from the hammer impact point with upward arc lift, 1350 px/s² gravity, and tumbling angular spin.
+5. **6K Visual Clarity & Rendering Settings (`project.godot`):**
+   - Added `textures/canvas_textures/default_texture_filter=2` (Linear Mipmap for razor-sharp textures without downsampling pixelation).
+   - Added `gui/theme/default_font_subpixel_positioning=3` (One Quarter of a Pixel for ultra-sharp typography on high-DPI displays).
+   - Enabled `anti_aliasing/quality/msaa_2d=3` (8x MSAA) for smooth anti-aliased geometry curves.
+6. **Automated Verification:**
+   - `tools/test_hammer_live_interaction.gd` passed 100%.
+   - `tools/test_hammer_tool_runtime.gd` passed 100%.
+   - Visual verification screenshots captured: `hammer_targeting_smoke.png`, `hammer_strike_impact.png`, `hammer_colored_rocks.png`.
+
 
 #### Exhaustive Codebase & 100-Level Audit (2026-10-14):
 1. **Full 100-Level Deep Audit (`tools/audit_all_levels_deep.gd` & `tools/test_all_100_levels_runtime.gd`):**

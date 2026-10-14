@@ -20,27 +20,46 @@ func _init() -> void:
 	vp.add_child(audio_service)
 
 	var screen = GameplayScreenScene.instantiate()
+	screen.size = Vector2(720, 1280)
 	vp.add_child(screen)
 	screen.setup(save_service, audio_service, null)
 
 	if not screen.is_node_ready():
 		await screen.ready
-	screen.load_level_by_id(18)
-
-	for i in range(30):
-		await process_frame
+	screen.load_level_by_id(4)
 
 	var pc = screen.puzzle_controller
-	var target_piece = pc.active_pieces[0]
+	for tw in pc._active_drop_tweens:
+		if is_instance_valid(tw):
+			tw.custom_step(3.0)
+	for p in pc.active_pieces:
+		if is_instance_valid(p) and p.def:
+			p.position = p.def.position
+			p.modulate.a = 1.0
 
-	# Start targeting
+	screen._frame_puzzle()
+
+	for i in range(10):
+		await process_frame
+
+	var target_piece = pc.active_pieces[0] # ring_orange
+
+	# 1. Start targeting mode
 	screen._on_hammer_pressed()
 
-	# Trigger smash on target piece
+	for i in range(25):
+		await process_frame
+
+	var img_targeting = vp.get_texture().get_image()
+	if img_targeting != null:
+		img_targeting.save_png("screenshots/hammer_targeting_smoke.png")
+		print("Saved screenshots/hammer_targeting_smoke.png")
+
+	# 2. Trigger smash
 	screen.hammer_animator.execute_smash(target_piece)
 
-	# Advance to impact frame (windup ~0.16s + slam ~0.10s = ~0.26s -> ~16 frames at 60fps)
-	for i in range(16):
+	# Advance 32 frames to reach power slam impact
+	for i in range(32):
 		await process_frame
 
 	var img_strike = vp.get_texture().get_image()
@@ -48,14 +67,14 @@ func _init() -> void:
 		img_strike.save_png("screenshots/hammer_strike_impact.png")
 		print("Saved screenshots/hammer_strike_impact.png")
 
-	# Advance to ring shatter and gravity drop frame
-	for i in range(15):
+	# Advance another 16 frames into rock explosion
+	for i in range(16):
 		await process_frame
 
-	var img_drop = vp.get_texture().get_image()
-	if img_drop != null:
-		img_drop.save_png("screenshots/hammer_rings_drop.png")
-		print("Saved screenshots/hammer_rings_drop.png")
+	var img_rocks = vp.get_texture().get_image()
+	if img_rocks != null:
+		img_rocks.save_png("screenshots/hammer_colored_rocks.png")
+		print("Saved screenshots/hammer_colored_rocks.png")
 
-	print("HAMMER ANIMATION CAPTURE COMPLETE.")
+	print("HAMMER ANIMATION & ROCKS CAPTURE COMPLETE.")
 	quit(0)

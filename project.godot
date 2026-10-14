@@ -29,6 +29,12 @@ window/handheld/orientation=1
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+textures/canvas_textures/default_texture_filter=2
 textures/vram_compression/import_etc2_astc=true
-environment/defaults/default_clear_color=Color(0.964706, 0.921569, 0.866667, 1)
+environment/defaults/default_clear_color=Color(0.968627, 0.937255, 0.890196, 1)
 anti_aliasing/quality/msaa_2d=3
+
+[gui]
+
+theme/default_font_subpixel_positioning=3
+
